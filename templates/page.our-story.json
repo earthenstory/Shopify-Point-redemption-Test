@@ -1,0 +1,184 @@
+{
+  "sections": {
+    "our_story_main": {
+      "type": "our-story",
+      "blocks": {
+        "problem-1": {
+          "type": "problem_card",
+          "settings": {
+            "icon": "🌾",
+            "title": "Pesticides — with no proof of testing",
+            "body": "India is among the world's largest users of pesticides. Organic on a label is a claim, not proof. Most products we examined carried no independent lab verification. Residues accumulate silently — effects are long-term, largely invisible, and rarely traced back to food. Safety should be proven, not assumed.",
+            "video_id": "https:\/\/youtu.be\/vvo4cIxD7BM?si=hQurOJirgS6-sMZq",
+            "video_label": "The Real Problem with Pesticides in Indian Food"
+          }
+        },
+        "problem-2": {
+          "type": "problem_card",
+          "settings": {
+            "icon": "🏭",
+            "title": "Ultra-processing that strips nutrition",
+            "body": "Industrial food processing — refining, high-heat extraction, chemical treatment — is built for margin and shelf life, not nutrition. Traditional methods like bilona churning, cold pressing, and stone grinding take longer and cost more, preserving what the ingredient was meant to contain. We have never compromised on this.",
+            "video_id": "https:\/\/youtu.be\/2MjBJI8r_dI?si=GPaSWimLBNC3c61Q",
+            "video_label": "Why Ultra-Processing Strips the Food You Think You're Eating"
+          }
+        },
+        "founder-1": {
+          "type": "founder",
+          "settings": {
+            "name": "Ashish Agarwal",
+            "role": "Co-Founder",
+            "youtube_video_id": "https:\/\/youtu.be\/Q1Arflv9v9k?si=zKHqfeMfH0zcd0lU",
+            "cred1": "B.Tech, IIT Roorkee · MBA, IIM Calcutta",
+            "cred2": "15 years — investment banking and private equity",
+            "bio": "Systems thinker with deep capital allocation experience in healthcare and consumer businesses. Leads strategy, sourcing standards, and the brand's public thinking on food systems.",
+            "linkedin_url": "",
+            "youtube_url": "",
+            "substack_url": "",
+            "instagram_url": ""
+          }
+        },
+        "founder-2": {
+          "type": "founder",
+          "settings": {
+            "name": "Shashank Agrawal",
+            "role": "Co-Founder",
+            "youtube_video_id": "https:\/\/youtube.com\/shorts\/j9_WgYV46-I?feature=share",
+            "cred1": "B.Tech, VIT Vellore · MS, USA",
+            "cred2": "10+ years — Amazon, US and India",
+            "bio": "Brings Amazon-scale operational rigour to procurement, testing protocols, supplier evaluation, and fulfilment. The execution backbone behind everything we have built.",
+            "linkedin_url": "",
+            "youtube_url": "",
+            "substack_url": "",
+            "instagram_url": ""
+          }
+        },
+        "founder-3": {
+          "type": "founder",
+          "settings": {
+            "name": "Shivangi Agrawal",
+            "role": "Co-Founder",
+            "youtube_video_id": "",
+            "cred1": "B.Com, MBA · Fashion and design",
+            "cred2": "Mother of two",
+            "bio": "Became a mother and couldn't find food she could verify as genuinely clean. Built the supply chain from scratch. Brings a consumer's instinct and a mother's standards to every product decision.",
+            "linkedin_url": "",
+            "youtube_url": "",
+            "substack_url": "",
+            "instagram_url": ""
+          }
+        },
+        "method-1": {
+          "type": "method",
+          "settings": {
+            "icon": "🌾",
+            "tag": "Flours",
+            "name": "Stone Grinding",
+            "description": "100% whole grain, slow-ground between stone wheels. Bran and germ remain fully intact — the nutrition roller milling strips away stays in."
+          }
+        },
+        "method-2": {
+          "type": "method",
+          "settings": {
+            "icon": "🫒",
+            "tag": "Oils",
+            "name": "Cold Pressing",
+            "description": "Mechanical extraction at low temperature — no heat, no solvents. Oil retains its natural flavour, colour, and nutritional profile exactly as found in the seed."
+          }
+        },
+        "method-3": {
+          "type": "method",
+          "settings": {
+            "icon": "🫙",
+            "tag": "Ghee",
+            "name": "Bilona Churning",
+            "description": "Traditional hand-churning of cultured curd, not cream separation. Preserves butyric acid, CLA, and fat-soluble vitamins that industrial production removes."
+          }
+        },
+        "platform-0": {
+          "type": "platform",
+          "settings": {
+            "logo": "📸",
+            "name": "Instagram",
+            "url": "https:\/\/www.instagram.com\/earthenstory",
+            "handle": "@earthenstory",
+            "blurb": "Behind-the-scenes of our sourcing, processing, and testing — visual stories from farms and our kitchen."
+          }
+        },
+        "platform-1": {
+          "type": "platform",
+          "settings": {
+            "logo": "▶️",
+            "name": "YouTube",
+            "url": "https:\/\/www.youtube.com\/@earthenstory",
+            "handle": "@earthenstory",
+            "blurb": "Videos on food science, pesticide testing, and the evidence behind what we do. Research-backed, no product marketing."
+          }
+        },
+        "platform-2": {
+          "type": "platform",
+          "settings": {
+            "logo": "💼",
+            "name": "LinkedIn",
+            "url": "https:\/\/www.linkedin.com\/company\/107798390\/",
+            "handle": "Earthen Story",
+            "blurb": "Long-form thinking on food systems, preventive health, and how incentives in the food industry shape what ends up on your plate."
+          }
+        },
+        "platform-3": {
+          "type": "platform",
+          "settings": {
+            "logo": "📝",
+            "name": "Substack",
+            "url": "https:\/\/beforeplate.substack.com\/",
+            "handle": "The Earthen Story Letter",
+            "blurb": "Deeper pieces on food, health, and the systems behind what we eat. For readers who want the full argument, not just the summary."
+          }
+        }
+      },
+      "block_order": [
+        "problem-1",
+        "problem-2",
+        "founder-1",
+        "founder-2",
+        "founder-3",
+        "method-1",
+        "method-2",
+        "method-3",
+        "platform-0",
+        "platform-1",
+        "platform-2",
+        "platform-3"
+      ],
+      "settings": {
+        "opening_quote": "<p>We started Earthen Story because we couldn't find food we <strong>actually trusted.<\/strong><\/p>",
+        "opening_body": "Not food with a label that said organic — food we could verify. Where it was grown, what it was tested for, how it was processed. That standard didn't exist in a form we could rely on. So we built it, starting from two specific problems we kept running into.",
+        "problems_heading": "Two Problems We Set Out to Solve",
+        "founders_heading": "Who We Are",
+        "solution1_heading": "How we tackle pesticides — certified sourcing and rigorous testing",
+        "sol1_card1_icon": "📜",
+        "sol1_card1_title": "Certified Organic Sourcing with Transaction Certificates",
+        "sol1_card1_body": "We source from farms certified under NPOP and India Organic standards. Every purchase is backed by a transaction certificate tracing the certified organic chain from the farm to us. This is documentation we can share on request — not a label claim. We apply this standard wherever certification exists and insist on paperwork to prove it.",
+        "sol1_card2_icon": "🔬",
+        "sol1_card2_title": "Rigorous Lab Testing — Reports Publicly Available",
+        "sol1_card2_body": "We rigorously and comprehensively test for 250+ pesticides across our range, using NABL-accredited third-party laboratories. Testing is extensive and ongoing — not selective. We do not publish only the results that look good. Every report is available publicly on our site for any visitor to download.",
+        "lab_reports_url": "\/pages\/test-reports",
+        "solution2_heading": "How we tackle ultra-processing — traditional methods, no shortcuts",
+        "platforms_heading": "Follow Our Thinking",
+        "platforms_desc": "We write and talk about the food system, pesticide evidence, traditional processing, and what it takes to build a transparent food brand — across YouTube, LinkedIn, and Substack."
+      }
+    },
+    "es-email-invite": {
+      "type": "es-email-invite",
+      "settings": {
+        "email_heading": "Food Knowledge. Recipes. Updates.",
+        "email_desc": "Join our community of conscious food lovers. Seasonal recipes, ingredient guides, and traditional food knowledge — delivered to your inbox.",
+        "email_btn": "Join the Community →"
+      }
+    }
+  },
+  "order": [
+    "our_story_main",
+    "es-email-invite"
+  ]
+}

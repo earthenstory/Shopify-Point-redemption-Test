@@ -1,0 +1,347 @@
+{
+  "sections": {
+    "faq_main": {
+      "type": "faq-page",
+      "blocks": {
+        "cat-products": {
+          "type": "faq_category",
+          "settings": {
+            "icon": "🌿",
+            "tag": "Products",
+            "title": "Our Products",
+            "anchor": "products"
+          }
+        },
+        "item-products-1": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Are Earthen Story products really organic? What does that mean?",
+            "answer": "<p>Yes — and we take this seriously. Our products are sourced from farms certified under NPOP (National Programme for Organic Production) India. This means the farms are inspected and certified by a third-party certifying body, and we hold transaction certificates for every consignment we procure.<\/p><p><strong>What \"certified organic\" means for you:<\/strong><\/p><ul><li>No synthetic pesticides, herbicides, or fertilisers used in farming<\/li><li>No GMO seeds or inputs<\/li><li>Traceability from farm to your doorstep<\/li><li>Independent third-party verification<\/li><\/ul><p>We also send every batch for third-party lab testing for pesticide residues before it reaches you.<\/p>"
+          }
+        },
+        "item-products-2": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What is the bilona method for ghee? Why does it matter?",
+            "answer": "<p>The bilona method is a traditional Ayurvedic process for making ghee. Milk from A2 Desi Gir cows is boiled, set into curd, and then hand-churned bi-directionally using a wooden churner called a bilona. The butter collected from this process is then slow-cooked into ghee.<\/p><p>This method differs from industrial ghee production where cream is directly separated and converted — bypassing the curd-churning step entirely. The bilona process is slower and yields less ghee per litre of milk, but it preserves natural nutrients, produces a more digestible product, and results in the characteristic grainy texture and deep aroma of true desi ghee.<\/p>"
+          }
+        },
+        "item-products-3": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What is cold pressed oil and how is it different from regular refined oil?",
+            "answer": "<p>Cold pressed oils are extracted by mechanically pressing seeds at low temperatures (below 50°C), without using heat or chemical solvents. This preserves the oil's natural nutrients, flavour, aroma, and colour.<\/p><p>Refined oils, by contrast, are extracted using high heat and chemical solvents (like hexane), then deodorised, bleached, and processed — stripping away most natural compounds in the process. Our cold pressed oils are unrefined, unbleached, and free from solvent extraction at every stage.<\/p>"
+          }
+        },
+        "item-products-4": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Do your products contain any preservatives, additives, or artificial ingredients?",
+            "answer": "<p>No. Every Earthen Story product is free from preservatives, additives, artificial colours, and artificial flavours. What you see on the label is exactly what's inside — nothing more.<\/p><p>This also means our products have a natural shelf life and should be stored correctly to maintain freshness. Please refer to the storage guidance on each product label.<\/p>"
+          }
+        },
+        "item-products-5": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Can your products be used for high-heat cooking?",
+            "answer": "<p><strong>Ghee:<\/strong> Yes — ghee has a high smoke point (~250°C) and is excellent for high-heat cooking, sautéing, and frying.<\/p><p><strong>Cold pressed oils:<\/strong> Best suited for medium-heat cooking, tempering, and salad dressings. For deep frying at very high temperatures, ghee or coconut oil are better choices due to their stability.<\/p><p><strong>Coconut oil:<\/strong> Suitable for medium to high heat. Our cold pressed coconut oil has a smoke point of approximately 175°C.<\/p>"
+          }
+        },
+        "cat-sourcing": {
+          "type": "faq_category",
+          "settings": {
+            "icon": "🧪",
+            "tag": "Quality",
+            "title": "Sourcing & Quality",
+            "anchor": "sourcing"
+          }
+        },
+        "item-sourcing-1": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How do you test your products for pesticides?",
+            "answer": "<p>Every batch of our products is tested by an independent, accredited third-party laboratory for over 250 pesticide compounds. We do this in addition to sourcing from certified organic farms — it's our extra layer of verification.<\/p><p>Lab test reports are available on our <a href=\"\/pages\/test-reports\">Lab Reports page<\/a>. If you need a batch-specific report for a product you've purchased, write to us at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a> with your order number.<\/p>"
+          }
+        },
+        "item-sourcing-2": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Can I see the lab test reports for a specific product?",
+            "answer": "<p>Yes. We publish lab test reports on our <a href=\"\/pages\/test-reports\">Lab Reports page<\/a>. These are updated regularly as new batches are tested.<\/p><p>If you need the specific report for a batch you've received, email us at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a> with your order number and we'll share the relevant report.<\/p>"
+          }
+        },
+        "item-sourcing-3": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Why does the colour or texture of my product look slightly different from the photo?",
+            "answer": "<p>This is completely normal for natural, unprocessed products. Unlike industrial products that are standardised through processing, our products retain natural variation from batch to batch — in colour, texture, and aroma — depending on the season, harvest, and farm.<\/p><p>For example: cold pressed groundnut oil may be darker or lighter depending on the variety of peanuts used. Ghee may appear more golden or more white based on the cows' diet and the season. Honey viscosity and colour vary by flower source and season. These variations are a sign of authenticity, not inconsistency.<\/p>"
+          }
+        },
+        "cat-ordering": {
+          "type": "faq_category",
+          "settings": {
+            "icon": "🛒",
+            "tag": "Ordering",
+            "title": "Orders & Payment",
+            "anchor": "ordering"
+          }
+        },
+        "item-ordering-1": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What payment methods do you accept?",
+            "answer": "<p>We accept all major payment methods including:<\/p><ul><li>Credit and debit cards (Visa, Mastercard, Rupay)<\/li><li>UPI (Google Pay, PhonePe, Paytm, BHIM)<\/li><li>Net banking<\/li><li>Wallets<\/li><li>Razorpay Magic Checkout for faster, one-tap payments<\/li><\/ul><p>All payments are processed securely. We do not store your card details.<\/p>"
+          }
+        },
+        "item-ordering-2": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Can I cancel or modify my order after placing it?",
+            "answer": "<p>We process orders quickly, so cancellations or modifications are only possible within a short window after placing your order. Please contact us at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a> immediately if you need to make changes.<\/p><p>Once an order has been dispatched, it cannot be cancelled or modified. In that case, you can initiate a return after delivery — please refer to our <a href=\"\/policies\/refund-policy\">Refund Policy<\/a> for details.<\/p>"
+          }
+        },
+        "item-ordering-3": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How do I use a discount or promo code?",
+            "answer": "<p>At checkout, you'll find a \"Discount code\" field. Enter your code there and click Apply before completing payment. The discount will be reflected in your order total.<\/p><p>Only one promo code can be applied per order.<\/p>"
+          }
+        },
+        "item-ordering-4": {
+          "type": "faq_item",
+          "settings": {
+            "question": "I didn't receive an order confirmation email. What should I do?",
+            "answer": "<p>First, please check your spam or junk folder — our emails sometimes land there. If you still can't find it, write to us at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a> with the name and email used at checkout and we'll resend your confirmation.<\/p>"
+          }
+        },
+        "cat-shipping": {
+          "type": "faq_category",
+          "settings": {
+            "icon": "🚚",
+            "tag": "Shipping",
+            "title": "Shipping & Delivery",
+            "anchor": "shipping"
+          }
+        },
+        "item-shipping-1": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Do you offer free shipping?",
+            "answer": "<p>Yes! Free standard shipping is automatically applied on all orders above <strong>₹799<\/strong>. No code needed — it's calculated at checkout.<\/p><p>For orders below ₹799, a standard shipping fee applies. This is shown clearly before you complete your payment.<\/p>"
+          }
+        },
+        "item-shipping-2": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How long will my order take to arrive?",
+            "answer": "<p>Orders are processed within 1–2 business days and delivered within:<\/p><ul><li><strong>Metro cities:<\/strong> 3–5 business days after dispatch<\/li><li><strong>Tier 2 &amp; Tier 3 cities:<\/strong> 4–6 business days after dispatch<\/li><li><strong>Remote areas:<\/strong> 6–10 business days after dispatch<\/li><li><strong>North East, J&amp;K, Islands:<\/strong> 7–12 business days after dispatch<\/li><\/ul><p>You'll receive a tracking link via email once your order is dispatched.<\/p>"
+          }
+        },
+        "item-shipping-3": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How do I track my order?",
+            "answer": "<p>Once your order is dispatched, you'll receive a shipping confirmation email with a tracking number and a direct link to track your shipment. Tracking updates can take up to 24 hours to appear after dispatch.<\/p><p>If you haven't received your tracking email within 3 business days of your order, please check your spam folder first and then write to us at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a>.<\/p>"
+          }
+        },
+        "item-shipping-4": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Do you ship outside India?",
+            "answer": "<p>Currently we ship pan-India only. We're working on expanding international delivery. If you'd like to be notified when we do, sign up for our newsletter or write to us at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a>.<\/p>"
+          }
+        },
+        "cat-returns": {
+          "type": "faq_category",
+          "settings": {
+            "icon": "↩️",
+            "tag": "Returns",
+            "title": "Returns & Refunds",
+            "anchor": "returns"
+          }
+        },
+        "item-returns-1": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What is your return policy?",
+            "answer": "<p>We accept returns within <strong>3 days of delivery<\/strong> for products that arrive damaged, defective, or incorrect. Due to the perishable nature of food products, we cannot accept returns for change of mind once a product has been opened.<\/p><p>To initiate a return, email us at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a> with your order number and photos of the issue. See our full <a href=\"\/policies\/refund-policy\">Refund Policy<\/a> for details.<\/p>"
+          }
+        },
+        "item-returns-2": {
+          "type": "faq_item",
+          "settings": {
+            "question": "My order arrived damaged. What do I do?",
+            "answer": "<p>We're sorry to hear that. Please contact us within 24–48 hours of delivery at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a> with:<\/p><ul><li>Your order number<\/li><li>Clear photos or a short video of the damaged product and packaging<\/li><\/ul><p>We'll arrange a replacement or full refund at no cost to you. You won't need to return damaged food products.<\/p>"
+          }
+        },
+        "item-returns-3": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How long does a refund take to process?",
+            "answer": "<p>Once your refund is approved, it is processed within 1–3 business days. The credit will appear in your original payment method within <strong>7–10 business days<\/strong> depending on your bank or payment provider.<\/p><p>If you haven't received your refund after 10 business days, please first check with your bank. If the issue persists, contact us and we'll investigate immediately.<\/p>"
+          }
+        },
+        "cat-storage": {
+          "type": "faq_category",
+          "settings": {
+            "icon": "🫙",
+            "tag": "Storage",
+            "title": "Storage & Shelf Life",
+            "anchor": "storage"
+          }
+        },
+        "item-storage-1": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How should I store cold pressed oils?",
+            "answer": "<p>Store cold pressed oils in a cool, dark place away from direct sunlight and heat. Keep the bottle tightly sealed after use. Avoid storing near a stove or in direct sunlight.<\/p><p>Cold pressed oils do not contain artificial antioxidants and should ideally be consumed within 6–9 months of manufacture. Refrigeration can extend shelf life but may cause temporary cloudiness or solidification (especially in coconut oil) — this is completely normal and the oil returns to its original state at room temperature.<\/p>"
+          }
+        },
+        "item-storage-2": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Does ghee need to be refrigerated?",
+            "answer": "<p>No — pure ghee has very low moisture content and does not need refrigeration. Store it at room temperature in a clean, airtight container away from moisture and sunlight. Always use a dry spoon when scooping ghee to prevent contamination.<\/p><p>Our A2 bilona ghee typically has a shelf life of 12 months from manufacture when stored correctly. Refrigeration is optional and can extend shelf life further.<\/p>"
+          }
+        },
+        "item-storage-3": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Why has my honey crystallised? Is it still safe to eat?",
+            "answer": "<p>Yes, absolutely — crystallisation is a natural process in raw, unadulterated honey and is actually a sign of purity. Processed honeys are heated and filtered to prevent crystallisation, which also destroys beneficial enzymes and nutrients.<\/p><p>To return crystallised honey to a liquid state, simply place the jar in warm water (not boiling) for a few minutes. Avoid microwaving, as high heat damages the natural enzymes in raw honey.<\/p>"
+          }
+        },
+        "item-storage-4": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How should I store flours and grains after opening?",
+            "answer": "<p>Transfer flours and grains to an airtight container after opening to maintain freshness and prevent moisture absorption. Store in a cool, dry place away from sunlight.<\/p><p>Whole grain flours retain natural oils and have a shorter shelf life than refined flours — typically 3–6 months after opening. Refrigeration can extend this. Always check the best-before date on the label.<\/p>"
+          }
+        },
+        "cat-account": {
+          "type": "faq_category",
+          "settings": {
+            "icon": "👤",
+            "tag": "Account",
+            "title": "Account & Loyalty",
+            "anchor": "account"
+          }
+        },
+        "item-account-1": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How do I create an account?",
+            "answer": "<p>You can create an account by clicking the person icon in the top right corner of any page and selecting \"Create account\". We use phone OTP-based login for a secure, password-free experience.<\/p><p>Having an account lets you track orders, save addresses, manage subscriptions, and earn loyalty rewards.<\/p>"
+          }
+        },
+        "item-account-2": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Do you have a loyalty or rewards programme?",
+            "answer": "<p>Yes! We run a loyalty programme through BON Loyalty. You earn points on every purchase, which can be redeemed for discounts on future orders. Points are credited to your account automatically after each completed order.<\/p><p>Log in to your account and visit the Rewards tab to see your current balance, available rewards, and how many points you need to unlock your next reward.<\/p>"
+          }
+        },
+        "item-account-3": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Can I set up a recurring subscription for my favourite products?",
+            "answer": "<p>Yes — on product pages you'll find a \"Subscribe &amp; Save\" option that lets you set up recurring delivery at a discounted price. Available delivery frequencies are every 15 days, 1 month, 2 months, or 3 months.<\/p><p>You can pause, skip, change frequency, or cancel your subscription at any time from the Subscriptions tab in your account.<\/p>"
+          }
+        },
+        "cat-wholesale": {
+          "type": "faq_category",
+          "settings": {
+            "icon": "🏢",
+            "tag": "B2B",
+            "title": "Wholesale & B2B",
+            "anchor": "wholesale"
+          }
+        },
+        "item-wholesale-1": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Do you offer wholesale or bulk pricing?",
+            "answer": "<p>Yes — we work with restaurants, cafés, health food stores, corporate gifting companies, and other businesses. Please visit our <a href=\"\/pages\/b2b\">Wholesale &amp; B2B page<\/a> or write to us at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a> with details about your business and requirements.<\/p>"
+          }
+        },
+        "item-wholesale-2": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Can you supply products for corporate gifting?",
+            "answer": "<p>Absolutely. We offer custom corporate gifting solutions including curated product hampers, branded packaging, and bulk ordering. Our organic, naturally processed products make for thoughtful and premium gifts.<\/p><p>Please contact us at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a> with your quantity, budget, and timeline and we'll get back to you with a custom proposal.<\/p>"
+          }
+        },
+        "item-wholesale-3": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What is the minimum order quantity for wholesale?",
+            "answer": "<p>Minimum order quantities vary by product. Please reach out to us directly at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a> and we'll share our wholesale catalogue with pricing tiers and MOQs tailored to your needs.<\/p>"
+          }
+        }
+      },
+      "block_order": [
+        "cat-products",
+        "item-products-1",
+        "item-products-2",
+        "item-products-3",
+        "item-products-4",
+        "item-products-5",
+        "cat-sourcing",
+        "item-sourcing-1",
+        "item-sourcing-2",
+        "item-sourcing-3",
+        "cat-ordering",
+        "item-ordering-1",
+        "item-ordering-2",
+        "item-ordering-3",
+        "item-ordering-4",
+        "cat-shipping",
+        "item-shipping-1",
+        "item-shipping-2",
+        "item-shipping-3",
+        "item-shipping-4",
+        "cat-returns",
+        "item-returns-1",
+        "item-returns-2",
+        "item-returns-3",
+        "cat-storage",
+        "item-storage-1",
+        "item-storage-2",
+        "item-storage-3",
+        "item-storage-4",
+        "cat-account",
+        "item-account-1",
+        "item-account-2",
+        "item-account-3",
+        "cat-wholesale",
+        "item-wholesale-1",
+        "item-wholesale-2",
+        "item-wholesale-3"
+      ],
+      "settings": {
+        "breadcrumb_label": "FAQs",
+        "hero_eyebrow": "Help Centre",
+        "hero_title": "Frequently Asked",
+        "hero_title_highlight": "Questions",
+        "hero_subtitle": "Find quick answers about our products, sourcing, orders, and more.",
+        "show_search": true,
+        "search_placeholder": "Search questions…",
+        "search_btn_label": "Search",
+        "still_stuck_heading": "Still have a question?",
+        "still_stuck_body": "Our team is happy to help. We reply within 1 business day.",
+        "still_stuck_email": "contact@earthenstory.com",
+        "still_stuck_btn_label": "Email Us",
+        "contact_eyebrow": "Still have a question?",
+        "contact_title": "We're happy to help",
+        "contact_desc": "Our team reads every message personally and replies within 1 business day.",
+        "contact_email_label": "Email Us",
+        "contact_email": "contact@earthenstory.com",
+        "contact_page_label": "Contact Page",
+        "contact_page_url": ""
+      }
+    }
+  },
+  "order": [
+    "faq_main"
+  ]
+}

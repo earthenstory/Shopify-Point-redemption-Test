@@ -1,0 +1,52 @@
+{%- doc -%}
+  Renders a mega menu list and optional "more" menu links.
+  When more menu links are present a duplicate instance of each submenu is also rendered.
+
+  @param {object} [section] - The section object.
+  @param {linklist} [parent_link] - The linklist to render
+  @param {string} [id] - Unique ID to assign ul in markup
+  @param {string} [menu_content_type] - The type of content to render, options: ['featured_products', 'featured_collections', 'collection_images', 'text'] (default: 'text')
+  @param {number} [content_aspect_ratio] - The aspect ratio to display the content if applicable
+  @param {number} [image_border_radius] - The border radius used for the content images
+{%- enddoc -%}
+
+<div class="mega-menu section section--full-width-margin section--{{ section.settings.section_width }}">
+  <div
+    class="mega-menu__grid"
+    data-menu-grid-id="{{ id }}"
+  >
+    {% render 'mega-menu-list',
+      parent_link: parent_link,
+      id: id,
+      section: section,
+      grid_columns_count: 6,
+      grid_columns_count_tablet: 4,
+      grid_columns_count_collection_images: 8,
+      menu_content_type: menu_content_type,
+      content_aspect_ratio: content_aspect_ratio,
+      image_border_radius: image_border_radius
+    %}
+
+    <div class="es-mega-footer">
+      <span class="es-trust-pill">
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Certified Organic
+      </span>
+      <span class="es-trust-sep"></span>
+      <span class="es-trust-pill">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        Lab Tested &middot; 250+ pesticides
+      </span>
+      <span class="es-trust-sep"></span>
+      <span class="es-trust-pill">
+        <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Pan-India delivery
+      </span>
+      <a class="es-view-all-btn" href="/collections/all-products">
+        View all products
+        <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+      </a>
+    </div>
+
+  </div>
+</div>

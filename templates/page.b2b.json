@@ -1,0 +1,231 @@
+{
+  "sections": {
+    "b2b_page": {
+      "type": "b2b-page",
+      "blocks": {
+        "audience-1": {
+          "type": "audience_tag",
+          "settings": {
+            "icon": "🏭",
+            "name": "Distributors & Bulk Buyers",
+            "desc": "Consistent supply with full certification documentation"
+          }
+        },
+        "audience-2": {
+          "type": "audience_tag",
+          "settings": {
+            "icon": "🍽️",
+            "name": "HoReCa",
+            "desc": "Restaurants and hotels serving genuinely organic ingredients"
+          }
+        },
+        "audience-3": {
+          "type": "audience_tag",
+          "settings": {
+            "icon": "✈️",
+            "name": "Export Buyers",
+            "desc": "FSSAI, NPOP & transaction certificates for compliance"
+          }
+        },
+        "problem-1": {
+          "type": "problem_card",
+          "settings": {
+            "icon": "🌾",
+            "title": "Problem 1 — Pesticides in the food supply",
+            "body": "India is among the world's largest users of pesticides. Most food products — including those labelled organic — carry no verifiable proof of pesticide testing. We test every batch for 250+ residues and publish the results.",
+            "highlight": false
+          }
+        },
+        "problem-2": {
+          "type": "problem_card",
+          "settings": {
+            "icon": "🏭",
+            "title": "Problem 2 — Ultra-processed products",
+            "body": "Industrial processing strips nutrition to extend shelf life and reduce cost. Traditional methods — bilona, cold pressing, stone grinding — preserve what food was meant to contain. We have never compromised on this.",
+            "highlight": false
+          }
+        },
+        "problem-3": {
+          "type": "problem_card",
+          "settings": {
+            "icon": "✓",
+            "title": "Our answer — Clean, traceable, traditional",
+            "body": "Certified organic with transaction certificates. Lab tested with published reports. Traditionally processed with no additives. That is the Earthen Story standard — for every product, every batch.",
+            "highlight": true
+          }
+        },
+        "cat-ghee": {
+          "type": "category",
+          "settings": {
+            "icon": "🫙",
+            "name": "Ghee",
+            "url": "\/collections\/a2-gir-cow-ghee"
+          }
+        },
+        "cat-honey": {
+          "type": "category",
+          "settings": {
+            "icon": "🍯",
+            "name": "Honey",
+            "url": "\/collections\/organic-honey"
+          }
+        },
+        "cat-oils": {
+          "type": "category",
+          "settings": {
+            "icon": "🫒",
+            "name": "Oils",
+            "url": "\/collections\/organic-cold-pressed-oils"
+          }
+        },
+        "cat-flours": {
+          "type": "category",
+          "settings": {
+            "icon": "🌾",
+            "name": "Flours",
+            "url": "\/collections\/organic-flours"
+          }
+        },
+        "cat-seeds": {
+          "type": "category",
+          "settings": {
+            "icon": "🌱",
+            "name": "Seeds",
+            "url": "\/collections\/organic-seeds"
+          }
+        },
+        "cat-dry-fruits": {
+          "type": "category",
+          "settings": {
+            "icon": "🌰",
+            "name": "Dry Fruits",
+            "url": "\/collections\/dry-fruits-nuts"
+          }
+        },
+        "cat-gulkand": {
+          "type": "category",
+          "settings": {
+            "icon": "🌹",
+            "name": "Gulkand",
+            "url": "\/collections\/gulkand"
+          }
+        },
+        "cat-amla": {
+          "type": "category",
+          "settings": {
+            "icon": "🫐",
+            "name": "Amla Candy",
+            "url": "\/collections\/amla-candy"
+          }
+        },
+        "cat-herbal": {
+          "type": "category",
+          "settings": {
+            "icon": "🌿",
+            "name": "Herbal Powders",
+            "url": "\/collections\/organic-herbal-powders"
+          }
+        },
+        "trust-1": {
+          "type": "trust_card",
+          "settings": {
+            "icon": "📜",
+            "title": "Transaction Certificates for Every Batch",
+            "desc": "We source exclusively from NPOP and India Organic certified farms. Every batch comes with a transaction certificate tracing origin — not just a general organic label. Available on request for each order.",
+            "show_lab_link": false,
+            "lab_link_label": "View all lab reports →"
+          }
+        },
+        "trust-2": {
+          "type": "trust_card",
+          "settings": {
+            "icon": "🔬",
+            "title": "NABL-Accredited Lab Testing — Published Publicly",
+            "desc": "Every product is independently tested for 250+ pesticide residues by third-party NABL-accredited labs. We publish all reports without selection — good and bad batches alike.",
+            "show_lab_link": true,
+            "lab_link_label": "View all lab reports →"
+          }
+        },
+        "trust-3": {
+          "type": "trust_card",
+          "settings": {
+            "icon": "✅",
+            "title": "FSSAI Certified & Export Documentation",
+            "desc": "FSSAI certified facility. For export buyers, we support full documentation including NPOP organic certificates, phytosanitary certificates, and lab reports in the formats required by importing countries.",
+            "show_lab_link": false,
+            "lab_link_label": "View all lab reports →"
+          }
+        },
+        "trust-4": {
+          "type": "trust_card",
+          "settings": {
+            "icon": "🪨",
+            "title": "Traditional Processing — No Industrial Shortcuts",
+            "desc": "Bilona churning for ghee, cold pressing for oils, stone grinding for flours. No additives, no preservatives, no industrial shortcuts. What is in the product is exactly what the label says.",
+            "show_lab_link": false,
+            "lab_link_label": "View all lab reports →"
+          }
+        }
+      },
+      "block_order": [
+        "audience-1",
+        "audience-2",
+        "audience-3",
+        "problem-1",
+        "problem-2",
+        "problem-3",
+        "cat-ghee",
+        "cat-honey",
+        "cat-oils",
+        "cat-flours",
+        "cat-seeds",
+        "cat-dry-fruits",
+        "cat-gulkand",
+        "cat-amla",
+        "cat-herbal",
+        "trust-1",
+        "trust-2",
+        "trust-3",
+        "trust-4"
+      ],
+      "settings": {
+        "hero_eyebrow": "B2B & Wholesale",
+        "hero_title": "Certified Organic Supply",
+        "hero_title_em": "for Businesses.",
+        "hero_subtitle": "Consistent supply of genuinely organic, lab-tested products — backed by transaction certificates, NABL lab reports, and FSSAI certification. For distributors, HoReCa, and export buyers who need traceability they can rely on.",
+        "hero_cta_primary_label": "Send an Inquiry",
+        "hero_cta_ghost_label": "View Lab Reports →",
+        "hero_audience_label": "We supply to",
+        "mission_eyebrow": "Why We Started",
+        "mission_title": "First-Generation Entrepreneurs, One Clear Mission.",
+        "mission_body_1": "We started Earthen Story because we saw two problems that nobody was solving honestly. Indian agriculture uses some of the highest concentrations of pesticides in the world — yet most \"organic\" products on shelves offer no verifiable proof. And the traditional processing methods that preserved nutrition for generations — bilona churning, cold pressing, stone grinding — have been replaced by industrial shortcuts that cut cost but strip quality.",
+        "mission_body_2": "Earthen Story was built to fix both. We source directly from certified organic farms with transaction certificates for every batch. We process the traditional way. And we test everything — independently, by NABL-accredited labs — and publish every report publicly. No selective disclosure.",
+        "mission_cta_label": "Read Our Full Story →",
+        "supply_eyebrow": "Our Range",
+        "supply_title": "What We Supply",
+        "supply_subtitle": "Browse any category to see individual products, certifications, and specifications.",
+        "supply_browse_text": "Full product range at",
+        "trust_eyebrow": "Why Earthen Story",
+        "trust_title": "What Sets Our Supply Apart",
+        "form_eyebrow": "Get in Touch",
+        "form_title": "Tell Us About Your Requirements",
+        "form_desc": "Fill in the form and we will get back to you within 2 business days. We will share product specifications, certifications, pricing, and discuss supply terms directly.",
+        "form_direct_label": "Prefer to connect directly?",
+        "form_response_note": "We typically respond within 1-2 business days.",
+        "form_panel_title": "Wholesale Inquiry",
+        "form_submit_label": "Submit Inquiry",
+        "form_privacy_note": "We will respond within 2 business days. Your information is never shared.",
+        "contact_email": "biz.earthenstory@gmail.com",
+        "contact_phone": "+91 93218 08835",
+        "lab_reports_url": "\/pages\/test-reports",
+        "story_url": "\/pages\/our-story",
+        "collections_url": "\/collections\/all",
+        "google_form_id": "",
+        "breadcrumb_label": "B2B & Wholesale"
+      }
+    }
+  },
+  "order": [
+    "b2b_page"
+  ]
+}

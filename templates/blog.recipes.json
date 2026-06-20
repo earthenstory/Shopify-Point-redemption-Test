@@ -1,0 +1,16 @@
+{
+  "sections": {
+    "recipes_landing": {
+      "type": "recipes-landing",
+      "settings": {}
+    },
+    "es-email-invite": {
+      "type": "es-email-invite",
+      "settings": {}
+    }
+  },
+  "order": [
+    "recipes_landing",
+    "es-email-invite"
+  ]
+}

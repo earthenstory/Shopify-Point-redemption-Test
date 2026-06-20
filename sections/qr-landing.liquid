@@ -1,0 +1,183 @@
+{{ 'qr-landing.css' | asset_url | stylesheet_tag }}
+
+<div class="qr-wrap">
+
+  {%- comment -%} WELCOME {%- endcomment -%}
+  <div class="qr-welcome">
+    <span class="qr-welcome-tag">Thank you for choosing us</span>
+    <h1>You chose <em>real food.</em><br>Here's everything behind it.</h1>
+  </div>
+
+  {%- comment -%} TRUST PILLARS {%- endcomment -%}
+  <div class="qr-pillars">
+    <div class="qr-pillars-grid">
+      <div class="qr-pillar">
+        <span class="qr-pillar-icon">🌿</span>
+        <div class="qr-pillar-title">Certified Organic</div>
+        <div class="qr-pillar-desc">NPOP farms, transaction certified</div>
+      </div>
+      <div class="qr-pillar">
+        <span class="qr-pillar-icon">🔬</span>
+        <div class="qr-pillar-title">Lab Tested</div>
+        <div class="qr-pillar-desc">250+ pesticides, NABL accredited</div>
+      </div>
+      <div class="qr-pillar">
+        <span class="qr-pillar-icon">🫙</span>
+        <div class="qr-pillar-title">Traditional</div>
+        <div class="qr-pillar-desc">Stone ground, cold pressed, bilona</div>
+      </div>
+    </div>
+  </div>
+
+  {%- comment -%} LAB REPORTS {%- endcomment -%}
+  <div class="qr-lab">
+    <a href="/pages/test-reports" class="qr-btn-lab">View Pesticide Test Reports &rarr;</a>
+    <h2>Full Transparency.<br>Every Product.</h2>
+    <p>We don't ask you to trust our label. We show you the lab reports.</p>
+  </div>
+
+  {%- comment -%} OUR STORY {%- endcomment -%}
+  <div class="qr-story">
+    <span class="qr-eyebrow">Who We Are</span>
+    <img
+      src="{{ 'founder-collage.jpg' | asset_url }}"
+      alt="Ashish, Shashank and Shivangi - co-founders of Earthen Story"
+      class="qr-story-collage"
+      width="1200"
+      height="525"
+      loading="lazy"
+    >
+    <h2 class="qr-story-quote">"We started because we couldn't find food we actually trusted."</h2>
+    <p class="qr-story-body">So we built it &mdash; with certified farms, independent labs, and traditional methods that keep nutrition intact, the way it was always meant to be.</p>
+    <a href="/pages/our-story" class="qr-link-navy">Read our full story</a>
+  </div>
+
+  {%- comment -%} PRODUCTS {%- endcomment -%}
+  <div class="qr-products">
+    <span class="qr-eyebrow">Our Products</span>
+    <div class="qr-cat-grid">
+      <a href="/collections/flours" class="qr-cat-card">
+        <div class="qr-cat-icon">🌾</div>
+        <div class="qr-cat-text">
+          <span class="qr-cat-name">Organic Flours</span>
+          <span class="qr-cat-usp">Stone ground, 100% whole grain</span>
+        </div>
+      </a>
+      <a href="/collections/cold-pressed-oils" class="qr-cat-card">
+        <div class="qr-cat-icon">🫒</div>
+        <div class="qr-cat-text">
+          <span class="qr-cat-name">Organic Oils</span>
+          <span class="qr-cat-usp">Virgin, cold pressed, unrefined</span>
+        </div>
+      </a>
+      <a href="/collections/seeds" class="qr-cat-card">
+        <div class="qr-cat-icon">🌱</div>
+        <div class="qr-cat-text">
+          <span class="qr-cat-name">Organic Seeds</span>
+          <span class="qr-cat-usp">Raw, unroasted, minimally processed</span>
+        </div>
+      </a>
+      <a href="/collections/herbal-powders" class="qr-cat-card">
+        <div class="qr-cat-icon">🌿</div>
+        <div class="qr-cat-text">
+          <span class="qr-cat-name">Organic Herbal Powders</span>
+          <span class="qr-cat-usp">Pure, traditionally processed</span>
+        </div>
+      </a>
+      <a href="/collections/dry-fruits" class="qr-cat-card">
+        <div class="qr-cat-icon">🥜</div>
+        <div class="qr-cat-text">
+          <span class="qr-cat-name">Dry Fruits</span>
+          <span class="qr-cat-usp">Premium grade, naturally sourced</span>
+        </div>
+      </a>
+      <a href="/collections/ghee" class="qr-cat-card">
+        <div class="qr-cat-icon">🫙</div>
+        <div class="qr-cat-text">
+          <span class="qr-cat-name">A2 Gir Cow Ghee</span>
+          <span class="qr-cat-usp">Bilona churned, A2 milk</span>
+        </div>
+      </a>
+      <a href="/collections/honey" class="qr-cat-card">
+        <div class="qr-cat-icon">🍯</div>
+        <div class="qr-cat-text">
+          <span class="qr-cat-name">Organic Honey</span>
+          <span class="qr-cat-usp">Wild forest, NMR tested</span>
+        </div>
+      </a>
+      <a href="/collections/gulkand" class="qr-cat-card">
+        <div class="qr-cat-icon">🌸</div>
+        <div class="qr-cat-text">
+          <span class="qr-cat-name">Gulkand</span>
+          <span class="qr-cat-usp">Rose petal preserve, traditional</span>
+        </div>
+      </a>
+    </div>
+    <a href="/collections/all-products" class="qr-btn-navy">Browse All Products &rarr;</a>
+  </div>
+
+  {%- comment -%} RECIPES {%- endcomment -%}
+  <div class="qr-recipes">
+    <span class="qr-eyebrow">Recipes</span>
+    <a href="/blogs/recipes" class="qr-recipe-card">
+      <span class="qr-recipe-scatter">🫙 🌾 🍯 🥥 🌿</span>
+      <h3>Not your average<br><em>recipe collection.</em></h3>
+      <p>Recipes built around real ingredients &mdash; the kind that actually do something.</p>
+      <span class="qr-btn-recipe">Explore Recipes &rarr;</span>
+    </a>
+  </div>
+
+  {%- comment -%} DISCOVER {%- endcomment -%}
+  <div class="qr-discover">
+    <span class="qr-eyebrow">Discover</span>
+    <a href="/blogs/discover/how-to-spot-genuinely-organic-food" class="qr-blog-card">
+      <div class="qr-blog-dot">🔍</div>
+      <div class="qr-blog-meta">
+        <span class="qr-blog-tag">Organic Food</span>
+        <div class="qr-blog-title">How to Spot Genuinely Organic Food</div>
+      </div>
+      <div class="qr-blog-arrow">&rarr;</div>
+    </a>
+    <a href="/blogs/discover/why-ultra-processed-foods-are-a-big-problem" class="qr-blog-card">
+      <div class="qr-blog-dot">&#9888;&#65039;</div>
+      <div class="qr-blog-meta">
+        <span class="qr-blog-tag">Food Systems</span>
+        <div class="qr-blog-title">Why Ultra-Processed Foods Are a Big Problem</div>
+      </div>
+      <div class="qr-blog-arrow">&rarr;</div>
+    </a>
+    <a href="/blogs/discover" class="qr-see-all">See all articles</a>
+  </div>
+
+  {%- comment -%} PLATFORMS {%- endcomment -%}
+  <div class="qr-platforms">
+    <span class="qr-eyebrow">Also Available On</span>
+    <div class="qr-platform-row">
+      <a href="https://www.amazon.in/s?k=earthen+story" class="qr-platform-btn" title="Amazon">
+        <img src="{{ 'logo-amazon.png' | asset_url }}" alt="Amazon" width="32" height="32" loading="lazy">
+      </a>
+      <a href="https://blinkit.com/s/?q=earthen+story" class="qr-platform-btn" title="Blinkit">
+        <img src="{{ 'logo-blinkit.png' | asset_url }}" alt="Blinkit" width="32" height="32" loading="lazy">
+      </a>
+      <a href="https://www.swiggy.com/instamart/search?query=earthen+story" class="qr-platform-btn" title="Instamart">
+        <img src="{{ 'logo-swiggy.png' | asset_url }}" alt="Instamart" width="32" height="32" loading="lazy">
+      </a>
+      <a href="https://www.zeptonow.com/search?query=earthen+story" class="qr-platform-btn" title="Zepto">
+        <img src="{{ 'logo-zepto.png' | asset_url }}" alt="Zepto" width="32" height="32" loading="lazy">
+      </a>
+      <a href="https://www.flipkart.com/search?q=earthen+story" class="qr-platform-btn" title="Flipkart">
+        <img src="{{ 'logo-flipkart.png' | asset_url }}" alt="Flipkart" width="32" height="32" loading="lazy">
+      </a>
+    </div>
+  </div>
+
+</div>
+
+{% schema %}
+{
+  "name": "QR Landing",
+  "tag": "section",
+  "class": "qr-landing-section",
+  "settings": []
+}
+{% endschema %}

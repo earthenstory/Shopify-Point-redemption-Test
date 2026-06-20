@@ -1,0 +1,671 @@
+{% comment %}
+  RECIPES LANDING PAGE — recipes-landing.liquid
+  Template: blog.recipes.json  (or page.recipes.json)
+
+  Architecture: JS-driven filtering.
+  Liquid renders ALL articles with data-tags attributes.
+  JavaScript reads URL params and shows/hides cards client-side.
+  This bypasses Shopify's query-string stripping on cached pages.
+
+  Tag system (rcp- namespace):
+    Type       : rcp-type-breakfast, rcp-type-drink, rcp-type-snack,
+                 rcp-type-dessert, rcp-type-main, rcp-type-side, rcp-type-condiment
+    Ingredient : rcp-ingredient-ghee, rcp-ingredient-honey, etc.
+    Time       : rcp-time-5min, rcp-time-10min, rcp-time-20min, rcp-time-30min
+    Occasion   : rcp-occasion-daily, rcp-occasion-festive, rcp-occasion-winter,
+                 rcp-occasion-summer, rcp-occasion-fasting
+    Audience   : rcp-audience-kids, rcp-audience-family
+{% endcomment %}
+
+{%- liquid
+  assign recipes_blog = blogs['recipes']
+  assign type_labels  = 'Breakfast,Drinks,Snacks,Main Course,Desserts,Sides,Condiments' | split: ','
+  assign type_emojis  = '🌅,🥤,🍿,🍛,🍮,🥗,🫙' | split: ','
+  assign type_keys    = 'rcp-type-breakfast,rcp-type-drink,rcp-type-snack,rcp-type-main,rcp-type-dessert,rcp-type-side,rcp-type-condiment' | split: ','
+  assign type_params  = 'breakfast,drink,snack,main,dessert,side,condiment' | split: ','
+-%}
+
+{%- style -%}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #112557; --navy-light: #1A3370;
+    --gold: #B8841E; --gold-hover: #C8922A; --gold-soft: #FAF3E4;
+    --gold-border: #DFC07A; --gold-mid: #D4A843;
+    --warm-white: #FFFDF8; --white: #FFFFFF;
+    --text-dark: #18181B; --text-mid: #44464F; --text-soft: #72747D;
+    --border: #EAE6DC; --border-mid: #D8D2C4; --section-bg: #FFFDF8;
+  }
+
+  /* PAGE HEADER */
+  .rl-page-header { background: var(--warm-white); border-bottom: 1px solid var(--border); padding: 14px 68px 8px; }
+  .rl-page-header-inner { max-width: 1280px; margin: 0 auto; }
+  .rl-title-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+  .rl-page-title { font-family: 'Cormorant', serif; font-size: 34px; font-weight: 500; color: var(--text-dark); }
+  .rl-recipe-count { font-size: 13px; color: var(--text-soft); }
+
+  /* FILTER BAR */
+  .rl-filter-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding-bottom: 8px; }
+  .rl-search-box { display: flex; align-items: center; gap: 8px; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; flex: 0 0 200px; transition: border-color 0.15s; }
+  .rl-search-box:focus-within { border-color: var(--gold-border); }
+  .rl-search-box svg { width: 14px; height: 14px; color: var(--text-soft); flex-shrink: 0; }
+  .rl-search-box input { border: none; outline: none; font-size: 13px; color: var(--text-dark); font-family: 'DM Sans', sans-serif; background: transparent; width: 100%; }
+  .rl-search-box input::placeholder { color: var(--text-soft); }
+  .rl-filter-divider { width: 1px; height: 28px; background: var(--border); margin: 0 2px; }
+  .rl-filter-dropdown { position: relative; display: inline-block; }
+  .rl-filter-btn { display: flex; align-items: center; gap: 6px; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 8px 13px; font-size: 13px; color: var(--text-mid); cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; transition: border-color 0.15s, color 0.15s; user-select: none; }
+  .rl-filter-btn:hover { border-color: var(--gold-border); color: var(--text-dark); }
+  .rl-filter-btn.rl-active { border-color: var(--navy); background: var(--navy); color: white; }
+  .rl-filter-btn svg { width: 12px; height: 12px; flex-shrink: 0; opacity: 0.6; }
+  .rl-filter-btn.rl-active svg { opacity: 0.7; }
+  .rl-dropdown-panel { display: none; position: absolute; top: calc(100% + 6px); left: 0; background: white; border: 1px solid var(--border); border-radius: 10px; padding: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.09); z-index: 50; min-width: 180px; }
+  .rl-filter-dropdown.rl-open .rl-dropdown-panel { display: block; }
+  .rl-dropdown-item { display: block; padding: 8px 12px; border-radius: 6px; font-size: 13px; color: var(--text-mid); cursor: pointer; white-space: nowrap; text-decoration: none; transition: background 0.12s; }
+  .rl-dropdown-item:hover { background: var(--gold-soft); color: var(--text-dark); }
+  .rl-dropdown-item.rl-selected { background: var(--navy); color: white; }
+  .rl-filter-clear { display: none; margin-left: auto; font-size: 12px; color: var(--text-soft); text-decoration: none; cursor: pointer; padding: 8px 4px; transition: color 0.15s; }
+  .rl-filter-clear:hover { color: var(--gold); }
+  .rl-filter-clear.rl-visible { display: block; }
+
+  /* ACTIVE CHIPS */
+  .rl-active-chips { display: none; gap: 6px; flex-wrap: wrap; padding: 10px 68px 14px; background: var(--warm-white); }
+  .rl-active-chips.rl-visible { display: flex; }
+  .rl-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--navy); color: white; border-radius: 20px; padding: 4px 10px 4px 12px; font-size: 11.5px; font-weight: 500; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; }
+  .rl-chip-x { width: 14px; height: 14px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 10px; }
+  .rl-chip-clear { font-size: 12px; color: var(--text-soft); background: none; border: none; cursor: pointer; padding: 4px 6px; font-family: 'DM Sans', sans-serif; }
+  .rl-chip-clear:hover { color: var(--gold); }
+
+  /* BROWSE TILES */
+  .rl-browse-section { padding: 18px 68px 18px; border-bottom: 1px solid var(--border); }
+  .rl-browse-inner { max-width: 1280px; margin: 0 auto; }
+  .rl-browse-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-soft); margin-bottom: 14px; }
+  .rl-type-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+  .rl-type-tile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 8px 7px; border: 1px solid var(--border); border-radius: 10px; background: white; cursor: pointer; text-decoration: none; color: inherit; transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
+  .rl-type-tile:hover { border-color: var(--gold-border); box-shadow: 0 3px 12px rgba(184,132,30,0.09); transform: translateY(-2px); }
+  .rl-type-tile.rl-active { border-color: var(--navy); background: var(--navy); }
+  .rl-type-tile.rl-active .rl-type-name,
+  .rl-type-tile.rl-active .rl-type-count { color: rgba(255,255,255,0.85); }
+  .rl-type-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--gold-soft); border: 1px solid var(--gold-border); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .rl-type-name { font-size: 11px; font-weight: 500; color: var(--text-dark); text-align: center; }
+  .rl-type-count { font-size: 10px; color: var(--text-soft); }
+
+  /* RECIPE GRID */
+  .rl-recipes-section { padding: 36px 68px 40px; }
+  .rl-recipes-section.rl-filtered { background: white; border-top: 1px solid var(--border); }
+  .rl-recipes-section.rl-browse-mode { background: var(--warm-white); border-top: 1px solid var(--border); }
+  .rl-recipes-inner { max-width: 1280px; margin: 0 auto; }
+  .rl-section-hd { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+  .rl-block-title { font-family: 'Cormorant', serif; font-size: 26px; font-weight: 500; color: var(--text-dark); }
+  .rl-section-hd a { font-size: 13px; color: var(--gold); font-weight: 600; text-decoration: none; }
+  .rl-results-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+  .rl-results-count { font-size: 13px; color: var(--text-soft); }
+  .rl-results-count strong { color: var(--text-dark); font-weight: 600; }
+  .rl-recipe-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .rl-recipe-card { border: 1px solid var(--border); border-radius: 10px; background: white; overflow: hidden; cursor: pointer; transition: transform 0.18s, box-shadow 0.18s; text-decoration: none; color: inherit; display: block; }
+  .rl-recipe-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(184,132,30,0.10); }
+  .rl-recipe-card.rl-hidden { display: none; }
+  .rl-rc-img { aspect-ratio: 1/1; position: relative; background: linear-gradient(135deg, #F8F4ED, #EDE5D4); overflow: hidden; }
+  .rl-rc-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .rl-rc-img-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+  .rl-rc-time { position: absolute; bottom: 7px; right: 8px; background: rgba(17,37,87,0.82); color: white; font-size: 9px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+  .rl-rc-audience { position: absolute; top: 8px; left: 8px; background: rgba(28,107,58,0.88); color: white; font-size: 8.5px; font-weight: 600; padding: 2px 7px; border-radius: 20px; letter-spacing: 0.04em; }
+  .rl-rc-body { padding: 10px 12px 13px; }
+  .rl-rc-tag { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 3px; }
+  .rl-rc-name { font-family: 'Cormorant', serif; font-size: 17px; font-weight: 500; color: var(--text-dark); line-height: 1.2; margin-bottom: 3px; }
+  .rl-rc-meta { font-size: 11px; color: var(--text-soft); }
+
+  /* STATES */
+  .rl-empty { padding: 60px 20px; text-align: center; color: var(--text-soft); display: none; }
+  .rl-empty.rl-visible { display: block; }
+  .rl-empty-icon { font-size: 36px; margin-bottom: 16px; }
+  .rl-empty h3 { font-family: 'Cormorant', serif; font-size: 22px; color: var(--text-dark); margin-bottom: 8px; }
+  .rl-empty p { font-size: 13px; line-height: 1.6; margin-bottom: 20px; }
+  .rl-empty-link { font-size: 13px; color: var(--gold); text-decoration: none; font-weight: 600; }
+
+  @media (max-width: 1024px) {
+    .rl-page-header, .rl-browse-section, .rl-recipes-section { padding-left: 24px; padding-right: 24px; }
+    .rl-active-chips { padding-left: 24px; padding-right: 24px; }
+    .rl-type-grid { grid-template-columns: repeat(4, 1fr); }
+    .rl-recipe-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 640px) {
+    .rl-page-header, .rl-browse-section, .rl-recipes-section { padding-left: 16px; padding-right: 16px; }
+    .rl-active-chips { padding-left: 16px; padding-right: 16px; }
+    .rl-type-grid { grid-template-columns: repeat(4, 1fr); }
+    .rl-recipe-grid { grid-template-columns: repeat(2, 1fr); }
+    .rl-page-title { font-size: 26px; }
+    .rl-filter-bar { gap: 6px; }
+    .rl-search-box { flex: 0 0 140px; }
+  }
+{%- endstyle -%}
+
+{%- comment -%} ── PAGE HEADER ── {%- endcomment -%}
+<div class="rl-page-header">
+  <div class="rl-page-header-inner">
+    <div class="rl-title-row">
+      <h1 class="rl-page-title">Recipes</h1>
+      <span class="rl-recipe-count">{{ recipes_blog.articles_count }} recipes</span>
+    </div>
+
+    <div class="rl-filter-bar">
+      <div class="rl-search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="rl-search-input" placeholder="Search recipes…" autocomplete="off">
+      </div>
+
+      <div class="rl-filter-divider"></div>
+
+      {%- comment -%} By Ingredient {%- endcomment -%}
+      <div class="rl-filter-dropdown" data-filter="ingredient">
+        <button type="button" class="rl-filter-btn" data-toggle>
+          <span class="rl-btn-label">By Ingredient</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="rl-dropdown-panel" style="max-height:280px;overflow-y:auto;">
+          {%- assign ing_options = 'almonds:Almonds,amla:Amla,amla-candy:Amla Candy,ashwagandha:Ashwagandha,atta:Atta,bajra:Bajra,barley:Barley,basil-seeds:Basil Seeds,black-mustard-oil:Black Mustard Oil,brazil-nuts:Brazil Nuts,cashews:Cashews,chia-seeds:Chia Seeds,coconut-oil:Coconut Oil,dates:Dates,flax-seeds:Flax Seeds,ghee:Ghee,groundnut-oil:Groundnut Oil,gulkand:Gulkand,honey:Honey,jowar:Jowar,kala-chana:Kala Chana,khapli-atta:Khapli Atta,millet:Millet,moringa:Moringa,mulethi:Mulethi,pistachios:Pistachios,prunes:Prunes,pumpkin-seeds:Pumpkin Seeds,quinoa:Quinoa,ragi:Ragi,raisins:Raisins,seeds:Seeds,sesame-oil:Sesame Oil,shatavari:Shatavari,sunflower-oil:Sunflower Oil,sunflower-seeds:Sunflower Seeds,triphala:Triphala,walnuts:Walnuts,wheatgrass:Wheatgrass,yellow-mustard-oil:Yellow Mustard Oil' | split: ',' -%}
+          {%- for ip in ing_options -%}
+            {%- assign ip_parts = ip | split: ':' -%}
+            <span class="rl-dropdown-item" data-value="{{ ip_parts[0] }}">{{ ip_parts[1] }}</span>
+          {%- endfor -%}
+        </div>
+      </div>
+
+      {%- comment -%} By Cook Time {%- endcomment -%}
+      <div class="rl-filter-dropdown" data-filter="cook_time">
+        <button type="button" class="rl-filter-btn" data-toggle>
+          <span class="rl-btn-label">By Cook Time</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="rl-dropdown-panel">
+          <span class="rl-dropdown-item" data-value="rcp-time-5min">Under 5 min</span>
+          <span class="rl-dropdown-item" data-value="rcp-time-10min">Under 10 min</span>
+          <span class="rl-dropdown-item" data-value="rcp-time-20min">Under 20 min</span>
+          <span class="rl-dropdown-item" data-value="rcp-time-30min">Under 30 min</span>
+        </div>
+      </div>
+
+      {%- comment -%} By Occasion {%- endcomment -%}
+      <div class="rl-filter-dropdown" data-filter="occasion">
+        <button type="button" class="rl-filter-btn" data-toggle>
+          <span class="rl-btn-label">By Occasion</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="rl-dropdown-panel">
+          <span class="rl-dropdown-item" data-value="rcp-occasion-daily">Daily</span>
+          <span class="rl-dropdown-item" data-value="rcp-occasion-festive">Festive</span>
+          <span class="rl-dropdown-item" data-value="rcp-occasion-winter">Winter</span>
+          <span class="rl-dropdown-item" data-value="rcp-occasion-summer">Summer</span>
+          <span class="rl-dropdown-item" data-value="rcp-occasion-fasting">Fasting</span>
+        </div>
+      </div>
+
+      {%- comment -%} For Kids & Family {%- endcomment -%}
+      <div class="rl-filter-dropdown" data-filter="for_kids">
+        <button type="button" class="rl-filter-btn" data-toggle>
+          <span class="rl-btn-label">For Kids &amp; Family</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="rl-dropdown-panel">
+          <span class="rl-dropdown-item" data-value="rcp-audience-kids">Kid-Friendly</span>
+          <span class="rl-dropdown-item" data-value="rcp-audience-family">Family Meals</span>
+        </div>
+      </div>
+
+      <a class="rl-filter-clear" id="rl-clear-all">Clear all</a>
+    </div>
+  </div>
+</div>
+
+{%- comment -%} ── ACTIVE CHIPS ── {%- endcomment -%}
+<div class="rl-active-chips" id="rl-chips-bar"></div>
+
+{%- comment -%} ── BROWSE TILES + RECIPE GRID inside paginate so all 250 articles are available ── {%- endcomment -%}
+{%- paginate recipes_blog.articles by 250 -%}
+
+{%- comment -%} ── BROWSE TILES ── {%- endcomment -%}
+<section class="rl-browse-section" id="rl-browse-section">
+  <div class="rl-browse-inner">
+    <div class="rl-browse-title">Browse by Type</div>
+    <div class="rl-type-grid">
+      {%- for tp in type_params -%}
+        {%- assign tile_key = type_keys[forloop.index0] -%}
+        {%- assign tile_count = 0 -%}
+        {%- for art in recipes_blog.articles -%}
+          {%- if art.tags contains tile_key -%}{%- assign tile_count = tile_count | plus: 1 -%}{%- endif -%}
+        {%- endfor -%}
+        <button class="rl-type-tile" data-filter="type" data-value="{{ tp }}">
+          <div class="rl-type-icon">{{ type_emojis[forloop.index0] }}</div>
+          <div class="rl-type-name">{{ type_labels[forloop.index0] }}</div>
+          <div class="rl-type-count">{{ tile_count }} recipes</div>
+        </button>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{%- comment -%} ── RECIPE GRID ── {%- endcomment -%}
+<section class="rl-recipes-section rl-browse-mode" id="rl-recipes-section">
+  <div class="rl-recipes-inner">
+
+    <div id="rl-browse-header" class="rl-section-hd">
+      <h2 class="rl-block-title">Most Popular</h2>
+      <a href="#" id="rl-show-all-link">All Recipes →</a>
+    </div>
+
+    <div id="rl-filtered-header" class="rl-results-bar" style="display:none;">
+      <div class="rl-results-count">
+        Showing <strong id="rl-result-count">0</strong> recipes
+        <span id="rl-result-label"></span>
+      </div>
+    </div>
+
+    <div class="rl-recipe-grid" id="rl-recipe-grid">
+        {%- for art in recipes_blog.articles -%}
+          {%- assign art_tags = art.tags | join: ',' | downcase -%}
+          {%- assign time_tag = art.metafields.custom.recipe_time_tag -%}
+
+          {%- comment -%} Build ingredient label {%- endcomment -%}
+          {%- assign ing_label = '' -%}
+          {%- assign ing_map = 'rcp-ingredient-ghee:Ghee,rcp-ingredient-honey:Honey,rcp-ingredient-atta:Atta,rcp-ingredient-khapli-atta:Khapli Atta,rcp-ingredient-dates:Dates,rcp-ingredient-coconut-oil:Coconut Oil,rcp-ingredient-groundnut-oil:Groundnut Oil,rcp-ingredient-sesame-oil:Sesame Oil,rcp-ingredient-sunflower-oil:Sunflower Oil,rcp-ingredient-black-mustard-oil:Mustard Oil,rcp-ingredient-yellow-mustard-oil:Yellow Mustard Oil,rcp-ingredient-almonds:Almonds,rcp-ingredient-cashews:Cashews,rcp-ingredient-walnuts:Walnuts,rcp-ingredient-pistachios:Pistachios,rcp-ingredient-raisins:Raisins,rcp-ingredient-prunes:Prunes,rcp-ingredient-brazil-nuts:Brazil Nuts,rcp-ingredient-seeds:Seeds,rcp-ingredient-chia-seeds:Chia Seeds,rcp-ingredient-flax-seeds:Flax Seeds,rcp-ingredient-pumpkin-seeds:Pumpkin Seeds,rcp-ingredient-sunflower-seeds:Sunflower Seeds,rcp-ingredient-basil-seeds:Basil Seeds,rcp-ingredient-ragi:Ragi,rcp-ingredient-bajra:Bajra,rcp-ingredient-jowar:Jowar,rcp-ingredient-millet:Millet,rcp-ingredient-barley:Barley,rcp-ingredient-quinoa:Quinoa,rcp-ingredient-kala-chana:Kala Chana,rcp-ingredient-amla:Amla,rcp-ingredient-amla-candy:Amla Candy,rcp-ingredient-gulkand:Gulkand,rcp-ingredient-moringa:Moringa,rcp-ingredient-ashwagandha:Ashwagandha,rcp-ingredient-shatavari:Shatavari,rcp-ingredient-mulethi:Mulethi,rcp-ingredient-triphala:Triphala,rcp-ingredient-wheatgrass:Wheatgrass' | split: ',' -%}
+          {%- for im in ing_map -%}
+            {%- assign im_p = im | split: ':' -%}
+            {%- if art.tags contains im_p[0] -%}
+              {%- if ing_label == '' -%}{%- assign ing_label = im_p[1] -%}{%- else -%}{%- assign ing_label = ing_label | append: ' · ' | append: im_p[1] -%}{%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+
+          {%- comment -%} Build type label {%- endcomment -%}
+          {%- assign type_label = '' -%}
+          {%- assign type_map = 'rcp-type-breakfast:Breakfast,rcp-type-drink:Drinks,rcp-type-snack:Snacks,rcp-type-dessert:Desserts,rcp-type-main:Main Course,rcp-type-side:Sides,rcp-type-condiment:Condiments' | split: ',' -%}
+          {%- for tm in type_map -%}
+            {%- assign tm_p = tm | split: ':' -%}
+            {%- if art.tags contains tm_p[0] and type_label == '' -%}{%- assign type_label = tm_p[1] -%}{%- endif -%}
+          {%- endfor -%}
+
+          {%- assign card_tag_text = ing_label -%}
+          {%- if type_label != '' -%}
+            {%- if card_tag_text != '' -%}{%- assign card_tag_text = card_tag_text | append: ' · ' | append: type_label -%}{%- else -%}{%- assign card_tag_text = type_label -%}{%- endif -%}
+          {%- endif -%}
+
+          <a href="{{ art.url }}"
+             class="rl-recipe-card"
+             data-tags="{{ art_tags }}"
+             data-title="{{ art.title | downcase | escape }}">
+            <div class="rl-rc-img">
+              {%- if art.image -%}
+                <img src="{{ art.image | image_url: width: 480 }}" alt="{{ art.image.alt | default: art.title | escape }}" loading="lazy" width="480" height="360">
+              {%- else -%}
+                <div class="rl-rc-img-placeholder">🍽️</div>
+              {%- endif -%}
+              {%- if time_tag != blank -%}<div class="rl-rc-time">{{ time_tag }}</div>{%- endif -%}
+              {%- if art.tags contains 'rcp-audience-kids' -%}<div class="rl-rc-audience">Kids</div>
+              {%- elsif art.tags contains 'rcp-occasion-festive' -%}<div class="rl-rc-audience">Festive</div>{%- endif -%}
+            </div>
+            <div class="rl-rc-body">
+              {%- if card_tag_text != '' -%}<div class="rl-rc-tag">{{ card_tag_text }}</div>{%- endif -%}
+              <div class="rl-rc-name">{{ art.title }}</div>
+              {%- if art.excerpt != blank -%}<div class="rl-rc-meta">{{ art.excerpt | strip_html | truncate: 60 }}</div>{%- endif -%}
+            </div>
+          </a>
+        {%- endfor -%}
+    </div>
+
+    <div class="rl-empty" id="rl-empty-state">
+      <div class="rl-empty-icon">🔍</div>
+      <h3>No recipes found</h3>
+      <p>We don't have recipes matching those filters yet.<br>Try a different combination or browse all recipes.</p>
+      <a href="{{ request.path }}" class="rl-empty-link">View All Recipes →</a>
+    </div>
+
+  </div>
+</section>
+
+{%- endpaginate -%}
+
+<script>
+(function () {
+  // ── Label maps ──────────────────────────────────────────────
+  var TYPE_LABELS = {
+    breakfast:'Breakfast', drink:'Drinks', snack:'Snacks',
+    dessert:'Desserts', main:'Main Course', side:'Sides', condiment:'Condiments'
+  };
+  var TIME_LABELS = {
+    'rcp-time-5min':'Under 5 min','rcp-time-10min':'Under 10 min',
+    'rcp-time-20min':'Under 20 min','rcp-time-30min':'Under 30 min'
+  };
+  var OCC_LABELS = {
+    'rcp-occasion-daily':'Daily','rcp-occasion-festive':'Festive',
+    'rcp-occasion-winter':'Winter','rcp-occasion-summer':'Summer','rcp-occasion-fasting':'Fasting'
+  };
+  var KIDS_LABELS = { 'rcp-audience-kids':'Kid-Friendly','rcp-audience-family':'Family Meals' };
+
+  // ── State ───────────────────────────────────────────────────
+  var filters = { ingredient: '', type: '', cook_time: '', occasion: '', for_kids: '' };
+  var searchQ    = '';
+  var showAll    = false;
+  var currentPage = 1;
+  var PAGE_SIZE  = 20;
+  var BROWSE_LIMIT = 8;
+
+  // ── DOM refs ────────────────────────────────────────────────
+  var cards        = Array.from(document.querySelectorAll('#rl-recipe-grid .rl-recipe-card'));
+  var browseSection = document.getElementById('rl-browse-section');
+  var recipesSection = document.getElementById('rl-recipes-section');
+  var browseHeader  = document.getElementById('rl-browse-header');
+  var filteredHeader = document.getElementById('rl-filtered-header');
+  var resultCount   = document.getElementById('rl-result-count');
+  var resultLabel   = document.getElementById('rl-result-label');
+  var chipsBar      = document.getElementById('rl-chips-bar');
+  var emptyState    = document.getElementById('rl-empty-state');
+  var clearAll      = document.getElementById('rl-clear-all');
+  var searchInput   = document.getElementById('rl-search-input');
+  var showAllLink   = document.getElementById('rl-show-all-link');
+
+  // ── Read URL params on load ─────────────────────────────────
+  function readURL() {
+    var qs = window.location.search.slice(1);
+    qs.split('&').forEach(function(part) {
+      var kv = part.split('=');
+      var k  = kv[0];
+      var v  = decodeURIComponent((kv[1] || '').replace(/\+/g, ' ')).toLowerCase().trim();
+      if (k === 'ingredient') filters.ingredient = v;
+      if (k === 'type')       filters.type       = v;
+      if (k === 'cook_time')  filters.cook_time  = v;
+      if (k === 'occasion')   filters.occasion   = v;
+      if (k === 'for_kids')   filters.for_kids   = v;
+      if (k === 'q')          searchQ            = decodeURIComponent((kv[1] || '').replace(/\+/g, ' ')).trim();
+      if (k === 'view' && v === 'all') showAll   = true;
+      if (k === 'page')       currentPage        = Math.max(1, parseInt(v) || 1);
+    });
+    if (searchInput && searchQ) searchInput.value = searchQ;
+  }
+
+  // ── Write URL params ────────────────────────────────────────
+  function writeURL() {
+    var parts = [];
+    if (filters.ingredient) parts.push('ingredient=' + encodeURIComponent(filters.ingredient));
+    if (filters.type)       parts.push('type='       + encodeURIComponent(filters.type));
+    if (filters.cook_time)  parts.push('cook_time='  + encodeURIComponent(filters.cook_time));
+    if (filters.occasion)   parts.push('occasion='   + encodeURIComponent(filters.occasion));
+    if (filters.for_kids)   parts.push('for_kids='   + encodeURIComponent(filters.for_kids));
+    if (searchQ)            parts.push('q='          + encodeURIComponent(searchQ));
+    if (showAll && !hasFilters()) parts.push('view=all');
+    if (currentPage > 1)    parts.push('page='       + currentPage);
+    var newURL = window.location.pathname + (parts.length ? '?' + parts.join('&') : '');
+    window.history.replaceState(null, '', newURL);
+  }
+
+  // ── Has any filter active ───────────────────────────────────
+  function hasFilters() {
+    return filters.ingredient || filters.type || filters.cook_time ||
+           filters.occasion   || filters.for_kids || searchQ;
+  }
+
+  // ── Build matching cards list ────────────────────────────────
+  function getMatchingCards() {
+    return cards.filter(function(card) {
+      var tags  = card.getAttribute('data-tags') || '';
+      var title = card.getAttribute('data-title') || '';
+
+      if (filters.type && !tags.includes('rcp-type-' + filters.type)) return false;
+      if (filters.ingredient && !tags.includes('rcp-ingredient-' + filters.ingredient)) return false;
+      if (filters.cook_time) {
+        var timeOrder = ['rcp-time-5min','rcp-time-10min','rcp-time-20min','rcp-time-30min'];
+        var maxIdx = timeOrder.indexOf(filters.cook_time);
+        var timeMatches = false;
+        for (var ti = 0; ti <= maxIdx; ti++) {
+          if (tags.includes(timeOrder[ti])) { timeMatches = true; break; }
+        }
+        if (!timeMatches) return false;
+      }
+      if (filters.occasion && !tags.includes(filters.occasion)) return false;
+      if (filters.for_kids && !tags.includes(filters.for_kids)) return false;
+      if (searchQ && !title.includes(searchQ.toLowerCase())) return false;
+      return true;
+    });
+  }
+
+  // ── Render pagination bar ────────────────────────────────────
+  function renderPagination(total) {
+    var existing = document.getElementById('rl-pagination');
+    if (existing) existing.remove();
+    var totalPages = Math.ceil(total / PAGE_SIZE);
+    if (totalPages <= 1) return;
+
+    var nav = document.createElement('div');
+    nav.id = 'rl-pagination';
+    nav.style.cssText = 'display:flex;justify-content:center;align-items:center;gap:6px;padding:28px 0 8px;border-top:1px solid var(--border);margin-top:24px;flex-wrap:wrap;';
+
+    for (var p = 1; p <= totalPages; p++) {
+      var btn = document.createElement('button');
+      btn.textContent = p;
+      var isActive = (p === currentPage);
+      btn.style.cssText = 'width:36px;height:36px;border-radius:8px;font-size:13px;cursor:pointer;' +
+        'font-family:"DM Sans",sans-serif;transition:all 0.15s;border:1px solid ' +
+        (isActive ? 'var(--navy);background:var(--navy);color:white;' : 'var(--border);background:white;color:var(--text-mid);');
+      (function(pg) {
+        btn.addEventListener('click', function() {
+          currentPage = pg;
+          applyFilters();
+          recipesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      })(p);
+      nav.appendChild(btn);
+    }
+
+    var grid = document.getElementById('rl-recipe-grid');
+    grid.parentNode.insertBefore(nav, grid.nextSibling);
+  }
+
+  // ── Apply filters ───────────────────────────────────────────
+  function applyFilters() {
+    var isFiltered = hasFilters();
+    var isPaged    = true;  // always paginated — browse, filtered, and all recipes modes
+
+    var matching = getMatchingCards();
+
+    // Hide all cards first
+    cards.forEach(function(c) { c.classList.add('rl-hidden'); });
+
+    if (isPaged) {
+      // Show only the current page slice
+      var start = (currentPage - 1) * PAGE_SIZE;
+      matching.forEach(function(card, idx) {
+        if (idx >= start && idx < start + PAGE_SIZE) card.classList.remove('rl-hidden');
+      });
+      renderPagination(matching.length);
+    } else {
+      // Browse mode: show first BROWSE_LIMIT only, no pagination
+      matching.slice(0, BROWSE_LIMIT).forEach(function(card) {
+        card.classList.remove('rl-hidden');
+      });
+      var existing = document.getElementById('rl-pagination');
+      if (existing) existing.remove();
+    }
+
+    // Toggle UI
+    browseHeader.style.display   = (isFiltered || showAll) ? 'none' : '';
+    filteredHeader.style.display = (isFiltered || showAll) ? 'flex' : 'none';
+    recipesSection.classList.toggle('rl-filtered',    isFiltered || showAll);
+    recipesSection.classList.toggle('rl-browse-mode', !isFiltered && !showAll);
+    emptyState.classList.toggle('rl-visible', matching.length === 0);
+
+    if (isFiltered || showAll) {
+      resultCount.textContent = matching.length;
+      if (showAll && !isFiltered) {
+        resultLabel.textContent = '';
+      } else {
+        var labelParts = [];
+        if (filters.ingredient) labelParts.push(filters.ingredient.replace(/-/g,' '));
+        if (filters.type)       labelParts.push(TYPE_LABELS[filters.type] || filters.type);
+        if (filters.cook_time)  labelParts.push(TIME_LABELS[filters.cook_time] || filters.cook_time);
+        if (filters.occasion)   labelParts.push(OCC_LABELS[filters.occasion]   || filters.occasion);
+        if (filters.for_kids)   labelParts.push(KIDS_LABELS[filters.for_kids]  || filters.for_kids);
+        if (searchQ)            labelParts.push('"' + searchQ + '"');
+        resultLabel.textContent = labelParts.length ? ' for ' + labelParts.join(' · ') : '';
+      }
+    }
+
+    updateChips();
+    updateFilterBtns();
+    updateTypeTiles();
+    writeURL();
+  }
+
+  // ── Chips bar ───────────────────────────────────────────────
+  function updateChips() {
+    chipsBar.innerHTML = '';
+    var isFiltered = hasFilters();
+    chipsBar.classList.toggle('rl-visible', !!isFiltered);
+    clearAll.classList.toggle('rl-visible', !!isFiltered);
+
+    function makeChip(label, key) {
+      var btn = document.createElement('button');
+      btn.className = 'rl-chip';
+      btn.innerHTML = label + '<span class="rl-chip-x">×</span>';
+      btn.addEventListener('click', function() {
+        if (key === 'q') { searchQ = ''; if (searchInput) searchInput.value = ''; }
+        else filters[key] = '';
+        applyFilters();
+      });
+      chipsBar.appendChild(btn);
+    }
+
+    if (filters.ingredient) makeChip(filters.ingredient.replace(/-/g,' '), 'ingredient');
+    if (filters.type)       makeChip(TYPE_LABELS[filters.type] || filters.type, 'type');
+    if (filters.cook_time)  makeChip(TIME_LABELS[filters.cook_time] || filters.cook_time, 'cook_time');
+    if (filters.occasion)   makeChip(OCC_LABELS[filters.occasion]   || filters.occasion, 'occasion');
+    if (filters.for_kids)   makeChip(KIDS_LABELS[filters.for_kids]  || filters.for_kids, 'for_kids');
+    if (searchQ)            makeChip('"' + searchQ + '"', 'q');
+
+    if (isFiltered) {
+      var clr = document.createElement('button');
+      clr.className = 'rl-chip-clear';
+      clr.textContent = 'Clear all';
+      clr.addEventListener('click', clearFilters);
+      chipsBar.appendChild(clr);
+    }
+  }
+
+  // ── Filter button active states ─────────────────────────────
+  function updateFilterBtns() {
+    document.querySelectorAll('.rl-filter-dropdown').forEach(function(dd) {
+      var key   = dd.getAttribute('data-filter');
+      var val   = key === 'q' ? searchQ : (filters[key] || '');
+      var btn   = dd.querySelector('.rl-filter-btn');
+      var label = dd.querySelector('.rl-btn-label');
+      var defaultLabels = {
+        ingredient:'By Ingredient', type:'By Type', cook_time:'By Cook Time',
+        occasion:'By Occasion', for_kids:'For Kids & Family'
+      };
+      btn.classList.toggle('rl-active', !!val);
+      if (val) {
+        if (key === 'ingredient') label.textContent = val.replace(/-/g,' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+        else if (key === 'type')      label.textContent = TYPE_LABELS[val] || val;
+        else if (key === 'cook_time') label.textContent = TIME_LABELS[val] || val;
+        else if (key === 'occasion')  label.textContent = OCC_LABELS[val]  || val;
+        else if (key === 'for_kids')  label.textContent = KIDS_LABELS[val] || val;
+      } else {
+        label.textContent = defaultLabels[key] || key;
+      }
+      // Mark selected item
+      dd.querySelectorAll('.rl-dropdown-item').forEach(function(item) {
+        item.classList.toggle('rl-selected', item.getAttribute('data-value') === val);
+      });
+    });
+  }
+
+  // ── Browse tile active states ───────────────────────────────
+  function updateTypeTiles() {
+    document.querySelectorAll('.rl-type-tile').forEach(function(tile) {
+      tile.classList.toggle('rl-active', tile.getAttribute('data-value') === filters.type);
+    });
+  }
+
+  // ── Clear all ───────────────────────────────────────────────
+  function clearFilters() {
+    filters = { ingredient:'', type:'', cook_time:'', occasion:'', for_kids:'' };
+    searchQ = ''; showAll = false; currentPage = 1;
+    if (searchInput) searchInput.value = '';
+    applyFilters();
+  }
+
+  // ── Dropdown toggle ─────────────────────────────────────────
+  document.querySelectorAll('[data-toggle]').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var dd = btn.closest('.rl-filter-dropdown');
+      var isOpen = dd.classList.contains('rl-open');
+      document.querySelectorAll('.rl-filter-dropdown').forEach(function(d) { d.classList.remove('rl-open'); });
+      if (!isOpen) dd.classList.add('rl-open');
+    });
+  });
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.rl-filter-dropdown').forEach(function(d) { d.classList.remove('rl-open'); });
+  });
+
+  // ── Dropdown item click ─────────────────────────────────────
+  document.querySelectorAll('.rl-dropdown-item').forEach(function(item) {
+    item.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var dd  = item.closest('.rl-filter-dropdown');
+      var key = dd.getAttribute('data-filter');
+      var val = item.getAttribute('data-value');
+      if (filters[key] === val) filters[key] = '';
+      else filters[key] = val;
+      showAll = false; currentPage = 1;
+      dd.classList.remove('rl-open');
+      applyFilters();
+    });
+  });
+
+  // ── Browse tile click ───────────────────────────────────────
+  document.querySelectorAll('.rl-type-tile').forEach(function(tile) {
+    tile.addEventListener('click', function() {
+      var val = tile.getAttribute('data-value');
+      filters.type = (filters.type === val) ? '' : val;
+      showAll = false; currentPage = 1;
+      applyFilters();
+    });
+  });
+
+  // ── Search input ────────────────────────────────────────────
+  var searchTimer;
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(function() {
+        searchQ = searchInput.value.trim();
+        showAll = false; currentPage = 1;
+        applyFilters();
+      }, 300);
+    });
+  }
+
+  // ── All Recipes link ────────────────────────────────────────
+  if (showAllLink) {
+    showAllLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      showAll = true; currentPage = 1;
+      applyFilters();
+    });
+  }
+
+  // ── Clear all button ────────────────────────────────────────
+  if (clearAll) clearAll.addEventListener('click', clearFilters);
+
+  // ── Init ────────────────────────────────────────────────────
+  readURL();
+  applyFilters();
+
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Recipes Landing",
+  "tag": "div",
+  "class": "recipes-landing-section",
+  "settings": [],
+  "presets": [{ "name": "Recipes Landing" }]
+}
+{% endschema %}

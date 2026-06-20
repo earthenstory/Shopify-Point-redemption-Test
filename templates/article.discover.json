@@ -1,0 +1,38 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-discover-article",
+      "settings": {}
+    },
+    "es-recipes": {
+      "type": "es-recipes",
+      "settings": {
+        "title": "Recipes",
+        "blog_handle": "recipes",
+        "show_view_all": true
+      }
+    },
+    "es-discover": {
+      "type": "es-discover",
+      "settings": {
+        "title": "Discover",
+        "blog_handle": "discover",
+        "show_view_all": true
+      }
+    },
+    "es-email-invite": {
+      "type": "es-email-invite",
+      "settings": {
+        "email_heading": "Food Knowledge. Recipes. Updates.",
+        "email_desc": "Join our community of conscious food lovers. Seasonal recipes, ingredient guides, and traditional food knowledge — delivered to your inbox.",
+        "email_btn": "Join the Community →"
+      }
+    }
+  },
+  "order": [
+    "main",
+    "es-recipes",
+    "es-discover",
+    "es-email-invite"
+  ]
+}

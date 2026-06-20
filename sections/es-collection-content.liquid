@@ -1,0 +1,878 @@
+{% comment %}
+  Earthen Story — Collection Below-fold Content Section
+  Matches collection-page-mockup-v2.html exactly.
+
+  Metafields used (Earthen Story Master Reference — Collection metafields):
+    custom.related_recipes      Blog post ref list   — Up to 3 recipe cards
+    custom.discover_articles    Blog post ref list   — Up to 3 discover cards
+    custom.seo_heading          Single-line text     — SEO accordion heading
+    custom.seo_description      Multi-line text      — 600–1000 word SEO body
+
+  Article metafields used (pulled from each referenced article):
+    custom.recipe_time_tag      Single-line text     — e.g. '25 min · No-cook'
+    custom.blog_read_time       Single-line text     — e.g. '6 min read'
+
+  Section settings (Recipe / Discover blocks) are FALLBACKS used when
+  metafields are not populated. The section works in any collection template.
+{% endcomment %}
+
+{% liquid
+  assign collection_recipes  = collection.metafields.custom.related_recipes.value
+  assign collection_discover = collection.metafields.custom.discover_articles.value
+  assign seo_heading         = collection.metafields.custom.seo_heading.value | default: section.settings.seo_heading
+  assign seo_description     = collection.metafields.custom.seo_description.value
+
+  assign has_metafield_recipes  = false
+  assign has_metafield_discover = false
+  if collection_recipes != blank
+    assign has_metafield_recipes = true
+  endif
+  if collection_discover != blank
+    assign has_metafield_discover = true
+  endif
+%}
+
+<div class="es-collection-below-fold">
+
+  <!-- ══════════════════════════════════════════
+       RECIPES SECTION
+       Source: collection.metafields.custom.related_recipes (blog post refs)
+       Fallback: recipe_card blocks added in theme editor
+       ══════════════════════════════════════════ -->
+  {% if section.settings.show_recipes %}
+  <div class="es-section-block">
+    <h2 class="es-section-title">{{ section.settings.recipes_title | default: 'Recipes' }}</h2>
+    <p class="es-section-subtitle">{{ section.settings.recipes_subtitle | default: 'Traditional recipes and modern uses.' }}</p>
+
+    <div class="es-recipe-grid">
+
+      {% if has_metafield_recipes %}
+        {%- for article in collection_recipes limit: 3 -%}
+          <a class="es-recipe-card" href="{{ article.url }}">
+            <div class="es-recipe-img">
+              {%- if article.image != blank -%}
+                {{ article.image | image_url: width: 600 | image_tag:
+                    loading: 'lazy',
+                    alt: article.image.alt | default: article.title,
+                    class: 'es-recipe-img-tag',
+                    width: 600, height: 280,
+                    widths: '300, 450, 600',
+                    sizes: '(min-width: 990px) 33vw, 100vw'
+                }}
+              {%- else -%}
+                🍳
+              {%- endif -%}
+              {%- assign recipe_time = article.metafields.custom.recipe_time_tag.value -%}
+              {%- if recipe_time != blank -%}
+                <div class="es-recipe-time-badge">{{ recipe_time }}</div>
+              {%- endif -%}
+            </div>
+            <div class="es-recipe-body">
+              {%- assign recipe_tag = article.tags | first -%}
+              {%- if recipe_tag != blank -%}
+                <div class="es-recipe-tag">{{ recipe_tag }}</div>
+              {%- endif -%}
+              <h3 class="es-recipe-name">{{ article.title }}</h3>
+              {%- if article.excerpt != blank -%}
+                <div class="es-recipe-meta">{{ article.excerpt | strip_html | truncate: 80 }}</div>
+              {%- endif -%}
+            </div>
+          </a>
+        {%- endfor -%}
+
+      {% else %}
+        {%- assign recipe_blocks = section.blocks | where: 'type', 'recipe_card' -%}
+        {%- for block in recipe_blocks -%}
+          <div class="es-recipe-card" {{ block.shopify_attributes }}>
+            <div class="es-recipe-img">
+              {%- if block.settings.image != blank -%}
+                {{ block.settings.image | image_url: width: 600 | image_tag: loading: 'lazy', class: 'es-recipe-img-tag', alt: block.settings.title }}
+              {%- else -%}
+                {{ block.settings.emoji | default: '🍳' }}
+              {%- endif -%}
+              {%- if block.settings.time != blank -%}
+                <div class="es-recipe-time-badge">{{ block.settings.time }}</div>
+              {%- endif -%}
+            </div>
+            <div class="es-recipe-body">
+              <div class="es-recipe-tag">{{ block.settings.tag | default: 'Recipe' }}</div>
+              <h3 class="es-recipe-name">{{ block.settings.title | default: 'Recipe Title' }}</h3>
+              <div class="es-recipe-meta">{{ block.settings.meta | default: 'With cold pressed oil' }}</div>
+            </div>
+          </div>
+        {%- endfor -%}
+      {% endif %}
+
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ══════════════════════════════════════════
+       DISCOVER SECTION
+       Source: collection.metafields.custom.discover_articles (blog post refs)
+       Fallback: discover_card blocks added in theme editor
+       ══════════════════════════════════════════ -->
+  {% if section.settings.show_discover %}
+  <div class="es-section-block">
+    <h2 class="es-section-title">{{ section.settings.discover_title | default: 'Discover' }}</h2>
+    <p class="es-section-subtitle">{{ section.settings.discover_subtitle | default: 'Learn why the ingredients you use matter.' }}</p>
+
+    <div class="es-discover-grid">
+
+      {% if has_metafield_discover %}
+        {%- for article in collection_discover limit: 3 -%}
+          <a class="es-discover-card" href="{{ article.url }}">
+            <div class="es-discover-img">
+              {%- if article.image != blank -%}
+                {{ article.image | image_url: width: 600 | image_tag:
+                    loading: 'lazy',
+                    alt: article.image.alt | default: article.title,
+                    class: 'es-discover-img-tag',
+                    width: 600, height: 240,
+                    widths: '300, 450, 600',
+                    sizes: '(min-width: 990px) 33vw, 100vw'
+                }}
+              {%- else -%}
+                📖
+              {%- endif -%}
+            </div>
+            <div class="es-discover-body">
+              {%- assign discover_cat = article.tags | first -%}
+              {%- if discover_cat != blank -%}
+                <div class="es-discover-cat">{{ discover_cat }}</div>
+              {%- endif -%}
+              <h3 class="es-discover-title">{{ article.title }}</h3>
+              {%- assign read_time = article.metafields.custom.blog_read_time.value -%}
+              {%- if read_time != blank -%}
+                <div class="es-discover-read">{{ read_time }}</div>
+              {%- endif -%}
+            </div>
+          </a>
+        {%- endfor -%}
+
+      {% else %}
+        {%- assign discover_blocks = section.blocks | where: 'type', 'discover_card' -%}
+        {%- for block in discover_blocks -%}
+          <a class="es-discover-card" href="{{ block.settings.url | default: '#' }}" {{ block.shopify_attributes }}>
+            <div class="es-discover-img">
+              {%- if block.settings.image != blank -%}
+                {{ block.settings.image | image_url: width: 600 | image_tag: loading: 'lazy', class: 'es-discover-img-tag', alt: block.settings.title }}
+              {%- else -%}
+                {{ block.settings.emoji | default: '📖' }}
+              {%- endif -%}
+            </div>
+            <div class="es-discover-body">
+              <div class="es-discover-cat">{{ block.settings.category | default: 'Ingredient Knowledge' }}</div>
+              <h3 class="es-discover-title">{{ block.settings.title | default: 'Article Title' }}</h3>
+              <div class="es-discover-read">{{ block.settings.read_time | default: '5 min read' }}</div>
+            </div>
+          </a>
+        {%- endfor -%}
+      {% endif %}
+
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ══════════════════════════════════════════
+       SEO ACCORDION
+       Source: custom.seo_heading + custom.seo_description collection metafields
+       Fallback: section.settings.seo_heading + seo_content (rich text)
+       ══════════════════════════════════════════ -->
+  {%- assign show_seo_accordion = false -%}
+  {%- if seo_description != blank or section.settings.seo_content != blank -%}
+    {%- assign show_seo_accordion = true -%}
+  {%- endif -%}
+
+  {%- if show_seo_accordion -%}
+  <div class="es-seo-section">
+    <div class="es-seo-accordion-header" onclick="esToggleSeo(this)">
+      <span class="es-seo-toggle-title">{{ seo_heading | default: 'About this Collection — A Complete Guide' }}</span>
+      <span class="es-seo-expand-btn">
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        <span class="es-seo-btn-text">Read more</span>
+      </span>
+    </div>
+    <div class="es-seo-body">
+      <div class="es-seo-body-inner">
+        {%- if seo_description != blank -%}
+          {{- seo_description -}}
+        {%- else -%}
+          {{- section.settings.seo_content -}}
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+  {%- endif -%}
+
+  <!-- ══════════════════════════════════════════
+       EMAIL COMMUNITY SIGNUP
+       ══════════════════════════════════════════ -->
+  {% if section.settings.show_email %}
+  <div class="es-email-section">
+    <div class="es-email-block">
+      <div class="es-email-left">
+        <div class="es-email-eyebrow">{{ section.settings.email_eyebrow | default: 'Stay Connected' }}</div>
+        <h2>{{ section.settings.email_title | default: 'Food Knowledge. Recipes. Updates.' }}</h2>
+        <p>{{ section.settings.email_body | default: 'Join our community of conscious food lovers. Seasonal recipes, ingredient guides, and traditional food knowledge — delivered to your inbox.' }}</p>
+      </div>
+      <div class="es-email-right">
+        {% form 'customer', class: 'es-email-form' %}
+          <input type="hidden" name="contact[tags]" value="newsletter,collection-signup">
+          <div class="es-email-form-label">Your email address</div>
+          <input
+            class="es-email-input"
+            type="email"
+            name="contact[email]"
+            placeholder="name@example.com"
+            required
+          >
+          <button type="submit" class="es-email-btn">{{ section.settings.email_btn | default: 'Join the Community →' }}</button>
+        {% endform %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div><!-- /.es-collection-below-fold -->
+
+<script>
+  function esToggleSeo(header) {
+    var body = header.nextElementSibling;
+    var btn = header.querySelector('.es-seo-expand-btn');
+    var btnText = header.querySelector('.es-seo-btn-text');
+    var isOpen = body.classList.toggle('visible');
+    btn.classList.toggle('open', isOpen);
+    if (btnText) btnText.textContent = isOpen ? 'Read less' : 'Read more';
+  }
+</script>
+
+{% stylesheet %}
+
+  /* ── WRAPPER ── */
+  .es-collection-below-fold {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 68px;
+  }
+
+  /* ── SECTION BLOCKS ── */
+  .es-section-block {
+    padding: 40px 0;
+    border-top: 1px solid var(--es-border, #EAE6DC);
+  }
+  h2.es-section-title {
+    font-family: var(--es-font-heading, 'Cormorant', serif);
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--es-text-dark, #18181B);
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
+  }
+  .es-section-subtitle {
+    font-size: 15.5px;
+    color: var(--es-text-soft, #72747D);
+    margin-bottom: 22px;
+    line-height: 1.6;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  }
+
+  /* ── RECIPE CARDS ── */
+  .es-recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .es-recipe-card {
+    border-radius: 10px;
+    overflow: hidden;
+    background: white;
+    border: 1px solid var(--es-border, #EAE6DC);
+    transition: transform 0.18s, box-shadow 0.18s;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    color: inherit;
+  }
+  .es-recipe-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(184,132,30,0.1);
+  }
+  .es-recipe-img {
+    height: 140px;
+    background: linear-gradient(135deg, #F8F4ED 0%, #EDE5D4 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    position: relative;
+    overflow: hidden;
+  }
+  .es-recipe-img-tag {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    inset: 0;
+  }
+  .es-recipe-time-badge {
+    position: absolute;
+    bottom: 8px;
+    right: 10px;
+    background: rgba(255,255,255,0.92);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--es-text-mid, #44464F);
+    padding: 3px 9px;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  }
+  .es-recipe-body { padding: 13px 14px; }
+  .es-recipe-tag {
+    font-size: 11.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--es-gold, #B8841E);
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  }
+  h3.es-recipe-name {
+    font-family: var(--es-font-heading, 'Cormorant', serif);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--es-text-dark, #18181B);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .es-recipe-meta {
+    font-size: 13.5px;
+    color: var(--es-text-soft, #72747D);
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  }
+
+  /* ── DISCOVER CARDS ── */
+  .es-discover-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .es-discover-card {
+    border-radius: 10px;
+    overflow: hidden;
+    background: white;
+    border: 1px solid var(--es-border, #EAE6DC);
+    cursor: pointer;
+    transition: transform 0.18s, box-shadow 0.18s;
+    text-decoration: none;
+    display: block;
+    color: inherit;
+  }
+  .es-discover-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(184,132,30,0.1);
+  }
+  .es-discover-img {
+    height: 120px;
+    background: linear-gradient(135deg, #F8F4ED 0%, #EDE5D4 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    overflow: hidden;
+    position: relative;
+  }
+  .es-discover-img-tag {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    inset: 0;
+  }
+  .es-discover-body { padding: 13px 14px; }
+  .es-discover-cat {
+    font-size: 11.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--es-gold, #B8841E);
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  }
+  h3.es-discover-title {
+    font-family: var(--es-font-heading, 'Cormorant', serif);
+    font-size: 19px;
+    font-weight: 500;
+    color: var(--es-text-dark, #18181B);
+    line-height: 1.3;
+    margin-bottom: 5px;
+  }
+  .es-discover-read {
+    font-size: 13px;
+    color: var(--es-text-soft, #72747D);
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  }
+
+  /* ── SEO ACCORDION ── */
+  .es-seo-section {
+    padding: 0;
+    border-top: 1px solid var(--es-border, #EAE6DC);
+  }
+  .es-seo-accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 0;
+    cursor: pointer;
+    user-select: none;
+  }
+  .es-seo-accordion-header:hover .es-seo-toggle-title {
+    color: var(--es-gold, #B8841E);
+  }
+  .es-seo-toggle-title {
+    font-family: var(--es-font-heading, 'Cormorant', serif);
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--es-text-dark, #18181B);
+    transition: color 0.15s;
+  }
+  .es-seo-expand-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border: 1.5px solid var(--es-gold-border, #DFC07A);
+    border-radius: 20px;
+    background: var(--es-gold-soft, #FAF3E4);
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    color: var(--es-gold, #B8841E);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  }
+  .es-seo-accordion-header:hover .es-seo-expand-btn {
+    background: var(--es-gold, #B8841E);
+    color: white;
+    border-color: var(--es-gold, #B8841E);
+  }
+  .es-seo-expand-btn svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 0.3s;
+  }
+  .es-seo-expand-btn.open svg { transform: rotate(180deg); }
+
+  /* Accordion body — CSS grid trick for smooth height animation */
+  .es-seo-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease;
+  }
+  .es-seo-body.visible { grid-template-rows: 1fr; }
+  .es-seo-body-inner { overflow: hidden; padding-bottom: 0; }
+  .es-seo-body.visible .es-seo-body-inner { padding-bottom: 32px; }
+
+  /* SEO rich text typography */
+  .es-seo-body-inner p {
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--es-text-mid, #44464F);
+    margin-bottom: 12px;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  }
+  .es-seo-body-inner h3 {
+    font-family: var(--es-font-heading, 'Cormorant', serif);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--es-text-dark, #18181B);
+    margin-bottom: 8px;
+    margin-top: 20px;
+  }
+  .es-seo-body-inner ul {
+    margin: 8px 0 14px 0;
+    padding-left: 0;
+    list-style: none;
+  }
+  .es-seo-body-inner ul li {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--es-text-mid, #44464F);
+    padding-left: 16px;
+    position: relative;
+    margin-bottom: 4px;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  }
+  .es-seo-body-inner ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--es-gold, #B8841E);
+  }
+
+  /* ── EMAIL COMMUNITY ── */
+  .es-email-section {
+    border-top: 1px solid var(--es-border, #EAE6DC);
+    padding: 40px 0 48px;
+  }
+  .es-email-block {
+    border: 1.5px solid var(--es-gold-border, #DFC07A);
+    border-radius: 14px;
+    background: linear-gradient(135deg, #FFFDF5 0%, #FDF6E3 100%);
+    padding: 36px 44px;
+    display: flex;
+    align-items: center;
+    gap: 48px;
+  }
+  .es-email-left { flex: 1; }
+  .es-email-eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--es-gold, #B8841E);
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  }
+  .es-email-section h2 {
+    font-family: var(--es-font-heading, 'Cormorant', serif);
+    font-size: 30px;
+    color: var(--es-text-dark, #18181B);
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .es-email-section p {
+    font-size: 15.5px;
+    color: var(--es-text-mid, #44464F);
+    line-height: 1.7;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  }
+  .es-email-right {
+    flex: 1;
+    background: var(--es-navy, #112557);
+    border-radius: 10px;
+    padding: 24px 28px;
+  }
+  .es-email-form { display: flex; flex-direction: column; gap: 10px; }
+  .es-email-form-label {
+    font-size: 14px;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 2px;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  }
+  .es-email-input {
+    width: 100%;
+    padding: 11px 15px;
+    border-radius: 7px;
+    border: 1.5px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.09);
+    color: white;
+    font-size: 15.5px;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .es-email-input:focus { border-color: rgba(200,146,42,0.55); }
+  .es-email-input::placeholder { color: rgba(255,255,255,0.28); }
+  .es-email-btn {
+    padding: 12px 22px;
+    background: var(--es-gold-hover, #C8922A);
+    color: white;
+    border: none;
+    border-radius: 7px;
+    font-size: 15.5px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+    transition: background 0.2s;
+  }
+  .es-email-btn:hover { background: var(--es-gold, #B8841E); }
+
+  /* ── RESPONSIVE ── */
+  @media screen and (max-width: 900px) {
+    .es-collection-below-fold { padding: 0 20px; }
+    .es-recipe-grid,
+    .es-discover-grid { grid-template-columns: 1fr; }
+    .es-email-block { flex-direction: column; gap: 24px; }
+    .es-email-right { width: 100%; }
+  }
+  @media screen and (max-width: 749px) {
+    .es-recipe-grid { grid-template-columns: 1fr; }
+  }
+
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "ES Collection Content",
+  "tag": "div",
+  "max_blocks": 30,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Recipes Section"
+    },
+    {
+      "type": "paragraph",
+      "content": "Recipe cards are pulled from the collection metafield custom.related_recipes (blog post refs). Add Recipe Card blocks below only as a fallback when metafields are not populated."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_recipes",
+      "label": "Show Recipes section",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "recipes_title",
+      "label": "Section heading",
+      "default": "Recipes"
+    },
+    {
+      "type": "text",
+      "id": "recipes_subtitle",
+      "label": "Section subtitle",
+      "default": "Traditional recipes and modern uses for cold pressed oils."
+    },
+    {
+      "type": "header",
+      "content": "Discover Section"
+    },
+    {
+      "type": "paragraph",
+      "content": "Discover cards are pulled from collection metafield custom.discover_articles (blog post refs). Add Discover Card blocks below as a fallback."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_discover",
+      "label": "Show Discover section",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "discover_title",
+      "label": "Section heading",
+      "default": "Discover"
+    },
+    {
+      "type": "text",
+      "id": "discover_subtitle",
+      "label": "Section subtitle",
+      "default": "Learn why the oil you cook with matters more than most people realise."
+    },
+    {
+      "type": "header",
+      "content": "SEO Accordion"
+    },
+    {
+      "type": "paragraph",
+      "content": "SEO heading comes from collection metafield custom.seo_heading. Body text comes from custom.seo_description (multi-line text). The rich text field below is used as fallback only."
+    },
+    {
+      "type": "text",
+      "id": "seo_heading",
+      "label": "SEO accordion heading fallback",
+      "default": "About Cold Pressed Oils — A Complete Guide"
+    },
+    {
+      "type": "richtext",
+      "id": "seo_content",
+      "label": "SEO content fallback (rich text)"
+    },
+    {
+      "type": "header",
+      "content": "Email Signup"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_email",
+      "label": "Show email signup block",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "email_eyebrow",
+      "label": "Eyebrow",
+      "default": "Stay Connected"
+    },
+    {
+      "type": "text",
+      "id": "email_title",
+      "label": "Heading",
+      "default": "Food Knowledge. Recipes. Updates."
+    },
+    {
+      "type": "textarea",
+      "id": "email_body",
+      "label": "Body text",
+      "default": "Join our community of conscious food lovers. Seasonal recipes, ingredient guides, and traditional food knowledge — delivered to your inbox."
+    },
+    {
+      "type": "text",
+      "id": "email_btn",
+      "label": "Button text",
+      "default": "Join the Community →"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "recipe_card",
+      "name": "Recipe Card (fallback)",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Recipe image"
+        },
+        {
+          "type": "text",
+          "id": "emoji",
+          "label": "Fallback emoji",
+          "default": "🍳"
+        },
+        {
+          "type": "text",
+          "id": "tag",
+          "label": "Category tag",
+          "default": "Quick & Easy"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Recipe title",
+          "default": "Recipe Title"
+        },
+        {
+          "type": "text",
+          "id": "meta",
+          "label": "Subtitle / meta",
+          "default": "With groundnut oil"
+        },
+        {
+          "type": "text",
+          "id": "time",
+          "label": "Cook time",
+          "default": "20 min"
+        }
+      ]
+    },
+    {
+      "type": "discover_card",
+      "name": "Discover Card (fallback)",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Article image"
+        },
+        {
+          "type": "text",
+          "id": "emoji",
+          "label": "Fallback emoji",
+          "default": "📖"
+        },
+        {
+          "type": "text",
+          "id": "category",
+          "label": "Category label",
+          "default": "Ingredient Knowledge"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Article title",
+          "default": "Article Title"
+        },
+        {
+          "type": "text",
+          "id": "read_time",
+          "label": "Read time",
+          "default": "5 min read"
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "Article URL"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "ES Collection Content",
+      "blocks": [
+        {
+          "type": "recipe_card",
+          "settings": {
+            "emoji": "🥗",
+            "tag": "Everyday Cooking",
+            "title": "Tadka Dal with Groundnut Oil",
+            "meta": "Traditional groundnut oil tadka",
+            "time": "25 min"
+          }
+        },
+        {
+          "type": "recipe_card",
+          "settings": {
+            "emoji": "🫔",
+            "tag": "Traditional",
+            "title": "Sesame Chikki & Til Laddoo",
+            "meta": "Festival sweet with sesame oil",
+            "time": "30 min"
+          }
+        },
+        {
+          "type": "recipe_card",
+          "settings": {
+            "emoji": "🥥",
+            "tag": "South Indian",
+            "title": "Coconut Chutney & Stir-fry",
+            "meta": "Coastal flavours with coconut oil",
+            "time": "15 min"
+          }
+        },
+        {
+          "type": "discover_card",
+          "settings": {
+            "emoji": "📖",
+            "category": "Ingredient Knowledge",
+            "title": "Why Cold-Pressed Oils Are Different from Refined",
+            "read_time": "6 min read"
+          }
+        },
+        {
+          "type": "discover_card",
+          "settings": {
+            "emoji": "🏭",
+            "category": "Food System Insights",
+            "title": "How Industrial Seed Oils Are Processed and Why It Matters",
+            "read_time": "5 min read"
+          }
+        },
+        {
+          "type": "discover_card",
+          "settings": {
+            "emoji": "🔬",
+            "category": "Health & Nutrition",
+            "title": "Smoke Points, Stability, and Choosing the Right Cooking Oil",
+            "read_time": "4 min read"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

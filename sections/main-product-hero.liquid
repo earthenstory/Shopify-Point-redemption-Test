@@ -1,0 +1,726 @@
+{%- comment -%}
+  main-product-hero.liquid
+  Earthen Story — Product Hero Section
+  Matches product-page-mockup-v7e.html exactly.
+  Metafield keys from earthen-story-master-reference-v2.docx:
+    custom.tagline              → single line text
+    custom.trust_strip          → list.metaobject_reference (Trust Strip metaobject)
+    custom.better_together      → product reference
+    custom.bundle_save_amount   → single line text  e.g. "₹320"
+    custom.frequently_bought    → product reference
+{%- endcomment -%}
+
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign compare_price    = current_variant.compare_at_price
+  assign sell_price       = current_variant.price
+  assign has_discount     = false
+  if compare_price > sell_price
+    assign has_discount = true
+    assign savings_amount = compare_price | minus: sell_price
+    assign savings_pct    = savings_amount | times: 100 | divided_by: compare_price
+  endif
+
+  assign trust_items      = product.metafields.custom.trust_strip.value
+  assign bt_product       = product.metafields.custom.better_together.value
+  assign fbt_product      = product.metafields.custom.frequently_bought.value
+  assign bundle_save      = product.metafields.custom.bundle_save_amount.value
+
+  assign gallery_images   = product.images
+  assign gallery_count    = gallery_images.size
+  assign visible_thumbs   = 5
+  assign thumb_h          = 78
+-%}
+
+<script type="application/ld+json">
+  {{ product | structured_data }}
+</script>
+
+{{ 'product-hero.css' | asset_url | stylesheet_tag }}
+
+{%- comment -%} ── Wrap everything in a namespaced div ── {%- endcomment -%}
+<div class="es-hero-wrap">
+<section class="product-hero-section">
+  <div class="es-hero-grid">
+
+    {%- comment -%}
+    ══════════════════════════════════════════════════════════════
+    LEFT COLUMN — IMAGE GALLERY
+    Structure: thumb-col [up-arrow · viewport(track[thumbs]) · down-arrow]
+                main-image [badge · prev · next · counter]
+    ══════════════════════════════════════════════════════════════
+    {%- endcomment -%}
+    <div class="es-gallery" id="EsGallery-{{ section.id }}">
+
+      {%- comment -%} ── Vertical thumb column ── {%- endcomment -%}
+      {%- if gallery_count > 1 -%}
+      <div class="es-thumb-col">
+        <button
+          type="button"
+          class="es-thumb-arrow disabled"
+          id="EsThumbUp-{{ section.id }}"
+          aria-label="Scroll thumbnails up"
+        >
+          <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+
+        <div class="es-thumb-viewport" id="EsThumbViewport-{{ section.id }}">
+          <div class="es-thumb-track" id="EsThumbTrack-{{ section.id }}">
+            {%- for image in gallery_images -%}
+              <button
+                type="button"
+                class="es-thumb{% if forloop.first %} active{% endif %}"
+                data-index="{{ forloop.index0 }}"
+                data-src="{{ image | image_url: width: 900 }}"
+                data-alt="{{ image.alt | default: product.title | escape }}"
+                aria-label="{{ image.alt | default: product.title | escape }}"
+              >
+                <img
+                  src="{{ image | image_url: width: 160 }}"
+                  alt="{{ image.alt | default: product.title | escape }}"
+                  width="70"
+                  height="70"
+                  loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                >
+              </button>
+            {%- endfor -%}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="es-thumb-arrow{% if gallery_count <= visible_thumbs %} disabled{% endif %}"
+          id="EsThumbDown-{{ section.id }}"
+          aria-label="Scroll thumbnails down"
+        >
+          <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+      {%- endif -%}
+
+      {%- comment -%} ── Main image ── {%- endcomment -%}
+      <div class="es-main-image" id="EsMainImage-{{ section.id }}">
+        {{ product.featured_image | image_url: width: 900 | image_tag:
+            loading: 'eager',
+            fetchpriority: 'high',
+            alt: product.featured_image.alt | default: product.title,
+            width: 900, height: 900,
+            widths: '450, 600, 750, 900',
+            sizes: '(min-width: 990px) 50vw, 100vw',
+            id: 'EsMainImg-' | append: section.id
+        }}
+
+        {%- comment -%} Badge — derived from product tags (master reference: use tags) {%- endcomment -%}
+        {%- liquid
+          assign badge_text = nil
+          if product.tags contains 'certified-organic'
+            assign badge_text = 'Certified Organic'
+          elsif product.tags contains 'wild-forest'
+            assign badge_text = 'Wild Forest'
+          elsif product.tags contains 'bilona'
+            assign badge_text = 'Bilona Method'
+          elsif product.tags contains 'cold-pressed'
+            assign badge_text = 'Cold Pressed'
+          elsif product.tags contains 'stone-ground'
+            assign badge_text = 'Stone Ground'
+          endif
+        -%}
+        {%- if badge_text != nil -%}
+          <span class="es-gallery-badge">{{ badge_text }}</span>
+        {%- endif -%}
+
+        {%- if gallery_count > 1 -%}
+          <button type="button" class="es-img-arrow prev" id="EsPrev-{{ section.id }}" aria-label="Previous image">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button type="button" class="es-img-arrow next" id="EsNext-{{ section.id }}" aria-label="Next image">
+            <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+          </button>
+          <span class="es-img-counter" id="EsCounter-{{ section.id }}">1 / {{ gallery_count }}</span>
+        {%- endif -%}
+      </div>
+
+    </div>{%- comment -%} end .es-gallery {%- endcomment -%}
+
+    {%- comment -%}
+    ══════════════════════════════════════════════════════════════
+    RIGHT COLUMN — PURCHASE AREA
+    Order (matches mockup exactly):
+      1. Product title (H1)
+      2. Tagline
+      3. Trust strip  ← after tagline, before price
+      4. Price + % off + policy row
+      5. Variant pills
+      6. Purchase option cards (One-time / Subscribe)
+      7. Frequency pills (hidden until Subscribe selected)
+      8. Qty + Add to Cart
+      9. Better Together + Frequently Bought cross-sell cards
+    ══════════════════════════════════════════════════════════════
+    {%- endcomment -%}
+    <div class="es-product-info">
+
+      {%- comment -%} 1. Product Title {%- endcomment -%}
+      <h1 class="es-product-title">{{ product.title }}</h1>
+
+      {%- comment -%} 2. Tagline — metafield: custom.tagline {%- endcomment -%}
+      {%- if product.metafields.custom.tagline.value != blank -%}
+        <p class="es-product-tagline">{{ product.metafields.custom.tagline.value }}</p>
+      {%- endif -%}
+
+      {%- comment -%}
+      3. TRUST STRIP — metafield: custom.trust_strip
+         Type: Now using a semicolon-separated string of metaobject handles
+      {%- endcomment -%}
+      <div class="es-trust-strip">
+        {%- assign trust_raw = product.metafields.custom.trust_strip.value -%}
+        {%- assign trust_handles = trust_raw | split: ';' -%}
+
+        {%- if trust_handles != blank -%}
+          {%- for handle_raw in trust_handles -%}
+            {%- assign t_handle = handle_raw | strip -%}
+            {%- assign item = shop.metaobjects.trust_strip[t_handle] -%}
+            
+            {%- if item != blank -%}
+              <div class="es-trust-item">
+                {%- if item.image != blank -%}
+                  <div class="es-trust-icon">
+                    <img
+                      src="{{ item.image | image_url: width: 40 }}"
+                      alt="{{ item.name | default: item.display_name | escape }}"
+                      width="20" height="20"
+                      style="width:20px;height:20px;object-fit:contain;"
+                      loading="lazy"
+                    >
+                  </div>
+                {%- else -%}
+                  {%- liquid
+                    assign n = item.name | default: item.display_name | downcase
+                    if n contains 'organic' and n contains 'certif'
+                      assign show_cert_logo = true
+                    else
+                      assign show_cert_logo = false
+                    endif
+                  -%}
+                  {%- if show_cert_logo -%}
+                    <div class="es-cert-logo">India<br>Organic</div>
+                  {%- elsif n contains 'lab' or n contains 'tested' or n contains 'pesticide' -%}
+                    <span class="es-trust-icon">
+                      <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v11m0 0H3m6 0h12m0 0v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
+                    </span>
+                  {%- elsif n contains 'traditional' or n contains 'process' or n contains 'bilona' -%}
+                    <span class="es-trust-icon">
+                      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+                    </span>
+                  {%- else -%}
+                    <span class="es-trust-icon">
+                      <svg viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                    </span>
+                  {%- endif -%}
+                {%- endif -%}
+                <span class="es-trust-label">{{ item.name | default: item.display_name }}</span>
+              </div>
+            {%- endif -%}
+          {%- endfor -%}
+        {%- else -%}
+          {%- comment -%} Fallback: 4 hardcoded trust items if metafield is empty {%- endcomment -%}
+          <div class="es-trust-item">
+            <div class="es-cert-logo">India<br>Organic</div>
+            <span class="es-trust-label">India Organic<br>Certified</span>
+          </div>
+          <div class="es-trust-item">
+            <span class="es-trust-icon">
+              <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v11m0 0H3m6 0h12m0 0v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
+            </span>
+            <span class="es-trust-label">Lab Tested<br>Pesticide-Free</span>
+          </div>
+          <div class="es-trust-item">
+            <span class="es-trust-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+            </span>
+            <span class="es-trust-label">Traditionally<br>Processed</span>
+          </div>
+          <div class="es-trust-item">
+            <span class="es-trust-icon">
+              <svg viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+            </span>
+            <span class="es-trust-label">No<br>Additives</span>
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%}
+      4. PRICE ROW + POLICY
+         % off badge: derived from compare_at_price vs price
+         Policy items: free shipping + money back (hardcoded global policy)
+      {%- endcomment -%}
+      <div class="es-price-row" id="EsPriceRow-{{ section.id }}">
+        <span class="es-price-current" id="EsPrice-{{ section.id }}">
+          {{ current_variant.price | money }}
+        </span>
+        {%- if has_discount -%}
+          <span class="es-price-compare" id="EsCompare-{{ section.id }}">
+            {{ compare_price | money }}
+          </span>
+          <span class="es-price-save-pct" id="EsSavePct-{{ section.id }}">
+            {{ savings_pct | round }}% off
+          </span>
+        {%- endif -%}
+      </div>
+      <div class="es-policy-inline">
+        <span class="es-policy-item">
+          <svg viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+          Free shipping above ₹799
+        </span>
+        <span class="es-policy-item">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          30-day money back
+        </span>
+      </div>
+
+      {%- comment -%} 5. VARIANT PILLS {%- endcomment -%}
+      {%- assign product_form_id = 'EsProductForm-' | append: section.id -%}
+
+      {%- form 'product', product, id: product_form_id, class: 'es-product-form', novalidate: 'novalidate' -%}
+        <input type="hidden" name="id" id="EsVariantId-{{ section.id }}" value="{{ current_variant.id }}">
+
+        {%- unless product.has_only_default_variant -%}
+          <div class="es-variant-pills" role="listbox" aria-label="Select size">
+            {%- for variant in product.variants -%}
+              <button
+                type="button"
+                class="es-variant-pill{% if variant.id == current_variant.id %} active{% endif %}{% unless variant.available %} disabled{% endunless %}"
+                data-variant-id="{{ variant.id }}"
+                data-price="{{ variant.price }}"
+                data-price-formatted="{{ variant.price | money }}"
+                data-compare="{{ variant.compare_at_price | default: 0 }}"
+                data-compare-formatted="{{ variant.compare_at_price | money }}"
+                data-available="{{ variant.available }}"
+                role="option"
+                aria-selected="{% if variant.id == current_variant.id %}true{% else %}false{% endif %}"
+                {% unless variant.available %}disabled{% endunless %}
+              >
+                {{ variant.title }}
+              </button>
+            {%- endfor -%}
+          </div>
+        {%- endunless -%}
+
+        {%- comment -%}
+        6. PURCHASE OPTION CARDS
+           One-time: price from current variant
+           Subscribe & Save: 2% off (UI preview; real discount from Seal/Recharge app)
+        {%- endcomment -%}
+        <div class="es-purchase-options">
+          <button type="button" class="es-purchase-option active" data-purchase-type="onetime" id="EsOptOnetime-{{ section.id }}">
+            <div class="es-radio-circle"><div class="es-radio-dot"></div></div>
+            <div class="es-opt-body">
+              <div class="es-opt-row">
+                <span class="es-opt-label">One-time</span>
+                <span class="es-opt-price" id="EsOnetimePrice-{{ section.id }}">{{ current_variant.price | money }}</span>
+              </div>
+              <div class="es-opt-note">No commitment</div>
+            </div>
+          </button>
+          <button type="button" class="es-purchase-option" data-purchase-type="subscribe" id="EsOptSubscribe-{{ section.id }}">
+            <span class="es-opt-badge">Save 2%</span>
+            <div class="es-radio-circle"><div class="es-radio-dot"></div></div>
+            <div class="es-opt-body">
+              <div class="es-opt-row">
+                <span class="es-opt-label">Subscribe &amp; Save</span>
+                <span class="es-opt-price sub" id="EsSubPrice-{{ section.id }}">{{ current_variant.price | times: 0.98 | money }}</span>
+              </div>
+              <div class="es-opt-note">Cancel anytime</div>
+            </div>
+          </button>
+        </div>
+
+        {%- comment -%} 7. FREQUENCY PILLS — visible only when Subscribe selected {%- endcomment -%}
+        <div class="es-freq-box" id="EsFreqBox-{{ section.id }}">
+          <div class="es-freq-label">Delivery frequency</div>
+          <div class="es-freq-pills">
+            <button type="button" class="es-freq-pill">Every 15 days</button>
+            <button type="button" class="es-freq-pill active">Every month</button>
+            <button type="button" class="es-freq-pill">Every 2 months</button>
+            <button type="button" class="es-freq-pill">Every 3 months</button>
+          </div>
+        </div>
+
+        {%- comment -%} 8. QTY + ADD TO CART {%- endcomment -%}
+        <div class="es-atc-row">
+          <div class="es-qty-control">
+            <button type="button" class="es-qty-btn" data-qty-minus aria-label="Decrease quantity">−</button>
+            <input
+              type="number"
+              name="quantity"
+              value="1"
+              min="1"
+              class="es-qty-input"
+              data-qty-input
+              aria-label="Quantity"
+            >
+            <button type="button" class="es-qty-btn" data-qty-plus aria-label="Increase quantity">+</button>
+          </div>
+
+          <button
+            type="submit"
+            name="add"
+            class="es-atc-btn"
+            id="EsAtcBtn-{{ section.id }}"
+            {% unless current_variant.available %}disabled{% endunless %}
+          >
+            {%- if current_variant.available -%}
+              Add to Cart
+            {%- else -%}
+              Sold Out
+            {%- endif -%}
+          </button>
+        </div>
+
+      {%- endform -%}
+
+    {%- comment -%}
+      9. CROSS-SELL CARDS
+         Updated to fetch products via SKU/Handle string from single-line text metafields.
+      {%- endcomment -%}
+      {%- liquid
+        assign bt_handle_raw  = product.metafields.custom.better_together.value | strip
+        assign fbt_handle_raw = product.metafields.custom.frequently_bought.value | strip
+        
+
+        assign bt_product  = all_products[bt_handle_raw]
+        assign fbt_product = all_products[fbt_handle_raw]
+        
+        assign bundle_save = product.metafields.custom.bundle_save_amount.value
+      -%}
+
+      {%- if bt_product != blank or fbt_product != blank -%}
+        <div class="es-crosssell-grid">
+
+          {%- comment -%} Better Together Card {%- endcomment -%}
+          {%- if bt_product != blank -%}
+            <a href="{{ bt_product.url }}" class="es-crosssell-card">
+              <div class="es-cs-img">
+                {%- if bt_product.featured_image -%}
+                  <img
+                    src="{{ bt_product.featured_image | image_url: width: 80 }}"
+                    alt="{{ bt_product.title | escape }}"
+                    width="38" height="38" loading="lazy"
+                  >
+                {%- endif -%}
+              </div>
+              <div class="es-cs-body">
+                <span class="es-cs-label">Better Together</span>
+                <span class="es-cs-name">{{ bt_product.title }}</span>
+                <span class="es-cs-sub">
+                  {%- if bundle_save != blank -%}
+                    Save {{ bundle_save }} · View pack
+                  {%- else -%}
+                    Bundle · View pack
+                  {%- endif -%}
+                </span>
+              </div>
+              <span class="es-cs-add" aria-hidden="true">→</span>
+            </a>
+          {%- endif -%}
+
+          {%- comment -%} Frequently Bought Together Card {%- endcomment -%}
+          {%- if fbt_product != blank -%}
+            <div class="es-crosssell-card">
+              <div class="es-cs-img">
+                {%- if fbt_product.featured_image -%}
+                  <img
+                    src="{{ fbt_product.featured_image | image_url: width: 80 }}"
+                    alt="{{ fbt_product.title | escape }}"
+                    width="38" height="38" loading="lazy"
+                  >
+                {%- endif -%}
+              </div>
+              <div class="es-cs-body">
+                <span class="es-cs-label">Frequently Bought</span>
+                <span class="es-cs-name">{{ fbt_product.title }}</span>
+                <span class="es-cs-sub">{{ fbt_product.price | money }} · Add to order</span>
+              </div>
+              {%- form 'product', fbt_product -%}
+                <input type="hidden" name="id" value="{{ fbt_product.variants.first.id }}">
+                <button type="submit" class="es-cs-add" title="Add to cart" aria-label="Add {{ fbt_product.title | escape }} to cart">+</button>
+              {%- endform -%}
+            </div>
+          {%- endif -%}
+
+        </div>
+      {%- endif -%}
+    </div>{%- comment -%} end .es-product-info {%- endcomment -%}
+  </div>{%- comment -%} end .es-hero-grid {%- endcomment -%}
+</section>
+</div>{%- comment -%} end .es-hero-wrap {%- endcomment -%}
+
+<script>
+(function() {
+  'use strict';
+
+  var sid    = '{{ section.id }}';
+  var wrap   = document.getElementById('EsGallery-' + sid);
+  if (!wrap) return;
+
+  /* ── Gallery state ───────────────────────────────────────── */
+  var images       = {{ gallery_images | json }};
+  var totalSlides  = images.length;
+  var currentSlide = 0;
+  var thumbOffset  = 0;
+  var visibleThumbs = {{ visible_thumbs }};
+  var thumbH        = {{ thumb_h }}; /* 70px height + 8px gap */
+
+  var mainImgWrap = document.getElementById('EsMainImage-' + sid);
+  var mainImg    = document.getElementById('EsMainImg-' + sid) || (mainImgWrap ? mainImgWrap.querySelector('img') : null);
+  var counter    = document.getElementById('EsCounter-' + sid);
+  var trackEl    = document.getElementById('EsThumbTrack-' + sid);
+  var thumbUpEl  = document.getElementById('EsThumbUp-' + sid);
+  var thumbDnEl  = document.getElementById('EsThumbDown-' + sid);
+  var thumbBtns  = wrap ? wrap.querySelectorAll('.es-thumb') : [];
+  var prevBtn    = document.getElementById('EsPrev-' + sid);
+  var nextBtn    = document.getElementById('EsNext-' + sid);
+
+  /* ── Go to slide ─────────────────────────────────────────── */
+  function goToSlide(i) {
+    if (totalSlides === 0) return;
+    currentSlide = (i + totalSlides) % totalSlides;
+
+    /* Update main image */
+    if (mainImg && thumbBtns[currentSlide]) {
+      var newSrc = thumbBtns[currentSlide].dataset.src || mainImg.src;
+      var newAlt = thumbBtns[currentSlide].dataset.alt || '';
+      mainImg.removeAttribute('srcset');
+      mainImg.src = newSrc;
+      mainImg.alt = newAlt;
+    }
+
+    /* Update active thumb */
+    thumbBtns.forEach(function(t, idx) {
+      t.classList.toggle('active', idx === currentSlide);
+    });
+
+    /* Update mobile dots */
+    var dots = document.querySelectorAll('#EsMobileDots-' + sid + ' .es-mobile-thumb-dot');
+    dots.forEach(function(d, idx) { d.classList.toggle('active', idx === currentSlide); });
+
+    /* Update counter */
+    if (counter) counter.textContent = (currentSlide + 1) + ' / ' + totalSlides;
+
+    /* Auto-scroll thumb track to keep active thumb visible */
+    if (currentSlide < thumbOffset) {
+      scrollThumbsTo(currentSlide);
+    } else if (currentSlide >= thumbOffset + visibleThumbs) {
+      scrollThumbsTo(currentSlide - visibleThumbs + 1);
+    }
+  }
+
+  /* ── Scroll thumb track ──────────────────────────────────── */
+  function scrollThumbsTo(offset) {
+    var max = Math.max(0, totalSlides - visibleThumbs);
+    thumbOffset = Math.max(0, Math.min(offset, max));
+    if (trackEl) trackEl.style.transform = 'translateY(-' + (thumbOffset * thumbH) + 'px)';
+    if (thumbUpEl) thumbUpEl.classList.toggle('disabled', thumbOffset === 0);
+    if (thumbDnEl) thumbDnEl.classList.toggle('disabled', thumbOffset >= max);
+  }
+
+  /* ── Bind thumb clicks ───────────────────────────────────── */
+  thumbBtns.forEach(function(thumb, i) {
+    thumb.addEventListener('click', function() { goToSlide(i); });
+  });
+
+  /* ── Bind prev / next ────────────────────────────────────── */
+  if (prevBtn) prevBtn.addEventListener('click', function() { goToSlide(currentSlide - 1); });
+  if (nextBtn) nextBtn.addEventListener('click', function() { goToSlide(currentSlide + 1); });
+
+  /* ── Bind thumb-strip scroll arrows ─────────────────────── */
+  if (thumbUpEl) thumbUpEl.addEventListener('click', function() { scrollThumbsTo(thumbOffset - 1); });
+  if (thumbDnEl) thumbDnEl.addEventListener('click', function() { scrollThumbsTo(thumbOffset + 1); });
+
+  /* ── Swipe support (mobile) ──────────────────────────────── */
+  if (mainImgWrap) {
+    var touchStartX = 0;
+    mainImgWrap.addEventListener('touchstart', function(e) {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    mainImgWrap.addEventListener('touchend', function(e) {
+      var dx = e.changedTouches[0].screenX - touchStartX;
+      if (Math.abs(dx) > 40) goToSlide(currentSlide + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+  }
+
+  /* ── Initialise ──────────────────────────────────────────── */
+  scrollThumbsTo(0);
+
+  /* ── Variant pill handler ────────────────────────────────── */
+  var variantPills   = document.querySelectorAll('#EsProductForm-' + sid + ' .es-variant-pill');
+  var variantIdInput = document.getElementById('EsVariantId-' + sid);
+  var priceEl        = document.getElementById('EsPrice-' + sid);
+  var compareEl      = document.getElementById('EsCompare-' + sid);
+  var savePctEl      = document.getElementById('EsSavePct-' + sid);
+  var onetimePriceEl = document.getElementById('EsOnetimePrice-' + sid);
+  var subPriceEl     = document.getElementById('EsSubPrice-' + sid);
+  var atcBtn         = document.getElementById('EsAtcBtn-' + sid);
+
+  variantPills.forEach(function(pill) {
+    pill.addEventListener('click', function() {
+      if (this.disabled) return;
+
+      /* Update active state */
+      variantPills.forEach(function(p) {
+        p.classList.remove('active');
+        p.setAttribute('aria-selected', 'false');
+      });
+      this.classList.add('active');
+      this.setAttribute('aria-selected', 'true');
+
+      /* Update hidden variant id */
+      if (variantIdInput) variantIdInput.value = this.dataset.variantId;
+
+      /* Update price display */
+      var price        = parseInt(this.dataset.price, 10) || 0;
+      var compare      = parseInt(this.dataset.compare, 10) || 0;
+      var priceFmt     = this.dataset.priceFormatted || '';
+      var compareFmt   = this.dataset.compareFormatted || '';
+      var available    = this.dataset.available === 'true';
+
+      if (priceEl) priceEl.textContent = priceFmt;
+      if (onetimePriceEl) onetimePriceEl.textContent = priceFmt;
+
+      /* % off badge */
+      if (compare > price) {
+        var pct = Math.round((compare - price) / compare * 100);
+        if (compareEl) { compareEl.textContent = compareFmt; compareEl.style.display = ''; }
+        if (savePctEl) { savePctEl.textContent = pct + '% off'; savePctEl.style.display = ''; }
+      } else {
+        if (compareEl) compareEl.style.display = 'none';
+        if (savePctEl) savePctEl.style.display = 'none';
+      }
+
+      /* Subscribe price (2% off) */
+      if (subPriceEl) {
+        var subCents = Math.round(price * 0.98);
+        /* Format as money — simple rupee format */
+        subPriceEl.textContent = priceFmt.replace(/[\d,]+/, function() {
+          return Math.round(price / 100 * 0.98).toLocaleString('en-IN');
+        });
+      }
+
+      /* ATC button state */
+      if (atcBtn) {
+        atcBtn.disabled = !available;
+        atcBtn.textContent = available ? 'Add to Cart' : 'Sold Out';
+      }
+    });
+  });
+
+  /* ── Purchase option cards (One-time / Subscribe) ──────── */
+  var purchaseOptions = document.querySelectorAll('#EsProductForm-' + sid + ' .es-purchase-option');
+  var freqBox         = document.getElementById('EsFreqBox-' + sid);
+
+  purchaseOptions.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var isSubscribe = this.dataset.purchaseType === 'subscribe';
+      purchaseOptions.forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      if (freqBox) freqBox.classList.toggle('visible', isSubscribe);
+    });
+  });
+
+  /* ── Frequency pills ─────────────────────────────────────── */
+  var freqPills = freqBox ? freqBox.querySelectorAll('.es-freq-pill') : [];
+  freqPills.forEach(function(pill) {
+    pill.addEventListener('click', function() {
+      freqPills.forEach(function(p) { p.classList.remove('active'); });
+      this.classList.add('active');
+    });
+  });
+
+  /* ── Quantity stepper ────────────────────────────────────── */
+  var form       = document.getElementById('EsProductForm-' + sid);
+  var qtyInput   = form ? form.querySelector('[data-qty-input]') : null;
+  var qtyMinusEl = form ? form.querySelector('[data-qty-minus]') : null;
+  var qtyPlusEl  = form ? form.querySelector('[data-qty-plus]') : null;
+  if (qtyInput) {
+    if (qtyMinusEl) qtyMinusEl.addEventListener('click', function() {
+      var v = parseInt(qtyInput.value, 10) || 1;
+      qtyInput.value = Math.max(1, v - 1);
+    });
+    if (qtyPlusEl) qtyPlusEl.addEventListener('click', function() {
+      var v = parseInt(qtyInput.value, 10) || 1;
+      qtyInput.value = v + 1;
+    });
+  }
+
+  /* ── AJAX Add to Cart → open cart drawer ─────────────────── */
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var atcBtn = document.getElementById('EsAtcBtn-' + sid);
+      if (atcBtn) { atcBtn.disabled = true; atcBtn.textContent = 'Adding…'; }
+
+      // Collect section IDs so the response includes fresh cart HTML
+      var sectionIds = [];
+      document.querySelectorAll('cart-items-component').forEach(function(el) {
+        if (el.dataset.sectionId) sectionIds.push(el.dataset.sectionId);
+      });
+
+      var body = new FormData(form);
+      if (sectionIds.length) body.append('sections', sectionIds.join(','));
+
+      fetch('/cart/add.js', { method: 'POST', body: body })
+        .then(function(r) { return r.json(); })
+        .then(function(response) {
+          // Pass sections HTML in the event so cart-items-component morphs
+          // synchronously instead of doing a second async fetch — this ensures
+          // the drawer shows updated content the moment it opens.
+          document.dispatchEvent(new CustomEvent('cart:update', {
+            bubbles: true,
+            detail: { data: { sections: response.sections || {} } }
+          }));
+        })
+        .catch(function() {
+          window.location = '/cart';
+        })
+        .finally(function() {
+          if (atcBtn) { atcBtn.disabled = false; atcBtn.textContent = 'Add to Cart'; }
+        });
+    });
+  }
+
+  /* ── Cross-sell (Frequently Bought "+" button) AJAX handler ─────── */
+  document.querySelectorAll('form[action="/cart/add"]').forEach(function(f) {
+    if (f.id === 'EsProductForm-' + sid) return; // main form already handled above
+    f.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var sectionIds = [];
+      document.querySelectorAll('cart-items-component').forEach(function(el) {
+        if (el.dataset.sectionId) sectionIds.push(el.dataset.sectionId);
+      });
+      var body = new FormData(f);
+      if (sectionIds.length) body.append('sections', sectionIds.join(','));
+      fetch('/cart/add.js', { method: 'POST', body: body })
+        .then(function(r) { return r.json(); })
+        .then(function(response) {
+          document.dispatchEvent(new CustomEvent('cart:update', {
+            bubbles: true,
+            detail: { data: { sections: response.sections || {} } }
+          }));
+        })
+        .catch(function() { window.location = '/cart'; });
+    });
+  });
+
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Product Hero",
+  "tag": "section",
+  "class": "product-hero-section",
+  "presets": [
+    { "name": "Product Hero" }
+  ],
+  "settings": []
+}
+{% endschema %}

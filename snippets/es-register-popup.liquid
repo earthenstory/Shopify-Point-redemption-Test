@@ -1,0 +1,95 @@
+{%- comment -%}
+  Homepage "register and earn 200 points" popup.
+  - Logged-out visitors only (suppressed when a customer is signed in).
+  - Opens a few seconds after load, then frequency-capped via localStorage so it
+    will not re-appear for 7 days once dismissed or acted on.
+  - CTA routes into the store's (passwordless) account registration flow, which
+    creates the Shopify account and triggers the BON loyalty points.
+{%- endcomment -%}
+{%- unless customer -%}
+  <dialog
+    id="es-register-popup"
+    class="es-register-popup"
+    aria-labelledby="es-register-popup-title"
+  >
+    <div class="es-register-popup__body">
+      <button
+        type="button"
+        class="es-register-popup__close"
+        aria-label="{{ 'actions.close_dialog' | t }}"
+        data-es-popup-close
+      >
+        &times;
+      </button>
+
+      <p class="es-register-popup__eyebrow">Join Our Community</p>
+      <h2 id="es-register-popup-title" class="es-register-popup__title">
+        Eat food you can trust
+      </h2>
+      <p class="es-register-popup__text">
+        Pesticide-free, traditionally processed,
+        <a
+          href="/pages/test-reports"
+          target="_blank"
+          rel="noopener"
+          class="es-register-popup__link"
+        >lab-tested</a>
+        food.
+      </p>
+      <p class="es-register-popup__points">A ₹250 welcome gift, plus 2% back always.</p>
+
+      <a
+        href="{{ routes.account_login_url }}"
+        class="es-register-popup__cta"
+        data-es-popup-cta
+      >
+        Join the community
+      </a>
+      <button type="button" class="es-register-popup__dismiss" data-es-popup-close>
+        Maybe later
+      </button>
+    </div>
+  </dialog>
+
+  <script>
+    (function () {
+      var KEY = 'es_register_popup_until';
+      var DAYS = 7;
+      var DELAY = 5000;
+      var dlg = document.getElementById('es-register-popup');
+      if (!dlg) return;
+
+      try {
+        var until = parseInt(localStorage.getItem(KEY) || '0', 10);
+        if (until && Date.now() < until) return;
+      } catch (e) {}
+
+      function snooze() {
+        try { localStorage.setItem(KEY, String(Date.now() + DAYS * 86400000)); } catch (e) {}
+      }
+
+      var timer = setTimeout(function () {
+        if (typeof dlg.showModal === 'function') { dlg.showModal(); }
+        else { dlg.setAttribute('open', ''); }
+      }, DELAY);
+
+      dlg.addEventListener('close', snooze);
+
+      var closers = dlg.querySelectorAll('[data-es-popup-close]');
+      for (var i = 0; i < closers.length; i++) {
+        closers[i].addEventListener('click', function () {
+          snooze();
+          if (dlg.open) { dlg.close(); }
+        });
+      }
+
+      var cta = dlg.querySelector('[data-es-popup-cta]');
+      if (cta) { cta.addEventListener('click', snooze); }
+
+      // Close when the backdrop (the dialog element itself) is clicked.
+      dlg.addEventListener('click', function (e) {
+        if (e.target === dlg) { snooze(); dlg.close(); }
+      });
+    })();
+  </script>
+{%- endunless -%}

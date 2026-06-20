@@ -1,0 +1,374 @@
+/* QR Landing Page - Earthen Story */
+
+.qr-landing-section { padding: 0 !important; margin: 0 !important; }
+
+.qr-wrap {
+  --qr-navy:       #112557;
+  --qr-navy-light: #1A3370;
+  --qr-gold:       #B8841E;
+  --qr-gold-soft:  #FAF3E4;
+  --qr-gold-border:#DFC07A;
+  --qr-gold-mid:   #D4A843;
+  --qr-warm-white: #FFFDF8;
+  --qr-text-dark:  #18181B;
+  --qr-text-mid:   #44464F;
+  --qr-text-soft:  #72747D;
+  --qr-border:     #EAE6DC;
+  --qr-green:      #1C6B3A;
+  --qr-green-bg:   #EBF5EF;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: var(--qr-warm-white);
+}
+.qr-wrap *, .qr-wrap *::before, .qr-wrap *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── WELCOME ── */
+.qr-welcome {
+  background: var(--qr-navy);
+  padding: 20px 20px 16px;
+  text-align: center;
+}
+.qr-welcome-tag {
+  display: inline-block;
+  background: rgba(184,132,30,0.15);
+  color: var(--qr-gold-mid);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(212,168,67,0.28);
+  margin-bottom: 12px;
+}
+.qr-welcome h1 {
+  font-family: 'Cormorant', Georgia, serif;
+  font-size: 26px;
+  font-weight: 500;
+  color: #fff;
+  line-height: 1.22;
+}
+.qr-welcome h1 em { font-style: italic; color: var(--qr-gold-mid); }
+
+/* ── PILLARS ── */
+.qr-pillars {
+  background: var(--qr-warm-white);
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--qr-border);
+}
+.qr-pillars-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 7px;
+}
+.qr-pillar {
+  background: var(--qr-gold-soft);
+  border: 1px solid var(--qr-gold-border);
+  border-radius: 10px;
+  padding: 9px 6px;
+  text-align: center;
+}
+.qr-pillar-icon { font-size: 20px; margin-bottom: 4px; display: block; }
+.qr-pillar-title { font-size: 11.5px; font-weight: 600; color: var(--qr-navy); line-height: 1.3; }
+.qr-pillar-desc { font-size: 10px; color: var(--qr-text-soft); margin-top: 3px; line-height: 1.45; }
+
+/* ── LAB REPORTS ── */
+.qr-lab {
+  background: linear-gradient(145deg, #0D1B42, #1A3370);
+  padding: 18px 20px 20px;
+  text-align: center;
+}
+.qr-btn-lab {
+  display: block;
+  background: var(--qr-gold);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 14px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  margin-bottom: 16px;
+}
+.qr-lab h2 {
+  font-family: 'Cormorant', Georgia, serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+.qr-lab p {
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.6;
+}
+
+/* ── OUR STORY ── */
+.qr-story {
+  background: var(--qr-warm-white);
+  padding: 20px 20px 18px;
+  border-bottom: 1px solid var(--qr-border);
+}
+.qr-eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--qr-gold);
+  margin-bottom: 12px;
+  display: block;
+}
+.qr-story-collage {
+  width: 100%;
+  border-radius: 10px;
+  aspect-ratio: 16/7;
+  object-fit: cover;
+  object-position: center 20%;
+  border: 1px solid var(--qr-gold-border);
+  display: block;
+  margin-bottom: 12px;
+}
+.qr-story-quote {
+  font-family: 'Cormorant', Georgia, serif;
+  font-size: 18px;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--qr-text-dark);
+  line-height: 1.3;
+  margin-bottom: 6px;
+}
+.qr-story-body {
+  font-size: 11.5px;
+  color: var(--qr-text-mid);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.qr-link-navy {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--qr-navy);
+  text-decoration: none;
+}
+.qr-link-navy::after { content: ' \2192'; }
+
+/* ── PRODUCTS ── */
+.qr-products {
+  background: var(--qr-warm-white);
+  padding: 22px 20px;
+  border-bottom: 1px solid var(--qr-border);
+}
+.qr-cat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.qr-cat-card {
+  background: #fff;
+  border: 1px solid var(--qr-border);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+.qr-cat-card:hover { border-color: var(--qr-gold-border); }
+.qr-cat-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--qr-gold-soft);
+  border: 1px solid var(--qr-gold-border);
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.qr-cat-text { flex: 1; min-width: 0; }
+.qr-cat-name {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--qr-text-dark);
+  line-height: 1.2;
+  display: block;
+}
+.qr-cat-usp {
+  font-size: 9.5px;
+  color: var(--qr-text-soft);
+  display: block;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+.qr-btn-navy {
+  display: block;
+  background: var(--qr-navy);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 14px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  text-align: center;
+}
+
+/* ── RECIPES ── */
+.qr-recipes {
+  background: var(--qr-gold-soft);
+  padding: 24px 20px;
+  border-bottom: 1px solid var(--qr-gold-border);
+}
+.qr-recipes .qr-eyebrow { margin-bottom: 14px; }
+.qr-recipe-card {
+  background: var(--qr-navy);
+  border-radius: 14px;
+  padding: 22px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  display: block;
+}
+.qr-recipe-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(184,132,30,0.18) 0%, transparent 70%);
+}
+.qr-recipe-scatter {
+  font-size: 26px;
+  letter-spacing: 6px;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+.qr-recipe-card h3 {
+  font-family: 'Cormorant', Georgia, serif;
+  font-size: 22px;
+  font-weight: 500;
+  color: #fff;
+  line-height: 1.25;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+.qr-recipe-card h3 em { font-style: italic; color: var(--qr-gold-mid); }
+.qr-recipe-card p {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.6;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+}
+.qr-btn-recipe {
+  display: inline-block;
+  background: var(--qr-gold);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 11px 22px;
+  border-radius: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── DISCOVER ── */
+.qr-discover {
+  background: var(--qr-warm-white);
+  padding: 24px 20px;
+  border-bottom: 1px solid var(--qr-border);
+}
+.qr-discover .qr-eyebrow { margin-bottom: 14px; }
+.qr-blog-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--qr-border);
+  text-decoration: none;
+}
+.qr-blog-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--qr-gold-soft);
+  border: 1px solid var(--qr-gold-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.qr-blog-meta { flex: 1; }
+.qr-blog-tag {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--qr-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 3px;
+  display: block;
+}
+.qr-blog-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--qr-text-dark);
+  line-height: 1.4;
+}
+.qr-blog-arrow { font-size: 13px; color: var(--qr-text-soft); flex-shrink: 0; }
+.qr-see-all {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--qr-navy);
+  text-decoration: none;
+  margin-top: 14px;
+  padding: 10px;
+  border: 1px solid var(--qr-border);
+  border-radius: 7px;
+  background: var(--qr-gold-soft);
+}
+.qr-see-all::after { content: ' \2192'; }
+
+/* ── PLATFORMS ── */
+.qr-platforms {
+  background: var(--qr-warm-white);
+  padding: 16px 20px 20px;
+  border-bottom: 1px solid var(--qr-border);
+  text-align: center;
+}
+.qr-platforms .qr-eyebrow { margin-bottom: 12px; }
+.qr-platform-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+.qr-platform-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  border: 1px solid var(--qr-border);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  flex-shrink: 0;
+  overflow: hidden;
+  padding: 6px;
+}
+.qr-platform-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}

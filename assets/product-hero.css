@@ -1,0 +1,787 @@
+/* Product Hero - Earthen Story */
+/* ── Design tokens (Earthen Story palette) ───────────────────── */
+.es-hero-wrap {
+  --navy:         #112557;
+  --navy-light:   #1A3370;
+  --gold:         #B8841E;
+  --gold-hover:   #C8922A;
+  --gold-soft:    #FAF3E4;
+  --gold-border:  #DFC07A;
+  --gold-mid:     #D4A843;
+  --white:        #FFFFFF;
+  --text-dark:    #18181B;
+  --text-mid:     #44464F;
+  --text-soft:    #72747D;
+  --border:       #EAE6DC;
+  --border-mid:   #D8D2C4;
+  --strike:       #B0AABA;
+  --green-save:   #1C6B3A;
+  --green-bg:     #EBF5EF;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+.es-hero-wrap *, .es-hero-wrap *::before, .es-hero-wrap *::after {
+  box-sizing: inherit;
+}
+
+/* ── Hero grid ───────────────────────────────────────────────── */
+.es-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 30px 68px 40px;
+  align-items: start;
+  gap: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LEFT COLUMN — GALLERY
+   Thumb column: up-arrow · scrollable 5-thumb viewport · down-arrow
+   Main image: badge overlay · prev/next arrows · counter
+═══════════════════════════════════════════════════════════════ */
+.es-gallery {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+/* ── Thumb column ── */
+.es-thumb-col {
+  display: flex;
+  flex-direction: column;
+  width: 70px;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+/* Up / down scroll arrows above & below thumbnail viewport */
+.es-thumb-arrow {
+  width: 70px;
+  height: 22px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--white);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  padding: 0;
+}
+.es-thumb-arrow:hover {
+  background: var(--gold-soft);
+  border-color: var(--gold-border);
+}
+.es-thumb-arrow svg {
+  width: 13px; height: 13px;
+  stroke: var(--text-soft);
+  stroke-width: 2.2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.es-thumb-arrow.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Clipping viewport — shows exactly 5 thumbs (5×70px + 4×8px gap = 382px) */
+.es-thumb-viewport {
+  width: 70px;
+  height: 382px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* Scrollable track — translates vertically via JS */
+.es-thumb-track {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.25s ease;
+  will-change: transform;
+}
+
+/* Individual thumbnail button */
+.es-thumb {
+  width: 70px;
+  height: 70px;
+  border-radius: 7px;
+  flex-shrink: 0;
+  border: 2px solid transparent;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.2s;
+  padding: 0;
+  background: var(--border);
+  display: block;
+}
+.es-thumb.active {
+  border-color: var(--gold);
+}
+.es-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Main image ── */
+.es-main-image {
+  flex: 1;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #F5EDD8, #E8D8B4);
+  position: relative;
+}
+.es-main-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Organic / category badge — top-left of image */
+.es-gallery-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: var(--navy);
+  color: var(--white);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  padding: 4px 11px;
+  border-radius: 20px;
+  z-index: 2;
+  pointer-events: none;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Prev / next arrows — appear on hover (desktop); always on touch */
+.es-img-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.2s, background 0.15s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 0;
+}
+.es-main-image:hover .es-img-arrow { opacity: 1; }
+.es-img-arrow.prev { left: 10px; }
+.es-img-arrow.next { right: 10px; }
+.es-img-arrow:hover { background: var(--navy); border-color: var(--navy); }
+.es-img-arrow:hover svg { stroke: var(--white); }
+.es-img-arrow svg {
+  width: 14px; height: 14px;
+  stroke: var(--text-mid);
+  stroke-width: 2.2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Counter pill — bottom-right of image */
+.es-img-counter {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+  background: rgba(0,0,0,0.35);
+  color: rgba(255,255,255,0.9);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 20px;
+  z-index: 2;
+  pointer-events: none;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RIGHT COLUMN — PURCHASE INFO
+═══════════════════════════════════════════════════════════════ */
+.es-product-info {
+  padding-left: 44px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Product title — Cormorant Garamond */
+.es-product-title {
+  font-family: 'Cormorant', Georgia, serif;
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--text-dark);
+  margin: 0 0 6px;
+  letter-spacing: 0.01em;
+}
+
+/* Tagline — DM Sans, below title */
+.es-product-tagline {
+  font-size: 14.5px;
+  color: var(--text-mid);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  margin: 0 0 14px;
+  line-height: 1.6;
+}
+
+/* ── Trust strip — horizontal row with gold dividers ── */
+/* Appears directly after tagline, before price */
+.es-trust-strip {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 16px;
+}
+.es-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 0;
+  margin-right: 10px;
+  border-right: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.es-trust-item:last-child {
+  border-right: none;
+  padding-right: 0;
+  margin-right: 0;
+}
+.es-cert-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-soft), #EDD898);
+  border: 1.5px solid var(--gold-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 7px;
+  color: var(--navy);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+  line-height: 1.3;
+  flex-shrink: 0;
+  font-family: 'DM Sans', sans-serif;
+}
+.es-trust-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.es-trust-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke: var(--gold);
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.es-trust-label {
+  font-size: 16px;            /* your requested increase */
+  color: var(--text-mid);
+  font-weight: 500;
+  line-height: 2.0;           /* your requested increase */
+  white-space: nowrap;
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+/* ── Price + policy row ── */
+.es-price-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+.es-price-current {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-dark);
+  letter-spacing: -0.02em;
+}
+.es-price-compare {
+  font-size: 15px;
+  color: var(--strike);
+  text-decoration: line-through;
+}
+/* % off badge — green pill */
+.es-price-save-pct {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green-save);
+  background: var(--green-bg);
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-family: 'DM Sans', sans-serif;
+  white-space: nowrap;
+}
+.es-price-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border-mid);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+.es-policy-inline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;  
+}
+.es-policy-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--text-soft);
+  font-family: 'DM Sans', sans-serif;
+}
+.es-policy-item svg {
+  width: 12px;
+  height: 12px;
+  stroke: var(--gold);
+  stroke-width: 1.8;
+  fill: none;
+  flex-shrink: 0;
+}
+
+/* ── Variant pills ── */
+.es-variant-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+.es-variant-pill {
+  padding: 6px 16px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  color: var(--text-mid);
+  transition: all 0.15s;
+  background: var(--white);
+  font-family: 'DM Sans', sans-serif;
+}
+.es-variant-pill.active {
+  border-color: var(--gold-border);
+  color: var(--text-dark);
+  background: var(--gold-soft);
+  font-weight: 500;
+}
+.es-variant-pill:hover:not(.active):not(:disabled) {
+  border-color: var(--gold-border);
+}
+.es-variant-pill:disabled,
+.es-variant-pill.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+/* ── Purchase option cards ── */
+.es-purchase-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.es-purchase-option {
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  padding: 11px 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: var(--white);
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  position: relative;
+  font-family: 'DM Sans', sans-serif;
+  text-align: left;
+}
+.es-purchase-option.active {
+  border-color: var(--gold-border);
+  background: var(--gold-soft);
+}
+.es-radio-circle {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: all 0.15s;
+}
+.es-purchase-option.active .es-radio-circle {
+  border-color: var(--gold);
+  background: var(--gold);
+}
+.es-radio-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--white);
+  display: none;
+}
+.es-purchase-option.active .es-radio-dot { display: block; }
+.es-opt-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.es-opt-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.es-opt-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+.es-opt-price {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+  letter-spacing: -0.01em;
+}
+.es-opt-price.sub { color: var(--green-save); }
+.es-opt-note {
+  font-size: 11px;
+  color: var(--text-soft);
+  margin-top: 1px;
+}
+.es-opt-badge {
+  position: absolute;
+  top: -8px;
+  right: 10px;
+  background: var(--green-save);
+  color: var(--white);
+  font-size: 9.5px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── Frequency pills ── */
+.es-freq-box { display: none; margin-bottom: 12px; }
+.es-freq-box.visible { display: block; }
+.es-freq-label {
+  font-size: 11px;
+  color: var(--text-soft);
+  font-weight: 500;
+  margin-bottom: 6px;
+  font-family: 'DM Sans', sans-serif;
+}
+.es-freq-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.es-freq-pill {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  font-size: 11.5px;
+  cursor: pointer;
+  color: var(--text-mid);
+  background: var(--white);
+  transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif;
+}
+.es-freq-pill.active {
+  border-color: var(--gold-border);
+  color: var(--text-dark);
+  font-weight: 600;
+  background: var(--gold-soft);
+}
+
+/* ── Qty + Add to Cart row ── */
+.es-atc-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+.es-qty-control {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  overflow: hidden;
+  background: var(--white);
+  flex-shrink: 0;
+}
+.es-qty-btn {
+  width: 36px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--text-mid);
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1;
+  padding: 0;
+}
+.es-qty-btn:hover { background: var(--gold-soft); }
+.es-qty-input {
+  width: 38px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  border-top: none;
+  border-bottom: none;
+  height: 42px;
+  line-height: 42px;
+  color: var(--text-dark);
+  background: transparent;
+  -moz-appearance: textfield;
+  font-family: 'DM Sans', sans-serif;
+}
+.es-qty-input::-webkit-outer-spin-button,
+.es-qty-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+.es-atc-btn {
+  flex: 1;
+  height: 42px;
+  background: var(--navy);
+  color: var(--white);
+  border: none;
+  border-radius: 7px;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.es-atc-btn:hover { background: var(--navy-light); }
+.es-atc-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Cross-sell cards: Better Together + Frequently Bought ── */
+.es-crosssell-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+  align-items: stretch; /* Forces children to have the same height */
+}
+.es-crosssell-card {
+  display: flex;
+  height: 100%; /* Fill the grid cell */
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 12px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  box-sizing: border-box; /* Includes padding in height calculation */
+}
+.es-crosssell-card:hover {
+  border-color: var(--gold-border);
+  box-shadow: 0 2px 12px rgba(184,132,30,0.08);
+}
+.es-cs-img {
+  width: 38px;
+  height: 38px;
+  border-radius: 7px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #EDD898, #D4A843);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.es-cs-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 7px;
+}
+.es-cs-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centers text vertically if one has more lines */
+}
+
+.es-cs-label {
+  font-size: 9px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
+  margin-bottom: 2px;
+  font-family: 'DM Sans', sans-serif;
+  display: block;
+}
+.es-cs-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'DM Sans', sans-serif;
+  display: block;
+}
+.es-cs-sub {
+  font-size: 11px;
+  color: var(--text-mid);
+  font-family: 'DM Sans', sans-serif;
+  display: block;
+}
+.es-cs-add {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--white);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: background 0.15s;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  font-family: 'DM Sans', sans-serif;
+}
+.es-cs-add:hover { background: var(--navy-light); }
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE — stack single column below 768px
+═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .es-hero-grid {
+    grid-template-columns: 1fr;
+    padding: 20px 16px 32px;
+    gap: 28px;
+  }
+  .es-product-info { padding-left: 0; }
+
+  /* On mobile, hide the side thumb column; make it a horizontal row below the image */
+  .es-gallery { flex-direction: column; }
+  .es-thumb-col { display: none; }
+  .es-main-image {
+    width: 100%;
+    aspect-ratio: 1;
+  }
+  /* Always show arrows on touch */
+  .es-img-arrow { opacity: 1 !important; }
+
+  /* Trust strip — 1 row for ≤3 items, 2×2 for exactly 4 items */
+  .es-trust-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* default: up to 3 in one row */
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  /* Exactly 4 items → split into 2 rows of 2 */
+  .es-trust-strip:has(.es-trust-item:nth-child(4):last-child) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  /* All items — reset desktop rules and apply consistent box style.
+     Must include :last-child to override higher-specificity desktop rule
+     that sets border-right: none on last child */
+  .es-trust-item,
+  .es-trust-item:last-child {
+    border: 1px solid var(--border) !important;
+    border-radius: 8px;
+    padding: 10px 8px;
+    margin-right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 6px;
+    min-height: 72px;
+  }
+  /* Shrink cert logo to match SVG icon size */
+  .es-cert-logo { width: 24px; height: 24px; font-size: 6px; }
+  .es-trust-icon { width: 22px; height: 22px; }
+  .es-trust-icon svg { width: 22px; height: 22px; }
+  .es-trust-label {
+    white-space: normal;
+    font-size: 11px;
+    line-height: 1.3;
+    text-align: center;
+  }
+
+  /* Price row wraps on small screens */
+  .es-price-row { flex-wrap: wrap; gap: 8px; }
+  .es-policy-inline { flex-wrap: wrap; gap: 8px; }
+  .es-price-divider { display: none; }
+
+  /* Purchase options stack */
+  .es-purchase-options { grid-template-columns: 1fr; }
+
+  /* Cross-sell cards stack */
+  .es-crosssell-grid { grid-template-columns: 1fr; }
+
+  /* Thumbnail mobile strip — horizontal dots below image */
+  .es-mobile-thumb-strip {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  .es-mobile-thumb-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    cursor: pointer;
+    transition: background 0.2s;
+    padding: 0;
+    border: none;
+  }
+  .es-mobile-thumb-dot.active { background: var(--gold); }
+}
+
+@media (min-width: 769px) {
+  .es-mobile-thumb-strip { display: none; }
+}

@@ -1,0 +1,58 @@
+{%- comment -%}
+  sections/product-certifications.liquid
+  Earthen Story — Section 2: Certification Strip
+
+  Metafield: custom.certifications — Single line text
+  Format: semicolon-separated metaobject handles e.g. "name-fssai; name-npop-organic"
+  Lookup: metaobjects.certification[handle]
+  Fields: short_label, logo (name accessed via display_name)
+{%- endcomment -%}
+
+{%- assign cert_raw = product.metafields.custom.certifications.value -%}
+{%- assign cert_handles = cert_raw | split: ';' -%}
+
+<div class="esd-section-inner">
+  <h2 class="esd-section-title">Our Certifications</h2>
+  <div class="esd-cert-logos-row">
+    {%- if cert_handles != blank -%}
+      {%- for handle_raw in cert_handles -%}
+        {%- assign handle = handle_raw | strip -%}
+        {%- assign cert = shop.metaobjects.certification[handle] -%}
+        
+        {%- if cert != blank -%}
+          {%- unless forloop.first -%}<div class="esd-cert-divider"></div>{%- endunless -%}
+          <div class="esd-cert-badge">
+            <div class="esd-cert-badge-icon">
+              {%- comment -%} Removed .value from logo access {%- endcomment -%}
+              {%- if cert.logo != blank -%}
+                <img
+                  src="{{ cert.logo | image_url: width: 64 }}"
+                  alt="{{ cert.display_name | escape }}"
+                  width="32" height="32"
+                  loading="lazy"
+                >
+              {%- else -%}
+                {%- comment -%} Access field directly or via system display_name {%- endcomment -%}
+                {{ cert.short_label | default: cert.display_name | truncate: 6, '' }}
+              {%- endif -%}
+            </div>
+            {%- comment -%} Try accessing the field directly by its handle/key {%- endcomment -%}
+            <span class="esd-cert-badge-name">
+              {{ cert.name | default: cert.display_name }}
+            </span>
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Certification Strip",
+  "tag": "section",
+  "class": "product-certifications-section",
+  "presets": [{ "name": "Certification Strip" }],
+  "settings": []
+}
+{% endschema %}

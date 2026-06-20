@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "recipes_landing": {
+      "type": "recipes-landing",
+      "settings": {}
+    }
+  },
+  "order": [
+    "recipes_landing"
+  ]
+}

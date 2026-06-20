@@ -1,0 +1,29 @@
+{
+  "sections": {
+    "discover_landing": {
+      "type": "discover-landing",
+      "settings": {}
+    },
+    "recipes": {
+      "type": "es-recipes",
+      "settings": {
+        "title": "Try These Recipes",
+        "blog_handle": "recipes",
+        "show_view_all": true
+      }
+    },
+    "email_invite": {
+      "type": "es-email-invite",
+      "settings": {
+        "email_heading": "Food Knowledge. Recipes. Updates.",
+        "email_desc": "Join our community of conscious food lovers. Seasonal recipes, ingredient guides, and traditional food knowledge — delivered to your inbox.",
+        "email_btn": "Join the Community →"
+      }
+    }
+  },
+  "order": [
+    "discover_landing",
+    "recipes",
+    "email_invite"
+  ]
+}

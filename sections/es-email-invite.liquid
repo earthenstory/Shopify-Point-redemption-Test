@@ -1,0 +1,56 @@
+{%- comment -%}
+  sections/product-email-invite.liquid
+  Earthen Story — Email community invite.
+  Already fully generic — uses only section.settings, works on any template.
+{%- endcomment -%}
+
+<div class="esd-section-inner">
+  <div class="esd-email-block">
+
+    <div class="esd-email-left">
+      <div class="esd-email-eyebrow">Stay Connected</div>
+      <h2 class="esd-email-heading">
+        {{ section.settings.email_heading | default: 'Food Knowledge. Recipes. Updates.' }}
+      </h2>
+      <p class="esd-email-desc">
+        {{ section.settings.email_desc | default: 'Join our community of conscious food lovers. Seasonal recipes, ingredient guides, and traditional food knowledge — delivered to your inbox.' }}
+      </p>
+    </div>
+
+    <div class="esd-email-right">
+      {%- form 'customer', id: 'EsdEmailForm-{{ section.id }}' -%}
+        <input type="hidden" name="contact[tags]" value="newsletter">
+        <div class="esd-email-form">
+          <div class="esd-email-form-label">Your email address</div>
+          <input type="email" name="contact[email]" class="esd-email-input"
+            placeholder="name@example.com" required autocomplete="email" aria-label="Email address">
+          <button type="submit" class="esd-email-btn">
+            {{ section.settings.email_btn | default: 'Join the Community →' }}
+          </button>
+          {%- if form.posted_successfully? -%}
+            <p class="esd-email-msg esd-email-msg--success">✓ You're in! We'll be in touch.</p>
+          {%- endif -%}
+          {%- if form.errors -%}
+            <p class="esd-email-msg esd-email-msg--error">{{ form.errors | default_errors }}</p>
+          {%- endif -%}
+        </div>
+      {%- endform -%}
+    </div>
+
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Email Community",
+  "tag": "section",
+  "class": "product-email-community-section",
+  "settings": [
+    { "type": "header", "content": "Text Content" },
+    { "id": "email_heading", "type": "text", "label": "Heading", "default": "Food Knowledge. Recipes. Updates." },
+    { "id": "email_desc", "type": "textarea", "label": "Description", "default": "Join our community of conscious food lovers. Seasonal recipes, ingredient guides, and traditional food knowledge — delivered to your inbox." },
+    { "id": "email_btn", "type": "text", "label": "Button label", "default": "Join the Community →" }
+  ],
+  "presets": [{ "name": "Email Community" }]
+}
+{% endschema %}

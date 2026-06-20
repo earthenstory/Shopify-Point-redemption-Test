@@ -1,0 +1,468 @@
+<!-- homepage.css: async to eliminate render-blocking; hero critical CSS inlined below -->
+<link rel="preload" href="{{ 'homepage.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'homepage.css' | asset_url }}"></noscript>
+<style>
+/* Critical above-fold CSS — hero section (inlined to prevent render-blocking FOUC) */
+:root{--navy:#112557;--navy-light:#1A3370;--gold:#B8841E;--gold-hover:#C8922A;--gold-soft:#FAF3E4;--gold-border:#DFC07A;--gold-mid:#D4A843;--warm-white:#FFFDF8;--white:#FFFFFF;--text-dark:#18181B;--text-mid:#44464F;--text-soft:#72747D;--border:#EAE6DC;--border-mid:#D8D2C4;--green-save:#1C6B3A;--green-bg:#EBF5EF;--section-bg:#FFFDF8}
+.hero{background:var(--navy);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;right:0;top:0;bottom:0;width:55%;background:radial-gradient(ellipse 80% 100% at 80% 50%,rgba(184,132,30,.09) 0%,transparent 70%);pointer-events:none}
+.hero-inner{max-width:1280px;margin:0 auto;padding:40px 68px;display:grid;grid-template-columns:1fr 504px;gap:54px;align-items:center;position:relative;z-index:1}
+.hero-title{font-family:'Cormorant',serif;font-size:48px;font-weight:500;line-height:1.04;color:white;margin-bottom:14px;max-width:640px}
+.hero-title br{display:block}
+.hero-title em{font-style:italic;color:var(--gold-mid)}
+.hero-sub{font-size:14px;color:rgba(255,255,255,.64);line-height:1.7;max-width:470px;margin-bottom:22px}
+.hero-ctas{display:flex;gap:10px;align-items:center}
+.hero-trust-panel{position:relative;border-radius:16px;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid rgba(212,168,67,.18);padding:26px 24px;display:flex;flex-direction:column;align-self:center}
+.hero-trust-panel{background:var(--warm-white);border:1px solid var(--gold-border);box-shadow:0 20px 44px rgba(0,0,0,.18);padding:24px}
+.hero-trust-panel::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 80% 20%,rgba(212,168,67,.16) 0%,transparent 65%);pointer-events:none}
+.htp-header{position:relative;z-index:1;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-mid);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.htp-header::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(212,168,67,.2),transparent)}
+.htp-items{display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative;z-index:1}
+.htp-item{display:flex;align-items:flex-start;gap:12px;padding:15px;border-radius:12px;background:rgba(255,255,255,.68);border:1px solid var(--border);box-shadow:0 8px 18px rgba(17,37,87,.04);animation:htp-in .45s ease both}
+.htp-item:nth-child(1){animation-delay:.1s}.htp-item:nth-child(2){animation-delay:.2s}.htp-item:nth-child(3){animation-delay:.3s}.htp-item:nth-child(4){animation-delay:.4s}
+@keyframes htp-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.htp-icon-wrap{width:38px;height:38px;flex-shrink:0;border-radius:9px;background:var(--gold-soft);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;font-size:18px}
+.htp-name{font-size:13.5px;font-weight:600;color:var(--navy);line-height:1.25;margin-bottom:4px}
+.htp-desc{font-size:11.5px;color:var(--text-mid);line-height:1.45}
+.hero-ctas .btn-primary{background:var(--warm-white);color:var(--navy);border:none;border-radius:8px;padding:11px 20px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none;display:inline-block;transition:background .15s;box-shadow:0 12px 26px rgba(0,0,0,.14)}
+.btn-lab-reports{background:transparent;color:var(--gold-mid);border:1px solid rgba(212,168,67,.72);border-radius:8px;padding:11px 18px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none;display:inline-block;transition:border-color .15s,color .15s}
+.btn-ghost{background:transparent;color:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.22);border-radius:8px;padding:12px 24px;font-size:13.5px;font-weight:400;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none;display:inline-block;transition:border-color .15s,color .15s}
+@media(max-width:1024px){.hero-inner{padding:36px 32px;gap:32px}}
+@media(max-width:768px){.hero-inner{padding:22px 16px;grid-template-columns:1fr;gap:16px}.hero-title{font-size:30px;line-height:1.15;margin-bottom:8px}.hero-title br{display:block}.hero-sub{font-size:14px;max-width:100%;margin-bottom:12px;line-height:1.5}.hero-ctas{flex-direction:row;gap:8px}.hero-ctas .btn-primary,.btn-lab-reports{flex:1;text-align:center;padding:10px 12px;font-size:13px;width:auto}.hero-trust-panel{padding:14px}.htp-items{grid-template-columns:1fr 1fr;gap:8px}.htp-item{min-height:92px;padding:10px;gap:8px}.htp-icon-wrap{display:flex;width:30px;height:30px;font-size:14px}.htp-name{font-size:12.5px;margin-bottom:3px}.htp-desc{font-size:10.8px;line-height:1.4}}
+@media(max-width:480px){.hero-title{font-size:26px}}
+</style>
+{%- comment -%} ══ 1. HERO ══ {%- endcomment -%}
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <h1 class="hero-title">Food the Way It Was<br>Meant <em>to Be.</em></h1>
+      <p class="hero-sub">{{ section.settings.hero_subtitle }}</p>
+      <div class="hero-ctas">
+        <a href="{{ section.settings.hero_cta_primary_url | default: '/collections/all-products' }}" class="btn-primary">
+          Shop ⟶
+        </a>
+        <a href="/pages/test-reports" class="btn-lab-reports">
+          Lab Reports ⟶
+        </a>
+      </div>
+    </div>
+    <div class="hero-trust-panel">
+      <div class="htp-items">
+        <div class="htp-item">
+          <div class="htp-icon-wrap">📜</div>
+          <div>
+            <div class="htp-name">Certified Organic</div>
+            <div class="htp-desc">Transaction Certificates with Full Traceability</div>
+          </div>
+        </div>
+        <div class="htp-item">
+          <div class="htp-icon-wrap">🔬</div>
+          <div>
+            <div class="htp-name">Lab Tested for 250+ Pesticides</div>
+            <div class="htp-desc">NABL Accredited Reports on our Site</div>
+          </div>
+        </div>
+        <div class="htp-item">
+          <div class="htp-icon-wrap">🏺</div>
+          <div>
+            <div class="htp-name">Traditionally Processed</div>
+            <div class="htp-desc">Bilona, cold press, stone grind. Nutrition preserved.</div>
+          </div>
+        </div>
+        <div class="htp-item">
+          <div class="htp-icon-wrap">🚫</div>
+          <div>
+            <div class="htp-name">No Additives. No Shortcuts.</div>
+            <div class="htp-desc">Only what the label says. Nothing else.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{%- comment -%} ══ 2. FOUNDER ══ {%- endcomment -%}
+<section class="founder-section">
+  <div class="founder-inner">
+    <div class="founder-video">
+      <img
+        src="{{ 'founder-collage.jpg' | asset_url }}"
+        alt="Ashish, Shashank and Shivangi - co-founders of Earthen Story"
+        width="1200"
+        height="675"
+        loading="lazy"
+      >
+    </div>
+    <div class="founder-text">
+      <span class="eyebrow">{{ section.settings.founder_eyebrow | default: 'The Earthen Story' }}</span>
+      <div class="founder-quote">
+        "{{ section.settings.founder_quote_before -}}
+        {%- if section.settings.founder_quote_strong != blank -%}
+          <strong>{{ section.settings.founder_quote_strong }}</strong>
+        {%- endif -%}
+        {{- section.settings.founder_quote_after }}"
+      </div>
+      <p class="founder-body">{{ section.settings.founder_body }}</p>
+      <a href="{{ section.settings.founder_cta_url | default: '/pages/our-story' }}" class="btn-navy">
+        {{ section.settings.founder_cta_label | default: 'Read Our Full Story →' }}
+      </a>
+    </div>
+  </div>
+</section>
+
+{%- comment -%} ══ 3. CATEGORIES ══ {%- endcomment -%}
+<section class="categories-section">
+  <div class="cat-inner">
+    <div class="section-hd">
+      <span class="cat-section-title">{{ section.settings.cat_heading | default: 'Browse by Category' }}</span>
+      {%- if section.settings.cat_all_url != blank -%}
+        <a href="{{ section.settings.cat_all_url }}">{{ section.settings.cat_all_label | default: 'View All →' }}</a>
+      {%- endif -%}
+    </div>
+    <div class="cat-grid">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'category_tile' -%}
+          <a href="{{ block.settings.url | default: '/collections/all-products' }}" class="cat-tile" {{ block.shopify_attributes }}>
+            <div class="cat-icon">{{ block.settings.icon }}</div>
+            <span class="cat-name">{{ block.settings.name }}</span>
+          </a>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{%- comment -%} ══ 4. BEST SELLERS ══ {%- endcomment -%}
+<section class="bestsellers-section">
+  <div class="bs-inner">
+    <div class="section-hd">
+      <div>
+        <span class="eyebrow">{{ section.settings.bs_eyebrow | default: 'Top Picks' }}</span>
+        <span class="block-title">{{ section.settings.bs_heading | default: 'Best Sellers' }}</span>
+      </div>
+      {%- if section.settings.bs_collection_url != blank -%}
+        <a href="{{ section.settings.bs_collection_url }}">{{ section.settings.bs_view_all_label | default: 'View All →' }}</a>
+      {%- endif -%}
+    </div>
+    {%- assign bs_collection = collections[section.settings.bs_collection] -%}
+    {%- if bs_collection != blank -%}
+      <div class="product-grid">
+        {%- for product in bs_collection.products limit: section.settings.bs_product_limit -%}
+          <a href="{{ product.url }}" class="product-card">
+            <div class="pc-img">
+              {%- if product.featured_image -%}
+                {{ product.featured_image | image_url: width: 400 | image_tag:
+                    loading: 'lazy',
+                    alt: product.featured_image.alt | default: product.title,
+                    width: 400, height: 400,
+                    widths: '200, 300, 400',
+                    sizes: '(min-width: 990px) 17vw, (min-width: 769px) 25vw, 50vw'
+                }}
+              {%- else -%}
+                🫙
+              {%- endif -%}
+              {%- if product.tags contains 'bestseller' -%}
+                <span class="pc-badge">Best Seller</span>
+              {%- elsif product.tags contains 'new' -%}
+                <span class="pc-badge new">New</span>
+              {%- endif -%}
+            </div>
+            <div class="pc-body">
+              {%- assign first_col = product.collections | first -%}
+              {%- if first_col and first_col.handle != 'all' -%}
+                <div class="pc-meta">{{ first_col.title }}</div>
+              {%- endif -%}
+              <div class="pc-name">{{ product.title }}</div>
+              <div class="pc-price-row">
+                <div class="pc-prices">
+                  <span class="pc-price">{{ product.price | money }}</span>
+                  {%- if product.compare_at_price > product.price -%}
+                    <span class="pc-compare">{{ product.compare_at_price | money }}</span>
+                  {%- endif -%}
+                </div>
+                <button class="pc-atc"
+                  data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+                  aria-label="Add {{ product.title }} to cart">+</button>
+              </div>
+            </div>
+          </a>
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <p style="color:var(--text-soft);font-size:13px;margin-top:12px;">Select a collection in section settings to display products here.</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- comment -%} ══ 5. BUNDLES ══ {%- endcomment -%}
+<section class="bundles-section">
+  <div class="bundles-inner">
+    <div class="section-hd">
+      <div>
+        <span class="eyebrow">{{ section.settings.bundles_eyebrow | default: 'Save More Together' }}</span>
+        <span class="block-title">{{ section.settings.bundles_heading | default: 'Curated Bundles' }}</span>
+      </div>
+      {%- if section.settings.bundles_all_url != blank -%}
+        <a href="{{ section.settings.bundles_all_url }}">{{ section.settings.bundles_all_label | default: 'View All Bundles →' }}</a>
+      {%- endif -%}
+    </div>
+    <div class="bundle-grid">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'bundle_card' -%}
+          {%- assign bp = all_products[block.settings.product] -%}
+          {%- assign bp_save_pct = bp.compare_at_price | minus: bp.price | times: 100 | divided_by: bp.compare_at_price | round -%}
+          <a href="{{ bp.url | default: '#' }}" class="bundle-card" {{ block.shopify_attributes }}>
+            <div class="bundle-img">
+              {%- if bp.featured_image -%}
+                {{ bp.featured_image | image_url: width: 640 | image_tag:
+                    loading: 'lazy',
+                    alt: bp.featured_image.alt | default: bp.title,
+                    width: 640, height: 640,
+                    widths: '320, 480, 640',
+                    sizes: '(min-width: 990px) 25vw, 50vw'
+                }}
+              {%- else -%}
+                <span class="bundle-emoji">🫙</span>
+              {%- endif -%}
+              {%- if bp.compare_at_price > bp.price -%}
+                <span class="bundle-flag">Save {{ bp_save_pct }}%</span>
+              {%- endif -%}
+            </div>
+            <div class="bundle-body">
+              <div class="bundle-name">{{ bp.title | default: 'Bundle' }}</div>
+              {%- if bp.description != blank -%}
+                <div class="bundle-items-list">{{ bp.description | strip_html | strip_newlines | truncate: 120, '' }}</div>
+              {%- endif -%}
+              <div class="bundle-footer">
+                <div class="bundle-price-row">
+                  <span class="bundle-price">{{ bp.price | money }}</span>
+                  {%- if bp.compare_at_price > bp.price -%}
+                    <span class="bundle-compare">{{ bp.compare_at_price | money }}</span>
+                    <span class="bundle-save">Save {{ bp.compare_at_price | minus: bp.price | money }}</span>
+                  {%- endif -%}
+                </div>
+                <span class="bundle-cta">{{ block.settings.cta_label | default: 'Shop Bundle →' }}</span>
+              </div>
+            </div>
+          </a>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{%- comment -%} ══ 7. RECIPES ══ {%- endcomment -%}
+<section class="recipes-section">
+  <div class="recipes-inner">
+    <div class="section-hd">
+      <div>
+        <span class="eyebrow">{{ section.settings.recipes_eyebrow | default: 'Cook with Earthen Story' }}</span>
+        <span class="block-title">{{ section.settings.recipes_heading | default: 'Recipes We Love' }}</span>
+      </div>
+      {%- assign recipes_blog = blogs[section.settings.recipes_blog] -%}
+      {%- if recipes_blog != blank -%}
+        <a href="{{ recipes_blog.url }}">{{ section.settings.recipes_view_all_label | default: 'All Recipes →' }}</a>
+      {%- endif -%}
+    </div>
+    <div class="recipe-grid">
+      {%- if recipes_blog != blank and recipes_blog.articles.size > 0 -%}
+        {%- for article in recipes_blog.articles limit: section.settings.recipes_limit -%}
+          <a href="{{ article.url }}" class="recipe-card">
+            <div class="rc-img">
+              {%- if article.image -%}
+                {{ article.image | image_url: width: 480 | image_tag:
+                    loading: 'lazy',
+                    alt: article.image.alt | default: article.title,
+                    width: 480, height: 480,
+                    widths: '240, 360, 480',
+                    sizes: '(min-width: 990px) 25vw, 50vw'
+                }}
+              {%- else -%}🍳{%- endif -%}
+              {%- assign rc_words = article.content | strip_html | split: ' ' | size -%}
+              <span class="rc-time">{{ rc_words | divided_by: 200 | plus: 1 }} min read</span>
+            </div>
+            <div class="rc-body">
+              {%- if article.tags.size > 0 -%}
+                <div class="rc-tag">{{ article.tags | first }}</div>
+              {%- endif -%}
+              <div class="rc-name">{{ article.title }}</div>
+              <div class="rc-meta">{{ article.published_at | date: '%b %d, %Y' }}</div>
+            </div>
+          </a>
+        {%- endfor -%}
+      {%- else -%}
+        {%- for i in (1..4) -%}
+          <div class="recipe-card" style="pointer-events:none;">
+            <div class="rc-img">🍳<span class="rc-time">Select blog in settings</span></div>
+            <div class="rc-body"><div class="rc-tag">Recipe</div><div class="rc-name">Select a recipes blog in settings</div></div>
+          </div>
+        {%- endfor -%}
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{%- comment -%} ══ 8. DISCOVER ══ {%- endcomment -%}
+<section class="discover-section">
+  <div class="discover-inner">
+    <div class="section-hd">
+      <div>
+        <span class="eyebrow">{{ section.settings.discover_eyebrow | default: 'Knowledge & Stories' }}</span>
+        <span class="block-title">{{ section.settings.discover_heading | default: 'Discover' }}</span>
+      </div>
+      {%- assign discover_blog = blogs[section.settings.discover_blog] -%}
+      {%- if discover_blog != blank -%}
+        <a href="{{ discover_blog.url }}">{{ section.settings.discover_view_all_label | default: 'All Articles →' }}</a>
+      {%- endif -%}
+    </div>
+    <div class="article-grid">
+      {%- if discover_blog != blank and discover_blog.articles.size > 0 -%}
+        {%- for article in discover_blog.articles limit: section.settings.discover_limit -%}
+          <a href="{{ article.url }}" class="article-card">
+            <div class="ac-img">
+              {%- if article.image -%}
+                {{ article.image | image_url: width: 480 | image_tag:
+                    loading: 'lazy',
+                    alt: article.image.alt | default: article.title,
+                    width: 480, height: 480,
+                    widths: '240, 360, 480',
+                    sizes: '(min-width: 990px) 25vw, 50vw'
+                }}
+              {%- else -%}📖{%- endif -%}
+              {%- assign ac_words = article.content | strip_html | split: ' ' | size -%}
+              <span class="ac-read-time">{{ ac_words | divided_by: 200 | plus: 1 }} min read</span>
+            </div>
+            <div class="ac-body">
+              {%- if article.tags.size > 0 -%}
+                <div class="ac-cat">{{ article.tags | first }}</div>
+              {%- endif -%}
+              <div class="ac-title">{{ article.title }}</div>
+              <div class="ac-excerpt">{{ article.excerpt | strip_html | truncate: 80 }}</div>
+            </div>
+          </a>
+        {%- endfor -%}
+      {%- else -%}
+        {%- for i in (1..4) -%}
+          <div class="article-card" style="pointer-events:none;">
+            <div class="ac-img">📖<span class="ac-read-time">Select blog in settings</span></div>
+            <div class="ac-body"><div class="ac-cat">Article</div><div class="ac-title">Select an articles blog in settings</div></div>
+          </div>
+        {%- endfor -%}
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+<script>
+(function() {
+  document.querySelectorAll('.pc-atc').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var variantId = btn.dataset.variantId;
+      if (!variantId) return;
+      btn.disabled = true;
+      btn.textContent = '…';
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: variantId, quantity: 1 })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function() {
+        btn.textContent = '✓';
+        setTimeout(function() { btn.textContent = '+'; btn.disabled = false; }, 1400);
+        document.dispatchEvent(new CustomEvent('cart:refresh'));
+      })
+      .catch(function() { btn.textContent = '+'; btn.disabled = false; });
+    });
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Homepage",
+  "tag": "div",
+  "settings": [
+    { "type": "header", "content": "Hero" },
+    { "type": "image_picker",  "id": "hero_image",             "label": "Image" },
+    { "type": "textarea",      "id": "hero_title",             "label": "Headline",               "default": "Food the Way\nIt Was Meant" },
+    { "type": "text",          "id": "hero_title_em",          "label": "Headline italic line",   "default": "to Be." },
+    { "type": "textarea",      "id": "hero_subtitle",          "label": "Subtitle",               "default": "Organic sourcing with transaction certificates. Pesticide-free, lab tested. Traditional processing that preserves nutrition." },
+    { "type": "text",          "id": "hero_cta_primary_label", "label": "Primary button label",   "default": "Explore Our Foods" },
+    { "type": "url",           "id": "hero_cta_primary_url",   "label": "Primary button URL" },
+    { "type": "text",          "id": "hero_cta_ghost_label",   "label": "Ghost button label",     "default": "Our Story →" },
+    { "type": "url",           "id": "hero_cta_ghost_url",     "label": "Ghost button URL" },
+    { "type": "header", "content": "Founder Story Section" },
+    { "type": "url",           "id": "founder_video_url",      "label": "YouTube video URL",      "info": "Clicking the video thumbnail opens this link in a new tab" },
+    { "type": "textarea",      "id": "founder_quote_before",   "label": "Quote (before bold)",    "default": "We started because the food on supermarket shelves " },
+    { "type": "text",          "id": "founder_quote_strong",   "label": "Quote bold part",        "default": "isn't the food our grandparents ate." },
+    { "type": "textarea",      "id": "founder_body",           "label": "Body paragraph",         "default": "India's agriculture uses some of the world's highest pesticide concentrations. Traditional processing methods — bilona churning, cold pressing, stone grinding — are being replaced by industrial shortcuts. Earthen Story sources directly from certified organic farms and processes the traditional way." },
+    { "type": "text",          "id": "founder_cta_label",      "label": "Button label",           "default": "Read Our Full Story →" },
+    { "type": "url",           "id": "founder_cta_url",        "label": "Button URL" },
+    { "type": "header", "content": "Categories" },
+    { "type": "url",           "id": "cat_all_url",            "label": "View all URL" },
+    { "type": "header", "content": "Best Sellers" },
+    { "type": "collection",    "id": "bs_collection",          "label": "Collection",             "info": "Select the collection whose products appear here" },
+    { "type": "range",         "id": "bs_product_limit",       "label": "Number of products",     "min": 2, "max": 12, "step": 1, "default": 6 },
+    { "type": "url",           "id": "bs_collection_url",      "label": "View all URL" },
+    { "type": "header", "content": "Bundles" },
+    { "type": "url",           "id": "bundles_all_url",        "label": "View all URL" },
+    { "type": "header", "content": "Recipes Section" },
+    { "type": "blog",          "id": "recipes_blog",           "label": "Blog",                   "info": "Select the recipes blog to pull articles from" },
+    { "type": "range",         "id": "recipes_limit",          "label": "Number of articles",     "min": 2, "max": 8, "step": 1, "default": 4 },
+    { "type": "header", "content": "Discover Section" },
+    { "type": "blog",          "id": "discover_blog",          "label": "Blog",                   "info": "Select the knowledge/articles blog to pull from" },
+    { "type": "range",         "id": "discover_limit",         "label": "Number of articles",     "min": 2, "max": 8, "step": 1, "default": 4 }
+  ],
+  "blocks": [
+    {
+      "type": "founder_name",
+      "name": "Founder Name",
+      "settings": [
+        { "type": "text", "id": "name", "label": "Founder name", "default": "Ashish" }
+      ]
+    },
+    {
+      "type": "category_tile",
+      "name": "Category Tile",
+      "settings": [
+        { "type": "text", "id": "icon", "label": "Emoji icon", "default": "🫙" },
+        { "type": "text", "id": "name", "label": "Category name", "default": "Ghee" },
+        { "type": "url", "id": "url", "label": "Category URL" }
+      ]
+    },
+    {
+      "type": "bundle_card",
+      "name": "Bundle Card",
+      "settings": [
+        { "type": "product", "id": "product", "label": "Bundle product", "info": "Title, image, price, save % and items list are all pulled automatically from the product" },
+        { "type": "text", "id": "cta_label", "label": "CTA label", "default": "Shop Bundle →" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Homepage",
+      "blocks": [
+        { "type": "founder_name", "settings": { "name": "Ashish" } },
+        { "type": "founder_name", "settings": { "name": "Shashank" } },
+        { "type": "founder_name", "settings": { "name": "Shivangi" } },
+        { "type": "category_tile", "settings": { "icon": "🫙", "name": "Ghee" } },
+        { "type": "category_tile", "settings": { "icon": "🍯", "name": "Honey" } },
+        { "type": "category_tile", "settings": { "icon": "🫒", "name": "Oils" } },
+        { "type": "category_tile", "settings": { "icon": "🌾", "name": "Flours" } },
+        { "type": "category_tile", "settings": { "icon": "🌱", "name": "Seeds" } },
+        { "type": "category_tile", "settings": { "icon": "🌰", "name": "Dry Fruits" } },
+        { "type": "category_tile", "settings": { "icon": "🌹", "name": "Gulkand" } },
+        { "type": "category_tile", "settings": { "icon": "🫐", "name": "Amla Candy" } },
+        { "type": "category_tile", "settings": { "icon": "🌿", "name": "Herbal Powders" } },
+        { "type": "bundle_card", "settings": { "product": "", "cta_label": "Shop Bundle →" } },
+        { "type": "bundle_card", "settings": { "product": "", "cta_label": "Shop Bundle →" } },
+        { "type": "bundle_card", "settings": { "product": "", "cta_label": "Shop Bundle →" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

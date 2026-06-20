@@ -1,0 +1,438 @@
+{% comment %}
+  Earthen Story — Collection Hero Section
+  Matches collection-page-mockup-v2.html exactly.
+
+  Metafields used (Earthen Story Master Reference — Collection metafields):
+    custom.short_intro      Rich text  — Subtitle below H1
+    custom.usp_1            Single-line text — USP row 1
+    custom.usp_2            Single-line text — USP row 2
+    custom.usp_3            Single-line text — USP row 3
+
+  Native Shopify fields:
+    collection.title            — H1 heading (also used for eyebrow fallback)
+    collection.image            — Circle visual (fallback to emoji if not set)
+    collection.products_count   — Auto-calculated product count badge
+
+  Section settings act as FALLBACKS when metafields are blank, so the
+  section works out-of-the-box before metafields are populated.
+{% endcomment %}
+
+{% liquid
+  assign usp1 = collection.metafields.custom.usp_1.value
+  assign usp2 = collection.metafields.custom.usp_2.value
+  assign usp3 = collection.metafields.custom.usp_3.value
+  assign short_intro = collection.metafields.custom.short_intro
+
+  comment
+    Eyebrow: use section setting if set, otherwise build from collection title
+    e.g. "Earthen Story · Ghee" — works for any collection
+  endcomment
+  if section.settings.eyebrow != blank
+    assign hero_eyebrow = section.settings.eyebrow
+  else
+    assign hero_eyebrow = 'Earthen Story · ' | append: collection.title
+  endif
+
+  comment
+    Title: use section setting if set, otherwise use collection.title
+    so any collection shows its own name
+  endcomment
+  if section.settings.title != blank
+    assign hero_title = section.settings.title
+  else
+    assign hero_title = collection.title
+  endif
+%}
+
+<section class="es-collection-hero">
+  <div class="es-hero-bg-pattern"></div>
+  <div class="es-hero-inner">
+
+    <!-- ── LEFT: eyebrow + title + subtitle + USPs ── -->
+    <div class="es-hero-text-col">
+
+      <div class="es-hero-eyebrow">
+        {{- hero_eyebrow -}}
+      </div>
+
+      <h1 class="es-hero-title">
+        {{- hero_title -}}
+        {%- if section.settings.title_italic != blank -%}
+          <br><em style="font-style:italic;color:var(--es-gold-mid);">{{ section.settings.title_italic }}</em>
+        {%- endif -%}
+      </h1>
+
+      <div class="es-hero-subtitle">
+        {%- if short_intro != blank -%}
+          {{- short_intro | metafield_tag -}}
+        {%- elsif section.settings.subtitle != blank -%}
+          <p>{{- section.settings.subtitle -}}</p>
+        {%- endif -%}
+      </div>
+
+      <div class="es-hero-usps">
+        {%- if usp1 != blank -%}
+          <div class="es-hero-usp">
+            <div class="es-hero-usp-icon">{{ section.settings.usp1_icon | default: '🌿' }}</div>
+            <div class="es-hero-usp-text">{{ usp1 }}</div>
+          </div>
+        {%- endif -%}
+        {%- if usp2 != blank -%}
+          <div class="es-hero-usp">
+            <div class="es-hero-usp-icon">{{ section.settings.usp2_icon | default: '🧪' }}</div>
+            <div class="es-hero-usp-text">{{ usp2 }}</div>
+          </div>
+        {%- endif -%}
+        {%- if usp3 != blank -%}
+          <div class="es-hero-usp">
+            <div class="es-hero-usp-icon">{{ section.settings.usp3_icon | default: '🪨' }}</div>
+            <div class="es-hero-usp-text">{{ usp3 }}</div>
+          </div>
+        {%- endif -%}
+      </div>
+
+    </div>
+
+    <!-- ── RIGHT: circle visual + cert badges + product count ── -->
+    <div class="es-hero-product-col">
+      <div class="es-hero-product-visual">
+
+        {%- if collection.image != blank -%}
+          {{- collection.image
+            | image_url: width: 440
+            | image_tag:
+                alt: collection.title,
+                class: 'es-hero-collection-img',
+                loading: 'eager',
+                fetchpriority: 'high',
+                width: 440,
+                height: 440
+          -}}
+        {%- else -%}
+          <span class="es-hero-emoji">{{ section.settings.hero_emoji | default: '🫙' }}</span>
+        {%- endif -%}
+
+        {%- if section.settings.badge_top != blank -%}
+          <div class="es-hero-cert-badge es-badge-top">
+            <div class="es-dot"></div>{{ section.settings.badge_top }}
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.badge_bottom != blank -%}
+          <div class="es-hero-cert-badge es-badge-bot">
+            <div class="es-dot"></div>{{ section.settings.badge_bottom }}
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.count_label != blank and collection.products_count > 0 -%}
+          <div class="es-hero-count">
+            <span>{{ collection.products_count }}</span>&nbsp;{{ section.settings.count_label | default: 'products in this collection' }}
+          </div>
+        {%- endif -%}
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% stylesheet %}
+
+  .es-collection-hero {
+    background: #0D1E3F;
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+    display: flex;
+    align-items: stretch;
+  }
+  .es-hero-bg-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 70% 50%, rgba(184,132,30,0.12) 0%, transparent 55%),
+      radial-gradient(circle at 15% 80%, rgba(17,37,87,0.8) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .es-hero-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 28px 68px;
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 40px;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Eyebrow */
+  .es-hero-eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--es-gold-mid, #D4A843);
+    font-weight: 600;
+    margin-bottom: 14px;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  }
+
+  /* H1 */
+  .es-hero-title {
+    font-family: var(--es-font-heading, 'Cormorant', serif);
+    font-size: 40px;
+    font-weight: 500;
+    color: white;
+    line-height: 1.1;
+    letter-spacing: 0.01em;
+    margin-bottom: 8px;
+  }
+
+  /* Subtitle — metafield renders wrapped in <p> via metafield_tag */
+  .es-hero-subtitle {
+    margin-bottom: 18px;
+    max-width: 440px;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  }
+  .es-hero-subtitle,
+  .es-hero-subtitle p {
+    font-size: 15px;
+    color: rgba(255,255,255,0.62);
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  /* USP list */
+  .es-hero-usps {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .es-hero-usp {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .es-hero-usp-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(212,168,67,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+  }
+  .es-hero-usp-text {
+    font-size: 14.5px;
+    color: rgba(255,255,255,0.8);
+    font-weight: 400;
+    line-height: 1.35;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  }
+  .es-hero-usp-text strong { color: white; font-weight: 600; }
+
+  /* Right column */
+  .es-hero-product-col {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .es-hero-product-visual {
+    width: 220px;
+    height: 220px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    border: 1px solid rgba(212,168,67,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 82px;
+    position: relative;
+    overflow: hidden;
+  }
+  .es-hero-product-visual::before {
+    content: '';
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    border: 1px solid rgba(212,168,67,0.1);
+    pointer-events: none;
+  }
+
+  /* Collection image (fills circle) */
+  .es-hero-collection-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    position: absolute;
+    inset: 0;
+  }
+  .es-hero-emoji { position: relative; z-index: 1; }
+
+  /* Cert badges */
+  .es-hero-cert-badge {
+    position: absolute;
+    background: var(--es-navy, #112557);
+    border: 1.5px solid var(--es-gold-border, #DFC07A);
+    border-radius: 22px;
+    padding: 6px 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: white;
+    white-space: nowrap;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+    z-index: 2;
+  }
+  .es-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--es-gold-mid, #D4A843);
+    flex-shrink: 0;
+  }
+  .es-badge-top { top: 24px; left: -20px; }
+  .es-badge-bot { bottom: 44px; right: -30px; }
+
+  /* Product count pill */
+  .es-hero-count {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border-radius: 20px;
+    padding: 6px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--es-text-dark, #18181B);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    white-space: nowrap;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+    z-index: 3;
+  }
+  .es-hero-count span { color: var(--es-gold, #B8841E); }
+
+  /* Responsive */
+  @media screen and (max-width: 900px) {
+    .es-hero-inner {
+      grid-template-columns: 1fr;
+      padding: 24px 24px;
+    }
+    .es-hero-product-col { display: none; }
+    .es-hero-title { font-size: 30px; }
+  }
+
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "ES Collection Hero",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Hero Text"
+    },
+    {
+      "type": "paragraph",
+      "content": "Subtitle is pulled from the 'Short Intro' collection metafield (custom.short_intro). USPs come from custom.usp_1 / usp_2 / usp_3. Values below are fallbacks used when metafields are blank."
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text override",
+      "info": "Leave blank to auto-generate 'Earthen Story · [Collection Title]' — works for every collection without editing."
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title override — first line",
+      "info": "Leave blank to use collection.title automatically. Every collection shows its own name."
+    },
+    {
+      "type": "text",
+      "id": "title_italic",
+      "label": "Title — italic second line (optional)",
+      "info": "Gold italic word shown below the main title. Leave blank to hide — safe for all collections."
+    },
+    {
+      "type": "textarea",
+      "id": "subtitle",
+      "label": "Subtitle fallback",
+      "info": "Only shown when the collection's custom.short_intro metafield is empty. Keep generic or leave blank."
+    },
+    {
+      "type": "header",
+      "content": "USP Icons"
+    },
+    {
+      "type": "paragraph",
+      "content": "USP text comes from collection metafields custom.usp_1 / usp_2 / usp_3. If a metafield is blank, that USP row is hidden automatically."
+    },
+    {
+      "type": "text",
+      "id": "usp1_icon",
+      "label": "USP 1 emoji",
+      "default": "🌿"
+    },
+    {
+      "type": "text",
+      "id": "usp2_icon",
+      "label": "USP 2 emoji",
+      "default": "🧪"
+    },
+    {
+      "type": "text",
+      "id": "usp3_icon",
+      "label": "USP 3 emoji",
+      "default": "🪨"
+    },
+    {
+      "type": "header",
+      "content": "Right Visual & Badges"
+    },
+    {
+      "type": "paragraph",
+      "content": "The collection image (set in Admin → Collections → Image) fills the circle automatically. The emoji below is the fallback when no collection image exists."
+    },
+    {
+      "type": "text",
+      "id": "hero_emoji",
+      "label": "Fallback emoji",
+      "info": "Shown only when no collection image is uploaded. Leave blank to show nothing."
+    },
+    {
+      "type": "text",
+      "id": "badge_top",
+      "label": "Top badge text",
+      "info": "Leave blank to hide. Shown top-left of the hero circle visual."
+    },
+    {
+      "type": "text",
+      "id": "badge_bottom",
+      "label": "Bottom badge text",
+      "info": "Leave blank to hide. Shown bottom-right of the hero circle visual."
+    },
+    {
+      "type": "text",
+      "id": "count_label",
+      "label": "Product count suffix",
+      "info": "Text after the product count number. Leave blank to hide the count pill."
+    }
+  ],
+  "presets": [
+    {
+      "name": "ES Collection Hero"
+    }
+  ]
+}
+{% endschema %}

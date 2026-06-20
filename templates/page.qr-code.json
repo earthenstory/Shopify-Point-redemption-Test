@@ -1,0 +1,9 @@
+{
+  "sections": {
+    "qr_landing": {
+      "type": "qr-landing",
+      "settings": {}
+    }
+  },
+  "order": ["qr_landing"]
+}

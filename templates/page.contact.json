@@ -1,0 +1,158 @@
+{
+  "sections": {
+    "es-contact": {
+      "type": "es-contact",
+      "settings": {
+        "hero_eyebrow": "Get in touch",
+        "hero_title": "We'd love to hear from you",
+        "hero_title_highlight": "hear from you",
+        "hero_desc": "Questions about our products, sourcing, or orders? Our team typically responds within one business day.",
+        "form_eyebrow": "Send us a message",
+        "form_title": "How can we help?",
+        "form_desc": "Select a topic below and fill in the details. The more context you share, the faster we can help.",
+        "label_first_name": "First Name",
+        "ph_first_name": "Ananya",
+        "label_last_name": "Last Name",
+        "ph_last_name": "Sharma",
+        "label_email": "Email Address",
+        "ph_email": "you@example.com",
+        "label_phone": "Phone",
+        "ph_phone": "+91 93218 08835",
+        "label_optional": "optional",
+        "label_order": "Order Number",
+        "ph_order": "ES-XXXXXXXX",
+        "label_if_applicable": "if applicable",
+        "label_subject": "Subject",
+        "subject_placeholder": "Select a subject…",
+        "subject_options": "Where is my order?|I'd like to return or exchange a product|I have a question about ingredients \/ sourcing|Wholesale \/ bulk pricing inquiry|Something else",
+        "label_message": "Message",
+        "ph_message": "Tell us more — the more detail you share, the faster we can help.",
+        "btn_label": "Send Message",
+        "form_assurance": "Usually replies within 1 business day",
+        "success_title": "Message sent successfully!",
+        "success_desc": "Thanks for reaching out. We'll get back to you within 1 business day.",
+        "email_label": "Email us",
+        "email_address": "contact@earthenstory.com",
+        "email_detail": "For general queries, product questions, and order support. We read every message personally.",
+        "email_response": "Typically responds within 24 hours",
+        "phone_label": "Call or WhatsApp",
+        "phone_number": "+91 93218 08835",
+        "phone_response": "WhatsApp preferred for faster response",
+        "social_title": "Find us on social media",
+        "social_desc": "DM us on Instagram for quick replies — we're most active there.",
+        "instagram_url": "https:\/\/www.instagram.com\/earthen_story\/",
+        "facebook_url": "https:\/\/www.facebook.com\/earthenstory\/",
+        "youtube_url": "",
+        "pinterest_url": "",
+        "faq_eyebrow": "Before you write",
+        "faq_title": "Quick answers to common questions",
+        "faq_desc": "Many queries are answered instantly in our FAQ — no waiting required."
+      },
+      "blocks": {
+        "topic_1": {
+          "type": "topic_pill",
+          "settings": {
+            "label": "Order & Delivery"
+          }
+        },
+        "topic_2": {
+          "type": "topic_pill",
+          "settings": {
+            "label": "Product Query"
+          }
+        },
+        "topic_3": {
+          "type": "topic_pill",
+          "settings": {
+            "label": "Wholesale \/ B2B"
+          }
+        },
+        "topic_4": {
+          "type": "topic_pill",
+          "settings": {
+            "label": "Returns & Refunds"
+          }
+        },
+        "topic_5": {
+          "type": "topic_pill",
+          "settings": {
+            "label": "Other"
+          }
+        },
+        "hours_1": {
+          "type": "business_hours",
+          "settings": {
+            "day": "Monday – Friday",
+            "time": "10:00 AM – 6:00 PM",
+            "closed": false
+          }
+        },
+        "hours_2": {
+          "type": "business_hours",
+          "settings": {
+            "day": "Saturday",
+            "time": "10:00 AM – 2:00 PM",
+            "closed": false
+          }
+        },
+        "hours_3": {
+          "type": "business_hours",
+          "settings": {
+            "day": "Sunday",
+            "time": "",
+            "closed": true
+          }
+        },
+        "faq_1": {
+          "type": "faq_link",
+          "settings": {
+            "label": "How long does delivery take?",
+            "description": "1–2 day processing + 3–7 day delivery. Tracking email sent on dispatch — metros typically faster.",
+            "url": ""
+          }
+        },
+        "faq_2": {
+          "type": "faq_link",
+          "settings": {
+            "label": "What is your return policy?",
+            "description": "3-day window for damaged, defective, or incorrect items. Email us with photos — we'll replace or fully refund.",
+            "url": "\/pages\/refund-return-policy"
+          }
+        },
+        "faq_3": {
+          "type": "faq_link",
+          "settings": {
+            "label": "Are your products truly organic?",
+            "description": "Yes — NPOP-certified farms, transaction certificates per batch, 250+ pesticide lab tests. All reports published on site.",
+            "url": "\/pages\/test-reports"
+          }
+        },
+        "faq_4": {
+          "type": "faq_link",
+          "settings": {
+            "label": "Do you offer bulk or wholesale pricing?",
+            "description": "Yes, for restaurants, health stores, and corporate gifting. Email us for our catalogue and pricing tiers.",
+            "url": "\/pages\/b2b"
+          }
+        }
+      },
+      "block_order": [
+        "topic_1",
+        "topic_2",
+        "topic_3",
+        "topic_4",
+        "topic_5",
+        "hours_1",
+        "hours_2",
+        "hours_3",
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4"
+      ]
+    }
+  },
+  "order": [
+    "es-contact"
+  ]
+}

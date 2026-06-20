@@ -1,0 +1,109 @@
+{%- comment -%}
+  sections/product-seo-content.liquid
+  Earthen Story — SEO accordion. Works on product, collection, article templates.
+
+  Auto-detects the current object and reads the correct metafield:
+    product    → custom.seo_accordion_title + custom.seo_content
+    collection → custom.seo_heading        + custom.seo_description
+    article    → article.title             + article.content (no metafield needed)
+{%- endcomment -%}
+
+{%- liquid
+  assign uid = section.id
+
+  if product != blank
+    assign seo_title = product.metafields.custom.seo_accordion_title.value
+    assign seo_body  = product.metafields.custom.seo_content
+    if seo_title == blank
+      assign seo_title = 'About ' | append: product.title
+    endif
+
+  elsif collection != blank
+    assign seo_title = collection.metafields.custom.seo_heading.value
+    assign seo_body  = collection.metafields.custom.seo_description
+    if seo_title == blank
+      assign seo_title = 'About ' | append: collection.title
+    endif
+
+  elsif article != blank
+    assign seo_title = section.settings.title | default: 'More About This'
+    assign seo_body  = nil
+  endif
+
+  assign seo_body_value = seo_body.value
+  assign seo_body_type  = seo_body.type
+-%}
+
+{%- if seo_body_value != blank -%}
+
+<div class="esd-section-inner">
+  <div
+    class="esd-seo-header"
+    id="EsdSeoHeader-{{ uid }}"
+    role="button"
+    aria-expanded="false"
+    aria-controls="EsdSeoBody-{{ uid }}"
+    tabindex="0"
+  >
+    <span class="esd-seo-toggle-title">{{ seo_title }}</span>
+    <span class="esd-seo-expand-btn" id="EsdSeoBtn-{{ uid }}" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      Read more
+    </span>
+  </div>
+
+  <div class="esd-seo-body" id="EsdSeoBody-{{ uid }}" role="region">
+    <div class="esd-seo-body-inner">
+      {%- if seo_body_type == 'rich_text' -%}
+        {{- seo_body | metafield_tag -}}
+      {%- else -%}
+        {{- seo_body_value -}}
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+  var uid    = '{{ uid }}';
+  var header = document.getElementById('EsdSeoHeader-' + uid);
+  var body   = document.getElementById('EsdSeoBody-' + uid);
+  var btn    = document.getElementById('EsdSeoBtn-' + uid);
+  if (!header || !body) return;
+  function toggle() {
+    var isOpen = body.classList.toggle('visible');
+    header.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    if (btn) {
+      btn.classList.toggle('open', isOpen);
+      var textNode = btn.lastChild;
+      if (textNode && textNode.nodeType === 3) {
+        textNode.textContent = isOpen ? ' Read less' : ' Read more';
+      }
+    }
+  }
+  header.addEventListener('click', toggle);
+  header.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+  });
+})();
+</script>
+
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "SEO Accordion",
+  "tag": "section",
+  "class": "product-seo-accordion-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading override",
+      "info": "Only used on article pages. On product and collection pages the heading comes from metafields automatically."
+    }
+  ],
+  "presets": [{ "name": "SEO Accordion" }]
+}
+{% endschema %}

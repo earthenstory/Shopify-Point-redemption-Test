@@ -1,0 +1,72 @@
+{%- comment -%}
+  sections/product-recipes.liquid
+  Updated to handle semicolon-separated article handles.
+{%- endcomment -%}
+
+{%- liquid
+  assign recipe_raw = product.metafields.custom.product_related_recipes.value
+  assign recipe_handles = recipe_raw | split: ';'
+-%}
+
+{%- if recipe_handles != blank -%}
+<div class="esd-section-inner">
+  <div class="esd-section-header">
+    <h2 class="esd-section-title">Recipes Using This Product</h2>
+    <a href="/blogs/recipes" class="esd-view-all-link">All Recipes →</a>
+  </div>
+  
+  <div class="esd-article-grid">
+    {%- assign count = 0 -%}
+    {%- for handle_raw in recipe_handles -%}
+      {%- if count >= 3 -%}{%- break -%}{%- endif -%}
+      
+      {%- assign a_handle = handle_raw | strip -%}
+      {%- comment -%} 
+        Construct the full path. Most Shopify recipe blogs use the 'recipes' handle.
+        If your blog is named 'News', change 'recipes/' to 'news/'.
+      {%- endcomment -%}
+      {%- assign full_path = 'recipes/' | append: a_handle -%}
+      {%- assign article = articles[full_path] -%}
+
+      {%- if article != blank -%}
+        {%- assign count = count | plus: 1 -%}
+        {%- assign time_tag = article.metafields.custom.recipe_time_tag.value -%}
+        
+        <a href="{{ article.url }}" class="esd-card">
+          <div class="esd-recipe-img">
+            {%- if article.image -%}
+              <img 
+                src="{{ article.image | image_url: width: 600 }}" 
+                alt="{{ article.image.alt | default: article.title | escape }}" 
+                width="600" 
+                height="400"
+                loading="lazy"
+                style="object-fit: cover;"
+              >
+            {%- endif -%}
+          </div>
+          <div class="esd-card-body">
+            <div class="esd-card-tag">
+              {%- if time_tag != blank -%}{{ time_tag }}{%- else -%}Recipe{%- endif -%}
+            </div>
+            <h3 class="esd-card-title">{{ article.title }}</h3>
+            {%- if article.excerpt != blank -%}
+              <div class="esd-card-meta">{{ article.excerpt | strip_html | truncate: 80 }}</div>
+            {%- endif -%}
+          </div>
+        </a>
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+</div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Product Recipes",
+  "tag": "section",
+  "class": "product-recipes-section",
+  "presets": [{ "name": "Product Recipes" }],
+  "settings": []
+}
+{% endschema %}

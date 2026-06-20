@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Earthen Story Varied Hero Concepts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #112557;
+      --navy-2: #1a3168;
+      --gold: #d4a843;
+      --gold-2: #efc867;
+      --cream: #fffdf8;
+      --ink: #20243a;
+      --muted: rgba(255,255,255,.68);
+      --line: rgba(255,255,255,.16);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--cream);
+    }
+
+    .option-nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px clamp(16px, 4vw, 48px);
+      background: rgba(255,253,248,.96);
+      border-bottom: 1px solid #e7dcc5;
+      backdrop-filter: blur(14px);
+    }
+
+    .option-nav strong {
+      font-size: 12px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .option-nav div { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .option-nav a {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #f1e6cf;
+      color: #263253;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .note,
+    .label {
+      padding: 14px clamp(16px, 4vw, 48px);
+      color: #596074;
+      background: #fffaf0;
+      border-bottom: 1px solid #eadfc9;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .label {
+      background: #fffdf8;
+      border-top: 1px solid #eadfc9;
+    }
+
+    .note strong,
+    .label strong { color: #1c263f; }
+
+    .site-header {
+      height: 76px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 clamp(18px, 5vw, 72px);
+      background: white;
+      border-bottom: 1px solid #eee7dc;
+    }
+
+    .brand {
+      justify-self: center;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .hamburger {
+      width: 22px;
+      height: 14px;
+      position: relative;
+    }
+
+    .hamburger::before,
+    .hamburger::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 22px;
+      height: 1.5px;
+      background: #293049;
+    }
+
+    .hamburger::before { top: 2px; }
+    .hamburger::after { bottom: 2px; }
+
+    .header-actions {
+      justify-self: end;
+      display: flex;
+      gap: 18px;
+      color: #293049;
+      font-size: 20px;
+    }
+
+    .hero {
+      min-height: 528px;
+      position: relative;
+      overflow: hidden;
+      color: white;
+      background: var(--navy);
+    }
+
+    .hero-inner {
+      width: min(1280px, calc(100% - 40px));
+      min-height: 528px;
+      margin: 0 auto;
+      display: grid;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 13px;
+      color: var(--gold-2);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 30px;
+      height: 1px;
+      background: currentColor;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-family: "Cormorant", Georgia, serif;
+      font-size: clamp(44px, 5.2vw, 72px);
+      font-weight: 500;
+      line-height: .98;
+      letter-spacing: 0;
+    }
+
+    h1 em { color: var(--gold); font-style: italic; }
+
+    .copy {
+      max-width: 550px;
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.62;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .btn.gold { background: var(--gold); color: white; }
+    .btn.ghost {
+      border: 1px solid rgba(255,255,255,.23);
+      color: rgba(255,255,255,.82);
+      background: rgba(255,255,255,.04);
+    }
+
+    /* Option 1: category orbit */
+    .hero-orbit {
+      background:
+        radial-gradient(circle at 76% 48%, rgba(212,168,67,.18), transparent 28%),
+        linear-gradient(135deg, #102453, #1b3268);
+    }
+
+    .hero-orbit .hero-inner {
+      grid-template-columns: minmax(390px, .85fr) minmax(500px, 1.05fr);
+      gap: clamp(28px, 5vw, 64px);
+    }
+
+    .orbit-stage {
+      min-height: 386px;
+      position: relative;
+    }
+
+    .hero-dish {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 268px;
+      height: 268px;
+      transform: translate(-50%, -50%);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.24);
+      box-shadow: 0 28px 70px rgba(6,16,39,.32);
+    }
+
+    .hero-dish img,
+    .orbit-card img,
+    .band-card img,
+    .bento-card img,
+    .ritual-photo img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .orbit-card {
+      position: absolute;
+      width: 148px;
+      height: 112px;
+      overflow: hidden;
+      border-radius: 15px;
+      border: 1px solid rgba(255,255,255,.2);
+      background: rgba(255,255,255,.08);
+      box-shadow: 0 18px 48px rgba(6,16,39,.22);
+    }
+
+    .orbit-card::after,
+    .band-card::after,
+    .bento-card::after,
+    .ritual-photo::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 40%, rgba(8,18,45,.76));
+      pointer-events: none;
+    }
+
+    .orbit-card span,
+    .band-card span,
+    .bento-card span,
+    .ritual-photo span {
+      position: absolute;
+      left: 12px;
+      bottom: 9px;
+      z-index: 2;
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .orbit-card.oil { right: 30px; top: 4px; }
+    .orbit-card.honey { left: 6px; top: 48px; }
+    .orbit-card.flour { right: 2px; bottom: 64px; }
+    .orbit-card.seeds { left: 42px; bottom: 6px; }
+
+    .proof-mini {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 22px;
+      max-width: 540px;
+    }
+
+    .proof-mini div {
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+    }
+
+    .proof-mini strong {
+      display: block;
+      color: white;
+      font-size: 17px;
+      margin-bottom: 3px;
+    }
+
+    .proof-mini small {
+      color: rgba(255,255,255,.62);
+      font-size: 11.5px;
+    }
+
+    /* Option 2: category runway */
+    .hero-runway {
+      background:
+        linear-gradient(90deg, rgba(13,29,71,.96), rgba(13,29,71,.76) 48%, rgba(13,29,71,.98)),
+        radial-gradient(circle at 72% 30%, rgba(212,168,67,.17), transparent 34%),
+        #112557;
+    }
+
+    .hero-runway .hero-inner {
+      grid-template-columns: minmax(360px, 520px) minmax(560px, 1fr);
+      gap: clamp(28px, 5vw, 62px);
+    }
+
+    .band {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      transform: rotate(-3deg);
+    }
+
+    .band-card {
+      position: relative;
+      height: 330px;
+      overflow: hidden;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+      box-shadow: 0 20px 54px rgba(6,16,39,.22);
+    }
+
+    .band-card:nth-child(2),
+    .band-card:nth-child(4) {
+      transform: translateY(28px);
+    }
+
+    .band-card img {
+      object-position: center;
+    }
+
+    /* Option 3: no category, cinematic table */
+    .hero-cinema {
+      background-image:
+        linear-gradient(90deg, rgba(10,24,58,.96), rgba(10,24,58,.75) 44%, rgba(10,24,58,.22) 78%),
+        url("https://images.unsplash.com/photo-1506368249639-73a05d6f6488?auto=format&fit=crop&w=1800&q=84");
+      background-size: cover;
+      background-position: center;
+    }
+
+    .hero-cinema .hero-inner {
+      grid-template-columns: minmax(390px, 590px) 1fr;
+    }
+
+    .statement-card {
+      padding: 32px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(17,37,87,.64);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 28px 80px rgba(6,16,39,.28);
+    }
+
+    .standard-strip {
+      position: absolute;
+      left: clamp(20px, 5vw, 72px);
+      right: clamp(20px, 5vw, 72px);
+      bottom: 22px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .standard-strip div {
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(17,37,87,.68);
+      backdrop-filter: blur(10px);
+    }
+
+    .standard-strip strong {
+      display: block;
+      color: white;
+      font-size: 12.5px;
+      margin-bottom: 2px;
+    }
+
+    .standard-strip small {
+      color: rgba(255,255,255,.58);
+      font-size: 11.5px;
+    }
+
+    /* Option 4: no category, editorial bento */
+    .hero-editorial {
+      background:
+        radial-gradient(circle at 25% 14%, rgba(212,168,67,.16), transparent 28%),
+        linear-gradient(135deg, #102453, #1b3268);
+    }
+
+    .hero-editorial .hero-inner {
+      grid-template-columns: minmax(420px, 1fr) minmax(500px, 1fr);
+      gap: clamp(30px, 5vw, 62px);
+    }
+
+    .editorial-copy {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .seal {
+      width: 150px;
+      height: 150px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      border: 1px solid rgba(212,168,67,.42);
+      color: var(--gold-2);
+      background: rgba(255,255,255,.05);
+      text-align: center;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      box-shadow: inset 0 0 0 12px rgba(212,168,67,.06);
+    }
+
+    .bento {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 170px 170px;
+      gap: 10px;
+    }
+
+    .bento-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+      box-shadow: 0 18px 48px rgba(6,16,39,.2);
+    }
+
+    .bento-card.big {
+      grid-row: span 2;
+    }
+
+    .bento-card.quote {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      background:
+        linear-gradient(135deg, rgba(212,168,67,.18), rgba(255,255,255,.06)),
+        rgba(255,255,255,.06);
+    }
+
+    .bento-card.quote::after { display: none; }
+
+    .bento-card.quote b {
+      color: var(--gold-2);
+      font-size: 12px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .bento-card.quote p {
+      margin: 0;
+      color: rgba(255,255,255,.76);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 900px) {
+      .site-header { height: 58px; padding: 0 16px; }
+      .brand { font-size: 16px; }
+      .hero { min-height: auto; }
+      .hero-inner {
+        width: calc(100% - 32px);
+        min-height: auto;
+        padding: 26px 0 30px;
+        grid-template-columns: 1fr !important;
+        gap: 20px;
+      }
+      h1 { font-size: 33px; line-height: 1.08; margin-bottom: 12px; }
+      .copy { font-size: 14px; line-height: 1.55; margin-bottom: 16px; }
+      .btn { flex: 1 1 0; min-width: 0; min-height: 42px; padding: 0 14px; font-size: 13px; }
+      .orbit-stage { min-height: 360px; }
+      .hero-dish { width: 210px; height: 210px; }
+      .orbit-card { width: 132px; height: 96px; }
+      .orbit-card.oil { right: 0; top: 0; }
+      .orbit-card.honey { left: 0; top: 36px; }
+      .orbit-card.flour { right: 0; bottom: 48px; }
+      .orbit-card.seeds { left: 10px; bottom: 8px; }
+      .proof-mini { grid-template-columns: 1fr; }
+      .band { grid-template-columns: repeat(2, 1fr); transform: none; }
+      .band-card,
+      .band-card:nth-child(2),
+      .band-card:nth-child(4) { height: 170px; transform: none; border-radius: 18px; }
+      .standard-strip {
+        position: static;
+        width: calc(100% - 32px);
+        margin: -8px auto 28px;
+        grid-template-columns: 1fr 1fr;
+      }
+      .statement-card { padding: 22px; }
+      .editorial-copy { grid-template-columns: 1fr; gap: 16px; }
+      .seal { width: 112px; height: 112px; }
+      .bento { grid-template-rows: 150px 150px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="option-nav">
+    <strong>Varied hero concepts</strong>
+    <div>
+      <a href="#option-1">Option 1</a>
+      <a href="#option-2">Option 2</a>
+      <a href="#option-3">Option 3</a>
+      <a href="#option-4">Option 4</a>
+    </div>
+  </nav>
+
+  <div class="note">
+    <strong>New direction:</strong> two options use category-relevant generic imagery, and two options avoid category tiles entirely. Each concept uses a different composition while keeping the compact hero height.
+  </div>
+
+  <div class="label" id="option-1"><strong>Option 1:</strong> Category orbit around a central Indian kitchen table image.</div>
+  <header class="site-header">
+    <div class="hamburger"></div>
+    <div class="brand">Earthen Story</div>
+    <div class="header-actions"><span>⌕</span><span>♙</span><span>▢</span></div>
+  </header>
+  <section class="hero hero-orbit">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">Certified organic food</div>
+        <h1>Food the Way<br>It Was Meant <em>to Be.</em></h1>
+        <p class="copy">Organic sourcing with transaction certificates. Pesticide-free, lab tested. Traditional processing that preserves nutrition — the way Indian food has always worked.</p>
+        <div class="actions">
+          <a class="btn gold" href="#">Explore Our Foods</a>
+          <a class="btn ghost" href="#">Our Story →</a>
+        </div>
+        <div class="proof-mini">
+          <div><strong>250+</strong><small>Residues tested</small></div>
+          <div><strong>100%</strong><small>Organic focus</small></div>
+          <div><strong>0</strong><small>Artificial additives</small></div>
+        </div>
+      </div>
+      <div class="orbit-stage">
+        <div class="hero-dish"><img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=84" alt="Indian kitchen ingredients"></div>
+        <div class="orbit-card oil"><img src="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=500&q=82" alt="Cold pressed oil"><span>Cold Pressed Oils</span></div>
+        <div class="orbit-card honey"><img src="https://images.unsplash.com/photo-1587049352851-8d4e89133924?auto=format&fit=crop&w=500&q=82" alt="Honey"><span>Honey</span></div>
+        <div class="orbit-card flour"><img src="https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=500&q=82" alt="Flour and grain"><span>Flours</span></div>
+        <div class="orbit-card seeds"><img src="https://images.unsplash.com/photo-1515543904379-3d757afe72e4?auto=format&fit=crop&w=500&q=82" alt="Seeds"><span>Seeds</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="label" id="option-2"><strong>Option 2:</strong> Category runway with tall ingredient windows instead of product-card boxes.</div>
+  <header class="site-header">
+    <div class="hamburger"></div>
+    <div class="brand">Earthen Story</div>
+    <div class="header-actions"><span>⌕</span><span>♙</span><span>▢</span></div>
+  </header>
+  <section class="hero hero-runway">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">Premium kitchen ingredients</div>
+        <h1>A cleaner pantry,<br>built from proof.</h1>
+        <p class="copy">Ghee, oils, flours, honey, seeds, dry fruits, gulkand, amla, and herbal powders for everyday Indian cooking.</p>
+        <div class="actions">
+          <a class="btn gold" href="#">Explore Categories</a>
+          <a class="btn ghost" href="#">Build a Bundle →</a>
+        </div>
+      </div>
+      <div class="band">
+        <div class="band-card"><img src="https://images.unsplash.com/photo-1612198790700-0ff08cb726e5?auto=format&fit=crop&w=500&q=82" alt="Ghee"><span>Ghee</span></div>
+        <div class="band-card"><img src="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=500&q=82" alt="Oil"><span>Oils</span></div>
+        <div class="band-card"><img src="https://images.unsplash.com/photo-1622484212850-eb596d769edc?auto=format&fit=crop&w=500&q=82" alt="Dry fruits"><span>Dry Fruits</span></div>
+        <div class="band-card"><img src="https://images.unsplash.com/photo-1508747703725-719777637510?auto=format&fit=crop&w=500&q=82" alt="Seeds"><span>Seeds</span></div>
+        <div class="band-card"><img src="https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=500&q=82" alt="Flour"><span>Flours</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="label" id="option-3"><strong>Option 3:</strong> No category tiles. Cinematic food-standard hero with a full background image.</div>
+  <header class="site-header">
+    <div class="hamburger"></div>
+    <div class="brand">Earthen Story</div>
+    <div class="header-actions"><span>⌕</span><span>♙</span><span>▢</span></div>
+  </header>
+  <section class="hero hero-cinema">
+    <div class="hero-inner">
+      <div class="statement-card">
+        <div class="eyebrow">Certified organic. Lab verified.</div>
+        <h1>Food standards<br>you can see.</h1>
+        <p class="copy">Organic is not just a label. Earthen Story brings transaction certificates, pesticide residue testing, and traditional Indian food processing into one transparent pantry.</p>
+        <div class="actions">
+          <a class="btn gold" href="#">Shop the Pantry</a>
+          <a class="btn ghost" href="#">See Our Standards →</a>
+        </div>
+      </div>
+    </div>
+    <div class="standard-strip">
+      <div><strong>Certified sourcing</strong><small>Transaction certificates</small></div>
+      <div><strong>Lab verified</strong><small>Residue reports</small></div>
+      <div><strong>Traditional methods</strong><small>Cold press, bilona, stone grind</small></div>
+      <div><strong>Premium pantry</strong><small>Daily Indian kitchen staples</small></div>
+    </div>
+  </section>
+
+  <div class="label" id="option-4"><strong>Option 4:</strong> No category tiles. Editorial, more premium, with a certification seal and story-led copy.</div>
+  <header class="site-header">
+    <div class="hamburger"></div>
+    <div class="brand">Earthen Story</div>
+    <div class="header-actions"><span>⌕</span><span>♙</span><span>▢</span></div>
+  </header>
+  <section class="hero hero-editorial">
+    <div class="hero-inner">
+      <div class="editorial-copy">
+        <div class="seal">Certified<br>Organic<br>Lab Tested</div>
+        <div>
+          <div class="eyebrow">Proof before promise</div>
+          <h1>The pantry our<br>grandparents would<br>recognize.</h1>
+          <p class="copy">Clean ingredients, documented sourcing, and traditional processing for food that feels honest before it reaches the plate.</p>
+          <div class="actions">
+            <a class="btn gold" href="#">Explore Our Foods</a>
+            <a class="btn ghost" href="#">Our Story →</a>
+          </div>
+        </div>
+      </div>
+      <div class="bento">
+        <div class="bento-card big"><img src="https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?auto=format&fit=crop&w=700&q=84" alt="Traditional Indian food"></div>
+        <div class="bento-card quote"><b>Earthen Standard</b><p>Every batch should be traceable, testable, and worth cooking with.</p></div>
+        <div class="bento-card"><img src="https://images.unsplash.com/photo-1506368249639-73a05d6f6488?auto=format&fit=crop&w=700&q=84" alt="Kitchen ingredients"></div>
+      </div>
+    </div>
+  </section>
+</body>
+</html>

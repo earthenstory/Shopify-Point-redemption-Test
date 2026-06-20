@@ -1,0 +1,643 @@
+{%- comment -%}
+  sections/es-footer.liquid
+  Earthen Story — Custom Footer
+  Fully schema-driven. Edit all content in Admin → Online Store → Themes → Customize.
+
+  Blocks:
+    cert_badge  — Certification badges (brand column)
+    trust_item  — Trust band items (icon + label)
+{%- endcomment -%}
+
+{%- liquid
+  assign shop_menu    = linklists[section.settings.shop_menu]
+  assign learn_menu   = linklists[section.settings.learn_menu]
+  assign company_menu = linklists[section.settings.company_menu]
+  assign legal_menu   = linklists[section.settings.legal_menu]
+
+  assign cert_blocks  = section.blocks | where: 'type', 'cert_badge'
+  assign trust_blocks = section.blocks | where: 'type', 'trust_item'
+-%}
+
+<footer class="es-footer">
+
+  <!-- Top decorative rule -->
+  <div class="es-footer__rule"></div>
+
+  <!-- Background watermark -->
+  <svg class="es-footer__watermark" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M200 20 C200 20 340 80 360 200 C380 320 280 380 200 380 C120 380 20 320 40 200 C60 80 200 20 200 20Z" fill="white"/>
+    <path d="M200 20 L200 380" stroke="white" stroke-width="1.5"/>
+    <path d="M200 100 C230 120 280 150 300 200" stroke="white" stroke-width="1"/>
+    <path d="M200 140 C170 160 130 180 110 220" stroke="white" stroke-width="1"/>
+    <path d="M200 200 C240 210 280 230 310 260" stroke="white" stroke-width="1"/>
+    <path d="M200 200 C160 215 130 240 100 270" stroke="white" stroke-width="1"/>
+  </svg>
+
+  <!-- ── MAIN GRID ───────────────────────────────────────────── -->
+  <div class="es-footer__main">
+
+    <!-- Brand column -->
+    <div class="es-footer__brand">
+      <span class="es-footer__logo">{{ section.settings.brand_name }}</span>
+
+      <!-- Social icons -->
+      <div class="es-footer__social">
+        {%- if section.settings.instagram_url != blank -%}
+          <a href="{{ section.settings.instagram_url }}" class="es-footer__social-icon" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          </a>
+        {%- endif -%}
+        {%- if section.settings.facebook_url != blank -%}
+          <a href="{{ section.settings.facebook_url }}" class="es-footer__social-icon" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+          </a>
+        {%- endif -%}
+        {%- if section.settings.youtube_url != blank -%}
+          <a href="{{ section.settings.youtube_url }}" class="es-footer__social-icon" aria-label="YouTube" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 001.46 6.42 29 29 0 001 12a29 29 0 00.46 5.58 2.78 2.78 0 001.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 001.95-1.96A29 29 0 0023 12a29 29 0 00-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg>
+          </a>
+        {%- endif -%}
+        {%- if section.settings.pinterest_url != blank -%}
+          <a href="{{ section.settings.pinterest_url }}" class="es-footer__social-icon" aria-label="Pinterest" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12a4 4 0 108 0c0-3.5-2-6-4-6S6 8 6 10c0 1.5.5 3 2 3 1 0 1.5-1 1.5-1l-1 5M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+          </a>
+        {%- endif -%}
+      </div>
+
+      <p class="es-footer__tagline">{{ section.settings.tagline }}</p>
+      <p class="es-footer__desc">{{ section.settings.brand_desc }}</p>
+
+      <!-- Certification badges -->
+      {%- if cert_blocks.size > 0 -%}
+        <div class="es-footer__certs">
+          {%- for block in cert_blocks -%}
+            <span class="es-footer__cert" {{ block.shopify_attributes }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              {{ block.settings.label }}
+            </span>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    <!-- Shop column -->
+    {%- if shop_menu.links.size > 0 -%}
+      <div class="es-footer__nav-col es-footer__nav-col--shop">
+        <h4 class="es-footer__col-heading">{{ section.settings.shop_heading }}</h4>
+        <div class="es-footer__chips">
+          {%- for link in shop_menu.links -%}
+            <a href="{{ link.url }}" class="es-footer__chip">{{ link.title }}</a>
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    <!-- Learn column -->
+    {%- if learn_menu.links.size > 0 -%}
+      <div class="es-footer__nav-col">
+        <h4 class="es-footer__col-heading">{{ section.settings.learn_heading }}</h4>
+        <ul class="es-footer__links">
+          {%- for link in learn_menu.links -%}
+            <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    {%- endif -%}
+
+    <!-- Company column -->
+    {%- if company_menu.links.size > 0 -%}
+      <div class="es-footer__nav-col">
+        <h4 class="es-footer__col-heading">{{ section.settings.company_heading }}</h4>
+        <ul class="es-footer__links">
+          {%- for link in company_menu.links -%}
+            <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    {%- endif -%}
+
+  </div>
+
+  <!-- ── TRUST BAND ─────────────────────────────────────────── -->
+  {%- if trust_blocks.size > 0 -%}
+    <div class="es-footer__trust">
+      <div class="es-footer__trust-inner">
+        {%- for block in trust_blocks -%}
+          {%- unless forloop.first -%}<div class="es-footer__trust-sep"></div>{%- endunless -%}
+          <div class="es-footer__trust-item" {{ block.shopify_attributes }}>
+            {%- case block.settings.icon -%}
+              {%- when 'shipping' -%}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              {%- when 'shield' -%}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              {%- when 'farm' -%}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              {%- when 'delivery' -%}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              {%- when 'leaf' -%}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8C8 10 5.9 16.17 3.82 19.34a1 1 0 001.64 1.15C7.85 17.84 13 13 21 11c0 0-3 9-12 11 0 0 8-1 12-9 0 0-5 7-13 8"/></svg>
+              {%- when 'star' -%}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            {%- endcase -%}
+            {{ block.settings.label }}
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+  {%- endif -%}
+
+  <!-- ── LEGAL BAR ──────────────────────────────────────────── -->
+  <div class="es-footer__legal">
+    <div class="es-footer__legal-inner">
+      <p class="es-footer__legal-copy">{{ section.settings.copyright }}</p>
+      {%- if legal_menu.links.size > 0 -%}
+        <nav class="es-footer__legal-links" aria-label="Legal">
+          {%- for link in legal_menu.links -%}
+            <a href="{{ link.url }}">{{ link.title }}</a>
+          {%- endfor -%}
+        </nav>
+      {%- endif -%}
+    </div>
+  </div>
+
+</footer>
+
+{% stylesheet %}
+/* ── CSS VARIABLES ────────────────────────────────────────── */
+.es-footer {
+  --ef-navy:       #112557;
+  --ef-navy-deep:  #0C1B3D;
+  --ef-gold:       #B8841E;
+  --ef-gold-mid:   #D4A843;
+  --ef-gold-hover: #C8922A;
+  --ef-gold-soft:  rgba(212,168,67,0.12);
+  --ef-gold-border:rgba(212,168,67,0.30);
+  --ef-white:      #FFFFFF;
+  --ef-text-muted: rgba(255,255,255,0.72);
+  --ef-text-soft:  rgba(255,255,255,0.78);
+  --ef-text-faint: rgba(255,255,255,0.40);
+  --ef-border:     rgba(255,255,255,0.09);
+}
+
+/* ── SHELL ────────────────────────────────────────────────── */
+.es-footer {
+  background: var(--ef-navy);
+  color: rgba(255,255,255,0.75);
+  position: relative;
+  overflow: hidden;
+  font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── TOP RULE ─────────────────────────────────────────────── */
+.es-footer__rule {
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--ef-gold-mid) 30%,
+    var(--ef-gold) 50%,
+    var(--ef-gold-mid) 70%,
+    transparent 100%
+  );
+}
+
+/* ── WATERMARK ────────────────────────────────────────────── */
+.es-footer__watermark {
+  position: absolute;
+  right: -60px;
+  bottom: -40px;
+  width: 420px;
+  opacity: 0.04;
+  pointer-events: none;
+}
+
+/* ── MAIN GRID ────────────────────────────────────────────── */
+.es-footer__main {
+  padding: 34px 68px 28px;
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 260px 1fr 1fr 1fr;
+  gap: 24px 60px;
+}
+
+/* ── BRAND COLUMN ─────────────────────────────────────────── */
+.es-footer__logo {
+  font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ef-white);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.es-footer__social {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.es-footer__social-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+}
+.es-footer__social-icon:hover {
+  background: var(--ef-gold);
+  border-color: var(--ef-gold);
+  color: var(--ef-white);
+  transform: translateY(-2px);
+}
+.es-footer__social-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.es-footer__tagline {
+  font-family: var(--es-font-heading, 'Cormorant', serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--ef-gold-mid);
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.es-footer__desc {
+  font-size: 12.5px;
+  color: var(--ef-text-muted);
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+
+.es-footer__certs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.es-footer__cert {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border: 1px solid var(--ef-gold-border);
+  border-radius: 2px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(212,168,67,0.85);
+}
+.es-footer__cert svg {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+/* ── NAV COLUMNS ──────────────────────────────────────────── */
+.es-footer__col-heading {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ef-gold-mid);
+  margin-bottom: 14px;
+  font-family: var(--es-font-body, 'DM Sans', sans-serif);
+}
+
+/* Shop chips grid */
+.es-footer__chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.es-footer__chip {
+  display: block;
+  padding: 7px 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 4px;
+  font-size: 12.5px;
+  color: var(--ef-text-soft);
+  text-decoration: none;
+  text-align: center;
+  white-space: nowrap;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+  font-family: var(--es-font-body, 'DM Sans', sans-serif);
+}
+.es-footer__chip:hover {
+  background: var(--ef-gold-soft);
+  border-color: rgba(212,168,67,0.35);
+  color: var(--ef-white);
+}
+
+/* Learn / Company list */
+.es-footer__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.es-footer__links a {
+  font-size: 13px;
+  color: var(--ef-text-soft);
+  text-decoration: none;
+  line-height: 1.4;
+  transition: color 0.18s;
+  font-family: var(--es-font-body, 'DM Sans', sans-serif);
+}
+.es-footer__links a:hover {
+  color: var(--ef-white);
+}
+
+/* ── TRUST BAND ───────────────────────────────────────────── */
+.es-footer__trust {
+  border-top: 1px solid var(--ef-border);
+  padding: 16px 68px;
+}
+
+.es-footer__trust-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.es-footer__trust-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.60);
+  letter-spacing: 0.03em;
+  font-family: var(--es-font-body, 'DM Sans', sans-serif);
+}
+.es-footer__trust-item svg {
+  width: 13px;
+  height: 13px;
+  color: var(--ef-gold-mid);
+  flex-shrink: 0;
+}
+
+.es-footer__trust-sep {
+  width: 1px;
+  height: 14px;
+  background: rgba(255,255,255,0.12);
+  flex-shrink: 0;
+}
+
+/* ── LEGAL BAR ────────────────────────────────────────────── */
+.es-footer__legal {
+  background: var(--ef-navy-deep);
+  padding: 13px 68px;
+}
+
+.es-footer__legal-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.es-footer__legal-copy {
+  font-size: 11px;
+  color: var(--ef-text-faint);
+  font-family: var(--es-font-body, 'DM Sans', sans-serif);
+}
+
+.es-footer__legal-links {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.es-footer__legal-links a {
+  font-size: 11px;
+  color: var(--ef-text-faint);
+  text-decoration: none;
+  transition: color 0.15s;
+  font-family: var(--es-font-body, 'DM Sans', sans-serif);
+}
+.es-footer__legal-links a:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .es-footer__main {
+    grid-template-columns: 1fr 1fr;
+    padding: 32px 40px 28px;
+  }
+  .es-footer__brand {
+    grid-column: 1 / -1;
+    max-width: 420px;
+  }
+  .es-footer__trust { padding-left: 40px; padding-right: 40px; }
+  .es-footer__legal { padding-left: 40px; padding-right: 40px; }
+}
+
+@media (max-width: 640px) {
+  .es-footer__main {
+    grid-template-columns: 1fr 1fr;
+    padding: 28px 24px 24px;
+  }
+  .es-footer__brand,
+  .es-footer__nav-col--shop {
+    grid-column: 1 / -1;
+    max-width: 100%;
+  }
+  .es-footer__trust { padding-left: 24px; padding-right: 24px; }
+  .es-footer__legal { padding-left: 24px; padding-right: 24px; }
+  .es-footer__trust-sep { display: none; }
+  .es-footer__trust-inner { justify-content: flex-start; gap: 16px; }
+  .es-footer__legal-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .es-footer__watermark { width: 260px; right: -30px; bottom: -20px; }
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "ES Footer",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Brand"
+    },
+    {
+      "type": "text",
+      "id": "brand_name",
+      "label": "Brand name",
+      "default": "Earthen Story"
+    },
+    {
+      "type": "text",
+      "id": "tagline",
+      "label": "Tagline",
+      "default": "Farm-to-table, honestly told."
+    },
+    {
+      "type": "textarea",
+      "id": "brand_desc",
+      "label": "Brand description",
+      "default": "We partner with small organic farms across India to bring you ingredients as nature intended — pure, traceable, and deeply nourishing."
+    },
+    {
+      "type": "header",
+      "content": "Social Links"
+    },
+    {
+      "type": "url",
+      "id": "instagram_url",
+      "label": "Instagram URL"
+    },
+    {
+      "type": "url",
+      "id": "facebook_url",
+      "label": "Facebook URL"
+    },
+    {
+      "type": "url",
+      "id": "youtube_url",
+      "label": "YouTube URL"
+    },
+    {
+      "type": "url",
+      "id": "pinterest_url",
+      "label": "Pinterest URL"
+    },
+    {
+      "type": "header",
+      "content": "Shop Column"
+    },
+    {
+      "type": "text",
+      "id": "shop_heading",
+      "label": "Column heading",
+      "default": "Shop"
+    },
+    {
+      "type": "link_list",
+      "id": "shop_menu",
+      "label": "Shop menu",
+      "info": "Create a navigation menu in Admin → Online Store → Navigation"
+    },
+    {
+      "type": "header",
+      "content": "Learn Column"
+    },
+    {
+      "type": "text",
+      "id": "learn_heading",
+      "label": "Column heading",
+      "default": "Learn"
+    },
+    {
+      "type": "link_list",
+      "id": "learn_menu",
+      "label": "Learn menu",
+      "info": "Create a navigation menu in Admin → Online Store → Navigation"
+    },
+    {
+      "type": "header",
+      "content": "Company Column"
+    },
+    {
+      "type": "text",
+      "id": "company_heading",
+      "label": "Column heading",
+      "default": "Company"
+    },
+    {
+      "type": "link_list",
+      "id": "company_menu",
+      "label": "Company menu",
+      "info": "Create a navigation menu in Admin → Online Store → Navigation"
+    },
+    {
+      "type": "header",
+      "content": "Legal Bar"
+    },
+    {
+      "type": "text",
+      "id": "copyright",
+      "label": "Copyright text",
+      "default": "© 2025 Earthen Story. All rights reserved. Made with care in India."
+    },
+    {
+      "type": "link_list",
+      "id": "legal_menu",
+      "label": "Legal links menu",
+      "info": "Create a navigation menu in Admin → Online Store → Navigation (e.g. Privacy Policy, Terms, Refund Policy)"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "cert_badge",
+      "name": "Certification Badge",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Badge text",
+          "default": "Certified Organic"
+        }
+      ]
+    },
+    {
+      "type": "trust_item",
+      "name": "Trust Band Item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Text",
+          "default": "Free shipping over ₹999"
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "shipping",  "label": "Shipping arrow" },
+            { "value": "shield",    "label": "Shield / Organic" },
+            { "value": "farm",      "label": "Farm / House" },
+            { "value": "delivery",  "label": "Delivery pin" },
+            { "value": "leaf",      "label": "Leaf / Natural" },
+            { "value": "star",      "label": "Star / Quality" }
+          ],
+          "default": "shield"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "ES Footer"
+    }
+  ]
+}
+{% endschema %}

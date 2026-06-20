@@ -1,0 +1,124 @@
+{%- comment -%}
+  sections/product-discover.liquid
+  Earthen Story — Discover articles grid. Works on product, collection, article templates.
+
+  Auto-detects the current object and reads the correct metafield:
+    product    → custom.product_related_articles  (semicolon-separated handles)
+    collection → custom.discover_articles         (semicolon-separated handles)
+    article    → custom.recipe_related_articles   (semicolon-separated handles)
+
+  Blog handle (where discover articles live) is set via section settings.
+{%- endcomment -%}
+
+{%- liquid
+  assign blog_handle = section.settings.blog_handle | default: 'discover'
+  assign discover_category_tags = 'ingredient-knowledge,food-system-insights,traditional-food-practices,health-nutrition' | split: ','
+
+  if product != blank
+    assign raw_value = product.metafields.custom.product_related_articles.value
+    if raw_value == blank
+      assign raw_value = product.metafields.custom.bundle_related_articles.value
+    endif
+  elsif collection != blank
+    assign raw_value = collection.metafields.custom.discover_articles.value
+  elsif article != blank
+    assign raw_value = article.metafields.custom.recipe_related_articles.value
+    if raw_value == blank
+      assign raw_value = article.metafields.custom.blog_related_articles.value
+    endif
+  endif
+
+  assign discover_handles = raw_value | split: ';'
+-%}
+
+{%- if raw_value != blank -%}
+
+<div class="esd-section-inner">
+  <div class="esd-section-header">
+    <h2 class="esd-section-title">{{ section.settings.title | default: 'Discover' }}</h2>
+    {%- if section.settings.show_view_all -%}
+      <a href="/blogs/{{ blog_handle }}" class="esd-view-all-link">All Articles →</a>
+    {%- endif -%}
+  </div>
+
+  <div class="esd-article-grid">
+    {%- assign count = 0 -%}
+    {%- for handle_raw in discover_handles -%}
+      {%- if count >= 3 -%}{%- break -%}{%- endif -%}
+      {%- assign a_handle = handle_raw | strip -%}
+      {%- assign full_path = blog_handle | append: '/' | append: a_handle -%}
+      {%- assign found = articles[full_path] -%}
+      {%- if found != blank -%}
+        {%- assign count = count | plus: 1 -%}
+        {%- liquid
+          assign cat_label = nil
+          for tag in found.tags
+            if discover_category_tags contains tag
+              assign cat_label = tag | replace: '-', ' ' | capitalize
+              break
+            endif
+          endfor
+          if cat_label == nil and found.tags.size > 0
+            assign cat_label = found.tags.first | replace: '-', ' ' | capitalize
+          endif
+          assign read_time = found.metafields.custom.blog_read_time.value
+        -%}
+        <a href="{{ found.url }}" class="esd-card">
+          <div class="esd-discover-img">
+            {%- if found.image -%}
+              {{ found.image | image_url: width: 500 | image_tag:
+                  loading: 'lazy',
+                  alt: found.image.alt | default: found.title,
+                  width: 500, height: 330,
+                  widths: '250, 375, 500',
+                  sizes: '(min-width: 990px) 25vw, 50vw',
+                  style: 'object-fit:cover;display:block'
+              }}
+            {%- endif -%}
+          </div>
+          <div class="esd-card-body">
+            {%- if cat_label != blank -%}<div class="esd-card-tag">{{ cat_label }}</div>{%- endif -%}
+            <h3 class="esd-card-title">{{ found.title }}</h3>
+            {%- if read_time != blank -%}
+              <div class="esd-card-meta">{{ read_time }}</div>
+            {%- elsif found.excerpt != blank -%}
+              <div class="esd-card-meta">{{ found.excerpt | strip_html | truncate: 60 }}</div>
+            {%- endif -%}
+          </div>
+        </a>
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+</div>
+
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Discover Articles",
+  "tag": "section",
+  "class": "product-discover-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Section heading",
+      "default": "Discover"
+    },
+    {
+      "type": "text",
+      "id": "blog_handle",
+      "label": "Blog handle",
+      "default": "discover",
+      "info": "Handle of the Shopify blog where discover articles live. Found in Online Store → Blogs."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "label": "Show 'All Articles' link",
+      "default": true
+    }
+  ],
+  "presets": [{ "name": "Discover Articles" }]
+}
+{% endschema %}

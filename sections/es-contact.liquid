@@ -1,0 +1,1181 @@
+{%- comment -%}
+  sections/es-contact.liquid
+  Earthen Story — Custom Contact Page
+  Fully schema-driven. Edit all content in Admin → Online Store → Themes → Customize.
+
+  Blocks:
+    topic_pill      — Topic selector pills above the form
+    business_hours  — Hours rows in the phone/WhatsApp card
+    faq_link        — FAQ teaser links in the right panel
+{%- endcomment -%}
+
+{%- liquid
+  assign topic_blocks = section.blocks | where: 'type', 'topic_pill'
+  assign hours_blocks = section.blocks | where: 'type', 'business_hours'
+  assign faq_blocks   = section.blocks | where: 'type', 'faq_link'
+
+  assign hero_title      = section.settings.hero_title
+  assign hero_highlight  = section.settings.hero_title_highlight
+  if hero_highlight != blank
+    assign highlighted     = '<em>' | append: hero_highlight | append: '</em>'
+    assign hero_title_html = hero_title | replace: hero_highlight, highlighted
+  else
+    assign hero_title_html = hero_title
+  endif
+-%}
+
+<!-- ══════════════════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════════════════ -->
+<section class="ec-hero">
+  <svg class="ec-hero__watermark" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+    <path d="M200 20 C200 20 340 80 360 200 C380 320 280 380 200 380 C120 380 20 320 40 200 C60 80 200 20 200 20Z" fill="white"/>
+    <path d="M200 20 L200 380" stroke="white" stroke-width="1.5"/>
+    <path d="M200 100 C230 120 280 150 300 200" stroke="white" stroke-width="1"/>
+    <path d="M200 140 C170 160 130 180 110 220" stroke="white" stroke-width="1"/>
+    <path d="M200 200 C240 210 280 230 310 260" stroke="white" stroke-width="1"/>
+    <path d="M200 200 C160 215 130 240 100 270" stroke="white" stroke-width="1"/>
+  </svg>
+  <div class="ec-hero__inner">
+    {%- if section.settings.hero_eyebrow != blank -%}
+      <span class="ec-hero__eyebrow">{{ section.settings.hero_eyebrow }}</span>
+    {%- endif -%}
+    <h1 class="ec-hero__title">{{ hero_title_html }}</h1>
+    {%- if section.settings.hero_desc != blank -%}
+      <p class="ec-hero__desc">{{ section.settings.hero_desc }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     BODY GRID  (form left | info right)
+══════════════════════════════════════════════════════════ -->
+<div class="ec-body">
+
+  <!-- ── LEFT: CONTACT FORM ──────────────────────────────── -->
+  <div class="ec-form-section">
+
+    {%- if section.settings.form_eyebrow != blank -%}
+      <span class="ec-eyebrow">{{ section.settings.form_eyebrow }}</span>
+    {%- endif -%}
+    <h2 class="ec-section-title">{{ section.settings.form_title }}</h2>
+    {%- if section.settings.form_desc != blank -%}
+      <p class="ec-section-desc">{{ section.settings.form_desc }}</p>
+    {%- endif -%}
+
+    <!-- Topic pills -->
+    {%- if topic_blocks.size > 0 -%}
+      <div class="ec-topic-selector" role="group" aria-label="Select a topic">
+        {%- for block in topic_blocks -%}
+          <button
+            type="button"
+            class="ec-topic-pill{% if forloop.first %} active{% endif %}"
+            data-topic="{{ block.settings.label | escape }}"
+            onclick="ecSelectTopic(this)"
+            {{ block.shopify_attributes }}
+          >{{ block.settings.label }}</button>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    <!-- Shopify contact form -->
+    {%- form 'contact', id: 'ec-contact-form' -%}
+
+      <!-- Hidden: selected topic sent in body -->
+      <input type="hidden" name="contact[topic]" id="ec-topic-value"
+             value="{{ topic_blocks.first.settings.label | escape }}">
+
+      {%- if form.posted_successfully? -%}
+
+        <!-- Success state -->
+        <div class="ec-success">
+          <div class="ec-success__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div class="ec-success__text">
+            <h4>{{ section.settings.success_title }}</h4>
+            <p>{{ section.settings.success_desc }}</p>
+          </div>
+        </div>
+
+      {%- else -%}
+
+        {%- if form.errors -%}
+          <div class="ec-form-errors">{{ form.errors | default_errors }}</div>
+        {%- endif -%}
+
+        <div class="ec-form">
+
+          <!-- Row: First / Last name -->
+          <div class="ec-form-row">
+            <div class="ec-field">
+              <label for="ec-first-name">{{ section.settings.label_first_name }}</label>
+              <input
+                type="text" id="ec-first-name" name="contact[first_name]"
+                placeholder="{{ section.settings.ph_first_name }}" required
+                value="{%- if customer -%}{{ customer.first_name }}{%- endif -%}"
+              >
+            </div>
+            <div class="ec-field">
+              <label for="ec-last-name">{{ section.settings.label_last_name }}</label>
+              <input
+                type="text" id="ec-last-name" name="contact[last_name]"
+                placeholder="{{ section.settings.ph_last_name }}" required
+                value="{%- if customer -%}{{ customer.last_name }}{%- endif -%}"
+              >
+            </div>
+          </div>
+
+          <!-- Row: Email / Phone -->
+          <div class="ec-form-row">
+            <div class="ec-field">
+              <label for="ec-email">{{ section.settings.label_email }}</label>
+              <input
+                type="email" id="ec-email" name="contact[email]"
+                placeholder="{{ section.settings.ph_email }}" required
+                value="{%- if customer -%}{{ customer.email }}{%- endif -%}"
+              >
+            </div>
+            <div class="ec-field">
+              <label for="ec-phone">
+                {{ section.settings.label_phone }}
+                <span class="ec-optional">({{ section.settings.label_optional }})</span>
+              </label>
+              <input
+                type="tel" id="ec-phone" name="contact[phone]"
+                placeholder="{{ section.settings.ph_phone }}"
+                value="{%- if customer -%}{{ customer.phone }}{%- endif -%}"
+              >
+            </div>
+          </div>
+
+          <!-- Order number -->
+          <div class="ec-field">
+            <label for="ec-order">
+              {{ section.settings.label_order }}
+              <span class="ec-optional">({{ section.settings.label_if_applicable }})</span>
+            </label>
+            <input
+              type="text" id="ec-order" name="contact[order_number]"
+              placeholder="{{ section.settings.ph_order }}"
+            >
+          </div>
+
+          <!-- Subject select -->
+          <div class="ec-field">
+            <label for="ec-subject">{{ section.settings.label_subject }}</label>
+            <div class="ec-select-wrap">
+              <select id="ec-subject" name="contact[subject]">
+                <option value="">{{ section.settings.subject_placeholder }}</option>
+                {%- assign subject_opts = section.settings.subject_options | split: '|' -%}
+                {%- for opt in subject_opts -%}
+                  {%- assign opt_clean = opt | strip -%}
+                  {%- if opt_clean != blank -%}
+                    <option value="{{ opt_clean | escape }}">{{ opt_clean }}</option>
+                  {%- endif -%}
+                {%- endfor -%}
+              </select>
+            </div>
+          </div>
+
+          <!-- Message -->
+          <div class="ec-field">
+            <label for="ec-message">{{ section.settings.label_message }}</label>
+            <textarea
+              id="ec-message" name="contact[body]"
+              placeholder="{{ section.settings.ph_message }}"
+              rows="5"
+            ></textarea>
+          </div>
+
+          <!-- Submit row -->
+          <div class="ec-form-submit">
+            <button type="submit" class="ec-btn-submit">
+              {{ section.settings.btn_label }}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+            {%- if section.settings.form_assurance != blank -%}
+              <p class="ec-assurance">
+                <strong>&#10003; {{ section.settings.form_assurance }}</strong>
+              </p>
+            {%- endif -%}
+          </div>
+
+        </div><!-- /ec-form -->
+      {%- endif -%}
+    {%- endform -%}
+
+  </div><!-- /ec-form-section -->
+
+  <!-- ── RIGHT: INFO PANEL ──────────────────────────────── -->
+  <div class="ec-info-panel">
+
+    <!-- Email card -->
+    {%- if section.settings.email_address != blank -%}
+      <div class="ec-info-card">
+        <div class="ec-info-card__header">
+          <div class="ec-info-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2"/>
+              <path d="M2 7l10 7 10-7"/>
+            </svg>
+          </div>
+          <div>
+            <div class="ec-info-card__label">{{ section.settings.email_label }}</div>
+            <div class="ec-info-card__title">
+              <a href="mailto:{{ section.settings.email_address }}">{{ section.settings.email_address }}</a>
+            </div>
+          </div>
+        </div>
+        {%- if section.settings.email_detail != blank -%}
+          <p class="ec-info-detail">{{ section.settings.email_detail }}</p>
+        {%- endif -%}
+        {%- if section.settings.email_response != blank -%}
+          <div class="ec-response-badge">
+            <span class="ec-response-dot"></span>
+            {{ section.settings.email_response }}
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <!-- Phone / WhatsApp card -->
+    {%- if section.settings.phone_number != blank -%}
+      <div class="ec-info-card">
+        <div class="ec-info-card__header">
+          <div class="ec-info-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.52 12a19.79 19.79 0 01-3.07-8.67A2 2 0 013.44 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 9.91a16 16 0 006.29 6.29l1.28-.78a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="ec-info-card__label">{{ section.settings.phone_label }}</div>
+            <div class="ec-info-card__title">
+              <a href="tel:{{ section.settings.phone_number | remove: ' ' | remove: '+' | prepend: '+' }}">{{ section.settings.phone_number }}</a>
+            </div>
+          </div>
+        </div>
+        {%- if hours_blocks.size > 0 -%}
+          <div class="ec-info-divider"></div>
+          <div class="ec-hours-grid">
+            {%- for block in hours_blocks -%}
+              <span class="ec-hours-day" {{ block.shopify_attributes }}>{{ block.settings.day }}</span>
+              <span class="ec-hours-time{% if block.settings.closed %} ec-hours-closed{% endif %}">
+                {%- if block.settings.closed -%}Closed{%- else -%}{{ block.settings.time }}{%- endif -%}
+              </span>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+        {%- if section.settings.phone_response != blank -%}
+          <div class="ec-response-badge" style="margin-top:12px;">
+            <span class="ec-response-dot"></span>
+            {{ section.settings.phone_response }}
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <!-- Social card -->
+    {%- if section.settings.instagram_url != blank
+        or section.settings.facebook_url != blank
+        or section.settings.youtube_url != blank
+        or section.settings.pinterest_url != blank -%}
+      <div class="ec-social-card">
+        <div class="ec-social-card__header">
+          <div class="ec-social-card__title">{{ section.settings.social_title }}</div>
+          {%- if section.settings.social_desc != blank -%}
+            <div class="ec-social-card__desc">{{ section.settings.social_desc }}</div>
+          {%- endif -%}
+        </div>
+        <div class="ec-social-links">
+          {%- if section.settings.instagram_url != blank -%}
+            <a href="{{ section.settings.instagram_url }}" class="ec-social-link"
+               target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5"/>
+                <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+              </svg>
+              Instagram
+            </a>
+          {%- endif -%}
+          {%- if section.settings.facebook_url != blank -%}
+            <a href="{{ section.settings.facebook_url }}" class="ec-social-link"
+               target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/>
+              </svg>
+              Facebook
+            </a>
+          {%- endif -%}
+          {%- if section.settings.youtube_url != blank -%}
+            <a href="{{ section.settings.youtube_url }}" class="ec-social-link"
+               target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 001.46 6.42 29 29 0 001 12a29 29 0 00.46 5.58 2.78 2.78 0 001.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 001.95-1.96A29 29 0 0023 12a29 29 0 00-.46-5.58z"/>
+                <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/>
+              </svg>
+              YouTube
+            </a>
+          {%- endif -%}
+          {%- if section.settings.pinterest_url != blank -%}
+            <a href="{{ section.settings.pinterest_url }}" class="ec-social-link"
+               target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 12a4 4 0 108 0c0-3.5-2-6-4-6S6 8 6 10c0 1.5.5 3 2 3 1 0 1.5-1 1.5-1l-1 5M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+              </svg>
+              Pinterest
+            </a>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    <!-- FAQ teaser -->
+    {%- if faq_blocks.size > 0 -%}
+      <div class="ec-faq-teaser">
+        {%- if section.settings.faq_eyebrow != blank -%}
+          <span class="ec-faq-eyebrow">{{ section.settings.faq_eyebrow }}</span>
+        {%- endif -%}
+        <h3 class="ec-faq-title">{{ section.settings.faq_title }}</h3>
+        {%- if section.settings.faq_desc != blank -%}
+          <p class="ec-faq-desc">{{ section.settings.faq_desc }}</p>
+        {%- endif -%}
+        <div class="ec-faq-links">
+          {%- for block in faq_blocks -%}
+            {%- if block.settings.description != blank -%}
+              <div class="ec-faq-item" {{ block.shopify_attributes }}>
+                <button class="ec-faq-link ec-faq-link--accordion" type="button"
+                        aria-expanded="false">
+                  <span class="ec-faq-link__label">{{ block.settings.label }}</span>
+                  <svg class="ec-faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 6 15 12 9 18"/>
+                  </svg>
+                </button>
+                <div class="ec-faq-answer" hidden>
+                  <p>{{ block.settings.description }}</p>
+                  {%- if block.settings.url != blank -%}
+                    <a href="{{ block.settings.url }}" class="ec-faq-answer__link">Learn more →</a>
+                  {%- endif -%}
+                </div>
+              </div>
+            {%- else -%}
+              <a href="{{ block.settings.url | default: '#' }}" class="ec-faq-link"
+                 {{ block.shopify_attributes }}>
+                <span class="ec-faq-link__label">{{ block.settings.label }}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 6 15 12 9 18"/>
+                </svg>
+              </a>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+  </div><!-- /ec-info-panel -->
+
+</div><!-- /ec-body -->
+
+<script>
+  function ecSelectTopic(btn) {
+    var pills = document.querySelectorAll('#ec-contact-form .ec-topic-pill');
+    pills.forEach(function(p) { p.classList.remove('active'); });
+    btn.classList.add('active');
+    var input = document.getElementById('ec-topic-value');
+    if (input) input.value = btn.dataset.topic;
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.ec-faq-link--accordion').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var answer = btn.nextElementSibling;
+        var isOpen = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+        if (isOpen) {
+          answer.hidden = true;
+        } else {
+          answer.hidden = false;
+        }
+      });
+    });
+  });
+</script>
+
+{% stylesheet %}
+/* ── CSS VARIABLES ─────────────────────────────────────────── */
+.ec-hero, .ec-body, .ec-form-section, .ec-info-panel {
+  --ec-navy:        #112557;
+  --ec-navy-light:  #1A3370;
+  --ec-gold:        #B8841E;
+  --ec-gold-hover:  #C8922A;
+  --ec-gold-soft:   #FAF3E4;
+  --ec-gold-border: #DFC07A;
+  --ec-gold-mid:    #E8B84B;
+  --ec-white:       #FFFFFF;
+  --ec-text-dark:   #18181B;
+  --ec-text-mid:    #44464F;
+  --ec-text-soft:   #72747D;
+  --ec-border:      #EAE6DC;
+  --ec-border-mid:  #D8D2C4;
+  --ec-section-bg:  #FFFDF8;
+  --ec-green:       #1C6B3A;
+  --ec-green-bg:    #EBF5EF;
+  --ec-green-border:#A3D4B5;
+  --ec-font-body:   var(--es-font-body, 'DM Sans', sans-serif);
+  --ec-font-heading:var(--es-font-heading, 'Cormorant', serif);
+}
+
+/* ── HERO ──────────────────────────────────────────────────── */
+.ec-hero {
+  background: var(--ec-navy);
+  padding: 52px 68px 56px;
+  position: relative;
+  overflow: hidden;
+}
+.ec-hero::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%, var(--ec-gold-mid) 30%, var(--ec-gold) 50%,
+    var(--ec-gold-mid) 70%, transparent 100%
+  );
+}
+.ec-hero__watermark {
+  position: absolute; right: -40px; top: -40px;
+  width: 380px; opacity: 0.05; pointer-events: none;
+}
+.ec-hero__inner {
+  max-width: 1280px; margin: 0 auto; position: relative; z-index: 1;
+}
+.ec-hero__eyebrow {
+  display: block;
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--ec-gold-mid); margin-bottom: 14px;
+  font-family: var(--ec-font-body);
+}
+.ec-hero__title {
+  font-family: var(--ec-font-heading);
+  font-size: 48px; font-weight: 500;
+  color: var(--ec-white); line-height: 1.1; margin-bottom: 16px;
+}
+.ec-hero__title em { font-style: italic; color: var(--ec-gold-mid); }
+.ec-hero__desc {
+  font-size: 15px; color: rgba(255,255,255,0.65);
+  line-height: 1.7; max-width: 520px;
+  font-family: var(--ec-font-body);
+}
+
+/* ── BODY GRID ─────────────────────────────────────────────── */
+.ec-body {
+  max-width: 1280px; margin: 0 auto;
+  padding: 56px 68px 72px;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 72px;
+  align-items: start;
+}
+
+/* ── FORM SECTION ──────────────────────────────────────────── */
+.ec-eyebrow {
+  display: block;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--ec-gold); margin-bottom: 10px;
+  font-family: var(--ec-font-body);
+}
+.ec-section-title {
+  font-family: var(--ec-font-heading);
+  font-size: 32px; font-weight: 500;
+  color: var(--ec-text-dark); line-height: 1.2; margin-bottom: 8px;
+}
+.ec-section-desc {
+  font-size: 14px; color: var(--ec-text-mid);
+  line-height: 1.7; margin-bottom: 32px;
+  font-family: var(--ec-font-body);
+}
+
+/* Topic pills */
+.ec-topic-selector {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px;
+}
+.ec-topic-pill {
+  padding: 7px 16px;
+  border: 1.5px solid var(--ec-border-mid); border-radius: 20px;
+  font-size: 12.5px; color: var(--ec-text-mid);
+  background: transparent; cursor: pointer;
+  transition: border-color 0.18s, color 0.18s, background 0.18s;
+  user-select: none; font-family: var(--ec-font-body);
+}
+.ec-topic-pill:hover {
+  border-color: var(--ec-gold-border); color: var(--ec-gold);
+}
+.ec-topic-pill.active {
+  border-color: var(--ec-gold); background: var(--ec-gold-soft);
+  color: var(--ec-gold); font-weight: 500;
+}
+
+/* Form layout */
+.ec-form { display: flex; flex-direction: column; gap: 18px; }
+.ec-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.ec-field { display: flex; flex-direction: column; gap: 6px; }
+.ec-field label {
+  font-size: 12px; font-weight: 500; color: var(--ec-text-mid);
+  letter-spacing: 0.04em; font-family: var(--ec-font-body);
+}
+.ec-optional {
+  font-size: 10.5px; color: var(--ec-text-soft); font-weight: 400; margin-left: 2px;
+}
+.ec-field input,
+.ec-field select,
+.ec-field textarea {
+  width: 100%; padding: 11px 14px;
+  border: 1.5px solid var(--ec-border-mid); border-radius: 6px;
+  font-family: var(--ec-font-body); font-size: 14px;
+  color: var(--ec-text-dark); background: var(--ec-white);
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  -webkit-appearance: none;
+}
+.ec-field input:focus,
+.ec-field select:focus,
+.ec-field textarea:focus {
+  border-color: var(--ec-gold-border);
+  box-shadow: 0 0 0 3px rgba(184,132,30,0.08);
+}
+.ec-field input::placeholder,
+.ec-field textarea::placeholder { color: var(--ec-text-soft); }
+.ec-field textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+
+.ec-select-wrap { position: relative; }
+.ec-select-wrap select {
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2372747D' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+  padding-right: 36px; cursor: pointer;
+}
+
+/* Submit row */
+.ec-form-submit {
+  display: flex; align-items: center; gap: 16px; padding-top: 4px;
+  flex-wrap: wrap;
+}
+.ec-btn-submit {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 32px;
+  background: var(--ec-navy); color: var(--ec-white);
+  border: none; border-radius: 6px;
+  font-family: var(--ec-font-body); font-size: 14px; font-weight: 600;
+  letter-spacing: 0.04em; cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+.ec-btn-submit:hover { background: var(--ec-navy-light, #1A3370); transform: translateY(-1px); }
+.ec-btn-submit svg { width: 16px; height: 16px; flex-shrink: 0; }
+.ec-assurance {
+  font-size: 12px; color: var(--ec-text-soft); line-height: 1.5;
+  font-family: var(--ec-font-body);
+}
+.ec-assurance strong { color: var(--ec-green); }
+
+/* Form errors */
+.ec-form-errors {
+  padding: 12px 16px;
+  background: #FEF2F2; border: 1.5px solid #FECACA;
+  border-radius: 6px; font-size: 13px; color: #B91C1C;
+  margin-bottom: 4px; font-family: var(--ec-font-body);
+}
+
+/* Success state */
+.ec-success {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: var(--ec-green-bg); border: 1.5px solid var(--ec-green-border);
+  border-radius: 8px; padding: 20px 24px; margin-top: 8px;
+}
+.ec-success__icon {
+  width: 32px; height: 32px; flex-shrink: 0;
+  background: var(--ec-green); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.ec-success__icon svg { width: 16px; height: 16px; }
+.ec-success__text h4 {
+  font-size: 14px; font-weight: 600; color: var(--ec-green);
+  margin-bottom: 4px; font-family: var(--ec-font-body);
+}
+.ec-success__text p {
+  font-size: 13px; color: var(--ec-text-mid); line-height: 1.5;
+  font-family: var(--ec-font-body);
+}
+
+/* ── INFO PANEL ────────────────────────────────────────────── */
+.ec-info-panel { display: flex; flex-direction: column; gap: 20px; }
+
+/* Info cards */
+.ec-info-card {
+  border: 1.5px solid var(--ec-border); border-radius: 10px;
+  padding: 24px 26px; background: var(--ec-section-bg);
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.ec-info-card:hover {
+  border-color: var(--ec-gold-border);
+  box-shadow: 0 4px 16px rgba(184,132,30,0.07);
+}
+.ec-info-card__header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+}
+.ec-info-card__icon {
+  width: 38px; height: 38px; flex-shrink: 0;
+  border-radius: 9px; background: var(--ec-navy);
+  display: flex; align-items: center; justify-content: center;
+}
+.ec-info-card__icon svg {
+  width: 18px; height: 18px;
+  stroke: var(--ec-gold-mid); fill: none;
+}
+.ec-info-card__label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ec-text-soft);
+  margin-bottom: 2px; font-family: var(--ec-font-body);
+}
+.ec-info-card__title {
+  font-size: 15px; font-weight: 600; color: var(--ec-text-dark);
+  font-family: var(--ec-font-body);
+}
+.ec-info-card__title a {
+  color: inherit; text-decoration: none;
+  transition: color 0.15s;
+}
+.ec-info-card__title a:hover { color: var(--ec-gold); }
+
+.ec-info-detail {
+  font-size: 13.5px; color: var(--ec-text-mid); line-height: 1.7;
+  font-family: var(--ec-font-body);
+}
+.ec-info-detail a {
+  color: var(--ec-gold); text-decoration: none; font-weight: 500;
+  transition: color 0.15s;
+}
+.ec-info-detail a:hover { color: var(--ec-gold-hover); }
+
+.ec-info-divider { height: 1px; background: var(--ec-border); margin: 12px 0; }
+
+/* Business hours grid */
+.ec-hours-grid {
+  display: grid; grid-template-columns: 1fr auto; gap: 4px 20px;
+}
+.ec-hours-day {
+  font-size: 13px; color: var(--ec-text-mid); font-family: var(--ec-font-body);
+}
+.ec-hours-time {
+  font-size: 13px; color: var(--ec-text-dark); font-weight: 500;
+  text-align: right; font-family: var(--ec-font-body);
+}
+.ec-hours-closed { color: var(--ec-text-soft); font-weight: 400; }
+
+/* Response badge */
+.ec-response-badge {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
+  background: var(--ec-green-bg); border: 1px solid var(--ec-green-border);
+  border-radius: 20px; padding: 5px 12px;
+  font-size: 11.5px; color: var(--ec-green); font-weight: 500;
+  font-family: var(--ec-font-body);
+}
+.ec-response-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ec-green); flex-shrink: 0;
+  animation: ec-pulse 2s infinite;
+}
+@keyframes ec-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* Social card */
+.ec-social-card {
+  border: 1.5px solid var(--ec-border); border-radius: 10px;
+  padding: 24px 26px; background: var(--ec-section-bg);
+}
+.ec-social-card__header { margin-bottom: 16px; }
+.ec-social-card__title {
+  font-size: 13px; font-weight: 600; color: var(--ec-text-dark);
+  margin-bottom: 4px; font-family: var(--ec-font-body);
+}
+.ec-social-card__desc {
+  font-size: 12.5px; color: var(--ec-text-soft); line-height: 1.5;
+  font-family: var(--ec-font-body);
+}
+.ec-social-links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ec-social-link {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--ec-border); border-radius: 8px;
+  text-decoration: none; color: var(--ec-text-dark);
+  font-size: 13px; font-weight: 500; font-family: var(--ec-font-body);
+  transition: border-color 0.18s, background 0.18s;
+}
+.ec-social-link:hover {
+  border-color: var(--ec-gold-border); background: var(--ec-gold-soft);
+}
+.ec-social-link svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* FAQ teaser */
+.ec-faq-teaser {
+  border: 1.5px solid var(--ec-gold-border); border-radius: 10px;
+  padding: 22px 26px; background: var(--ec-gold-soft);
+}
+.ec-faq-eyebrow {
+  display: block;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ec-gold); margin-bottom: 8px;
+  font-family: var(--ec-font-body);
+}
+.ec-faq-title {
+  font-family: var(--ec-font-heading);
+  font-size: 20px; font-weight: 500;
+  color: var(--ec-text-dark); margin-bottom: 8px; line-height: 1.3;
+}
+.ec-faq-desc {
+  font-size: 13px; color: var(--ec-text-mid); line-height: 1.6; margin-bottom: 14px;
+  font-family: var(--ec-font-body);
+}
+.ec-faq-links { display: flex; flex-direction: column; gap: 0; }
+.ec-faq-item { border-bottom: 1px solid var(--ec-gold-border); }
+.ec-faq-item:last-child { border-bottom: none; }
+.ec-faq-link {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  text-decoration: none; width: 100%;
+  padding: 11px 0; border-bottom: 1px solid var(--ec-gold-border);
+  transition: color 0.15s; background: none; border-left: none; border-right: none; border-top: none; cursor: pointer;
+}
+.ec-faq-link--accordion { border-bottom: none; }
+.ec-faq-item:last-child > .ec-faq-link { padding-bottom: 11px; }
+.ec-faq-links > .ec-faq-link:last-child { border-bottom: none; padding-bottom: 0; }
+.ec-faq-link:hover .ec-faq-link__label,
+.ec-faq-link[aria-expanded="true"] .ec-faq-link__label { color: var(--ec-gold); }
+.ec-faq-chevron {
+  width: 13px; height: 13px; flex-shrink: 0; stroke: var(--ec-text-soft);
+  transition: transform 0.2s ease;
+}
+.ec-faq-link[aria-expanded="true"] .ec-faq-chevron { transform: rotate(90deg); }
+.ec-faq-link svg { width: 13px; height: 13px; flex-shrink: 0; stroke: var(--ec-text-soft); }
+.ec-faq-link__label {
+  font-size: 13px; color: var(--ec-text-mid); text-align: left;
+  font-family: var(--ec-font-body); transition: color 0.15s; line-height: 1.4;
+}
+.ec-faq-answer {
+  padding: 0 0 12px;
+}
+.ec-faq-answer[hidden] { display: none; }
+.ec-faq-answer p {
+  font-size: 12.5px; color: var(--ec-text-soft);
+  font-family: var(--ec-font-body); line-height: 1.6; margin: 0;
+}
+.ec-faq-answer__link {
+  display: inline-block; margin-top: 6px;
+  font-size: 12px; font-weight: 600; color: var(--ec-navy);
+  text-decoration: none; font-family: var(--ec-font-body);
+}
+.ec-faq-answer__link:hover { color: var(--ec-gold); }
+
+/* ── RESPONSIVE ────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .ec-hero        { padding: 40px 40px 44px; }
+  .ec-hero__title { font-size: 38px; }
+  .ec-body {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    padding: 40px 40px 56px;
+  }
+}
+
+@media (max-width: 640px) {
+  .ec-hero        { padding: 32px 24px 36px; }
+  .ec-hero__title { font-size: 30px; }
+  .ec-body        { padding: 32px 24px 48px; gap: 40px; }
+  .ec-form-row    { grid-template-columns: 1fr; }
+  .ec-social-links { grid-template-columns: 1fr; }
+  .ec-form-submit { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .ec-btn-submit  { width: 100%; justify-content: center; }
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "ES Contact Page",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Hero Section"
+    },
+    {
+      "type": "text",
+      "id": "hero_eyebrow",
+      "label": "Eyebrow text",
+      "default": "Get in touch"
+    },
+    {
+      "type": "text",
+      "id": "hero_title",
+      "label": "Heading",
+      "default": "We'd love to hear from you"
+    },
+    {
+      "type": "text",
+      "id": "hero_title_highlight",
+      "label": "Italic highlight phrase",
+      "info": "Exact phrase within the heading to display in italic gold. Leave blank to disable.",
+      "default": "hear from you"
+    },
+    {
+      "type": "textarea",
+      "id": "hero_desc",
+      "label": "Hero description",
+      "default": "Questions about our products, sourcing, or orders? Our team typically responds within one business day."
+    },
+    {
+      "type": "header",
+      "content": "Form — Labels & Placeholders"
+    },
+    {
+      "type": "text",
+      "id": "form_eyebrow",
+      "label": "Form eyebrow",
+      "default": "Send us a message"
+    },
+    {
+      "type": "text",
+      "id": "form_title",
+      "label": "Form heading",
+      "default": "How can we help?"
+    },
+    {
+      "type": "textarea",
+      "id": "form_desc",
+      "label": "Form description",
+      "default": "Select a topic below and fill in the details. The more context you share, the faster we can help."
+    },
+    {
+      "type": "text",
+      "id": "label_first_name",
+      "label": "First name label",
+      "default": "First Name"
+    },
+    {
+      "type": "text",
+      "id": "ph_first_name",
+      "label": "First name placeholder",
+      "default": "Ananya"
+    },
+    {
+      "type": "text",
+      "id": "label_last_name",
+      "label": "Last name label",
+      "default": "Last Name"
+    },
+    {
+      "type": "text",
+      "id": "ph_last_name",
+      "label": "Last name placeholder",
+      "default": "Sharma"
+    },
+    {
+      "type": "text",
+      "id": "label_email",
+      "label": "Email label",
+      "default": "Email Address"
+    },
+    {
+      "type": "text",
+      "id": "ph_email",
+      "label": "Email placeholder",
+      "default": "you@example.com"
+    },
+    {
+      "type": "text",
+      "id": "label_phone",
+      "label": "Phone label",
+      "default": "Phone"
+    },
+    {
+      "type": "text",
+      "id": "ph_phone",
+      "label": "Phone placeholder",
+      "default": "+91 93218 08835"
+    },
+    {
+      "type": "text",
+      "id": "label_optional",
+      "label": "\"Optional\" helper word",
+      "default": "optional"
+    },
+    {
+      "type": "text",
+      "id": "label_order",
+      "label": "Order number label",
+      "default": "Order Number"
+    },
+    {
+      "type": "text",
+      "id": "ph_order",
+      "label": "Order number placeholder",
+      "default": "ES-XXXXXXXX"
+    },
+    {
+      "type": "text",
+      "id": "label_if_applicable",
+      "label": "\"If applicable\" helper word",
+      "default": "if applicable"
+    },
+    {
+      "type": "text",
+      "id": "label_subject",
+      "label": "Subject label",
+      "default": "Subject"
+    },
+    {
+      "type": "text",
+      "id": "subject_placeholder",
+      "label": "Subject dropdown placeholder",
+      "default": "Select a subject…"
+    },
+    {
+      "type": "textarea",
+      "id": "subject_options",
+      "label": "Subject options",
+      "info": "One option per line, separated by | (pipe character)",
+      "default": "Where is my order?|I'd like to return or exchange a product|I have a question about ingredients / sourcing|Wholesale / bulk pricing inquiry|Something else"
+    },
+    {
+      "type": "text",
+      "id": "label_message",
+      "label": "Message label",
+      "default": "Message"
+    },
+    {
+      "type": "textarea",
+      "id": "ph_message",
+      "label": "Message placeholder",
+      "default": "Tell us more — the more detail you share, the faster we can help."
+    },
+    {
+      "type": "text",
+      "id": "btn_label",
+      "label": "Submit button label",
+      "default": "Send Message"
+    },
+    {
+      "type": "text",
+      "id": "form_assurance",
+      "label": "Assurance text (next to button)",
+      "default": "Usually replies within 1 business day"
+    },
+    {
+      "type": "header",
+      "content": "Form — Success Message"
+    },
+    {
+      "type": "text",
+      "id": "success_title",
+      "label": "Success heading",
+      "default": "Message sent successfully!"
+    },
+    {
+      "type": "text",
+      "id": "success_desc",
+      "label": "Success description",
+      "default": "Thanks for reaching out. We'll get back to you within 1 business day."
+    },
+    {
+      "type": "header",
+      "content": "Email Card"
+    },
+    {
+      "type": "text",
+      "id": "email_label",
+      "label": "Card label",
+      "default": "Email us"
+    },
+    {
+      "type": "text",
+      "id": "email_address",
+      "label": "Email address",
+      "default": "hello@earthenstory.com"
+    },
+    {
+      "type": "textarea",
+      "id": "email_detail",
+      "label": "Detail text",
+      "default": "For general queries, product questions, and order support. We read every message personally."
+    },
+    {
+      "type": "text",
+      "id": "email_response",
+      "label": "Response time badge",
+      "default": "Typically responds within 24 hours"
+    },
+    {
+      "type": "header",
+      "content": "Phone / WhatsApp Card"
+    },
+    {
+      "type": "text",
+      "id": "phone_label",
+      "label": "Card label",
+      "default": "Call or WhatsApp"
+    },
+    {
+      "type": "text",
+      "id": "phone_number",
+      "label": "Phone number",
+      "default": "+91 93218 08835"
+    },
+    {
+      "type": "text",
+      "id": "phone_response",
+      "label": "Response badge text",
+      "default": "WhatsApp preferred for faster response"
+    },
+    {
+      "type": "header",
+      "content": "Social Card"
+    },
+    {
+      "type": "text",
+      "id": "social_title",
+      "label": "Card title",
+      "default": "Find us on social media"
+    },
+    {
+      "type": "text",
+      "id": "social_desc",
+      "label": "Card description",
+      "default": "DM us on Instagram for quick replies — we're most active there."
+    },
+    {
+      "type": "url",
+      "id": "instagram_url",
+      "label": "Instagram URL"
+    },
+    {
+      "type": "url",
+      "id": "facebook_url",
+      "label": "Facebook URL"
+    },
+    {
+      "type": "url",
+      "id": "youtube_url",
+      "label": "YouTube URL"
+    },
+    {
+      "type": "url",
+      "id": "pinterest_url",
+      "label": "Pinterest URL"
+    },
+    {
+      "type": "header",
+      "content": "FAQ Teaser Card"
+    },
+    {
+      "type": "text",
+      "id": "faq_eyebrow",
+      "label": "Eyebrow",
+      "default": "Before you write"
+    },
+    {
+      "type": "text",
+      "id": "faq_title",
+      "label": "Heading",
+      "default": "Quick answers to common questions"
+    },
+    {
+      "type": "textarea",
+      "id": "faq_desc",
+      "label": "Description",
+      "default": "Many queries are answered instantly in our FAQ — no waiting required."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "topic_pill",
+      "name": "Topic Pill",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Order & Delivery"
+        }
+      ]
+    },
+    {
+      "type": "business_hours",
+      "name": "Business Hours Row",
+      "settings": [
+        {
+          "type": "text",
+          "id": "day",
+          "label": "Day / day range",
+          "default": "Monday – Friday"
+        },
+        {
+          "type": "text",
+          "id": "time",
+          "label": "Hours",
+          "default": "10:00 AM – 6:00 PM",
+          "info": "Ignored when 'Closed' is checked"
+        },
+        {
+          "type": "checkbox",
+          "id": "closed",
+          "label": "Closed this day",
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "faq_link",
+      "name": "FAQ Link",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Question text",
+          "default": "How long does delivery take?"
+        },
+        {
+          "type": "text",
+          "id": "description",
+          "label": "Short answer (optional)",
+          "info": "Shown as a brief answer line below the question."
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "Link URL"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "ES Contact Page"
+    }
+  ]
+}
+{% endschema %}

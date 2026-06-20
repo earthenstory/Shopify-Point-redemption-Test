@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Earthen Story Competitor-Inspired Hero Concepts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600;700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1f2430;
+      --cream: #fffaf0;
+      --gold: #c9952e;
+      --sage: #617153;
+      --forest: #123c2f;
+      --clay: #a85635;
+      --moss: #263c2c;
+      --paper: #fffdf8;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    .option-nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 12px clamp(16px, 4vw, 48px);
+      background: rgba(255,253,248,.96);
+      border-bottom: 1px solid #e7dcc5;
+      backdrop-filter: blur(14px);
+    }
+
+    .option-nav strong {
+      font-size: 12px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .option-nav div { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .option-nav a {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #f1e6cf;
+      color: #263253;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .note,
+    .label {
+      padding: 14px clamp(16px, 4vw, 48px);
+      color: #596074;
+      background: #fffaf0;
+      border-bottom: 1px solid #eadfc9;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .label {
+      background: #fffdf8;
+      border-top: 1px solid #eadfc9;
+    }
+
+    .note strong,
+    .label strong { color: #1c263f; }
+
+    .site-header {
+      height: 76px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 clamp(18px, 5vw, 72px);
+      background: white;
+      border-bottom: 1px solid #eee7dc;
+    }
+
+    .brand {
+      justify-self: center;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .hamburger {
+      width: 22px;
+      height: 14px;
+      position: relative;
+    }
+
+    .hamburger::before,
+    .hamburger::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 22px;
+      height: 1.5px;
+      background: #293049;
+    }
+
+    .hamburger::before { top: 2px; }
+    .hamburger::after { bottom: 2px; }
+
+    .header-actions {
+      justify-self: end;
+      display: flex;
+      gap: 18px;
+      color: #293049;
+      font-size: 20px;
+    }
+
+    .hero {
+      min-height: 528px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-inner {
+      width: min(1280px, calc(100% - 40px));
+      min-height: 528px;
+      margin: 0 auto;
+      display: grid;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 13px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 30px;
+      height: 1px;
+      background: currentColor;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-family: "Cormorant", Georgia, serif;
+      font-size: clamp(44px, 5.2vw, 74px);
+      font-weight: 600;
+      line-height: .96;
+      letter-spacing: 0;
+    }
+
+    .copy {
+      max-width: 540px;
+      margin: 0 0 22px;
+      font-size: 15px;
+      line-height: 1.62;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 24px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .img-fill {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Option 1: Warm grocery-board direction */
+    .hero-market {
+      background: #f5e7cf;
+      color: #283020;
+    }
+
+    .hero-market .hero-inner {
+      grid-template-columns: minmax(380px, .88fr) minmax(520px, 1.05fr);
+      gap: clamp(30px, 5vw, 68px);
+    }
+
+    .hero-market .eyebrow { color: #8d5a24; }
+    .hero-market .copy { color: #5b604f; }
+    .hero-market .btn.primary { background: #263c2c; color: white; }
+    .hero-market .btn.secondary { color: #263c2c; border: 1px solid rgba(38,60,44,.28); }
+
+    .market-board {
+      min-height: 382px;
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .market-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 24px;
+      background: #fff8e8;
+      box-shadow: 0 20px 55px rgba(89, 67, 38, .16);
+    }
+
+    .market-card.big { grid-row: span 2; }
+
+    .market-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 42%, rgba(0,0,0,.5));
+    }
+
+    .market-card span {
+      position: absolute;
+      left: 18px;
+      bottom: 15px;
+      z-index: 2;
+      color: white;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .market-stats {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .market-stats span {
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: rgba(38,60,44,.1);
+      color: #263c2c;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    /* Option 2: Terracotta editorial */
+    .hero-terra {
+      color: #fff7e8;
+      background:
+        linear-gradient(90deg, rgba(70,38,24,.94), rgba(115,61,38,.76) 48%, rgba(115,61,38,.15)),
+        url("https://images.unsplash.com/photo-1606914469633-bd39206ea739?auto=format&fit=crop&w=1800&q=84");
+      background-size: cover;
+      background-position: center right;
+    }
+
+    .hero-terra .hero-inner {
+      grid-template-columns: minmax(400px, 620px) 1fr;
+    }
+
+    .hero-terra .copy { color: rgba(255,247,232,.78); }
+    .hero-terra .eyebrow { color: #ffd089; }
+    .hero-terra .btn.primary { background: #ffd089; color: #57311f; }
+    .hero-terra .btn.secondary { color: #fff7e8; border: 1px solid rgba(255,255,255,.28); }
+
+    .terra-card {
+      width: min(610px, 100%);
+      padding: 34px;
+      border-radius: 30px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(70,38,24,.48);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 25px 80px rgba(49, 24, 14, .32);
+    }
+
+    .terra-strip {
+      position: absolute;
+      left: clamp(20px, 5vw, 72px);
+      right: clamp(20px, 5vw, 72px);
+      bottom: 22px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .terra-strip div {
+      padding: 12px 13px;
+      border-radius: 14px;
+      background: rgba(70,38,24,.54);
+      border: 1px solid rgba(255,255,255,.17);
+      backdrop-filter: blur(10px);
+    }
+
+    .terra-strip strong {
+      display: block;
+      color: white;
+      font-size: 12.5px;
+      margin-bottom: 2px;
+    }
+
+    .terra-strip small {
+      color: rgba(255,247,232,.66);
+      font-size: 11.5px;
+    }
+
+    /* Option 3: Lab meets pantry */
+    .hero-lab {
+      background: #f7f3ea;
+      color: #1f2d24;
+    }
+
+    .hero-lab .hero-inner {
+      grid-template-columns: minmax(430px, 1fr) minmax(480px, .9fr);
+      gap: clamp(28px, 5vw, 58px);
+    }
+
+    .hero-lab .eyebrow { color: #2f6a4a; }
+    .hero-lab .copy { color: #5f655e; }
+    .hero-lab .btn.primary { background: #2f6a4a; color: white; }
+    .hero-lab .btn.secondary { color: #2f6a4a; border: 1px solid rgba(47,106,74,.28); }
+
+    .lab-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .report-card {
+      min-height: 338px;
+      padding: 24px;
+      border-radius: 24px;
+      background: #fff;
+      border: 1px solid #e3dccf;
+      box-shadow: 0 20px 60px rgba(67, 79, 58, .14);
+    }
+
+    .report-card h2 {
+      margin: 0 0 18px;
+      font-family: "Cormorant", Georgia, serif;
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .check-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .check-list span {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #ece5d8;
+      color: #4b554d;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .check-list b { color: #2f6a4a; }
+
+    .ingredient-photo {
+      min-height: 338px;
+      overflow: hidden;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(67, 79, 58, .14);
+    }
+
+    /* Option 4: Modern dark commerce */
+    .hero-modern {
+      color: #f8f3e7;
+      background:
+        radial-gradient(circle at 68% 24%, rgba(228,180,79,.22), transparent 28%),
+        linear-gradient(135deg, #0e1713, #173326 58%, #31421f);
+    }
+
+    .hero-modern .hero-inner {
+      grid-template-columns: minmax(390px, .9fr) minmax(520px, 1.05fr);
+      gap: clamp(30px, 5vw, 62px);
+    }
+
+    .hero-modern .copy { color: rgba(248,243,231,.72); }
+    .hero-modern .eyebrow { color: #e4b44f; }
+    .hero-modern .btn.primary { background: #e4b44f; color: #192217; }
+    .hero-modern .btn.secondary { color: #f8f3e7; border: 1px solid rgba(255,255,255,.22); }
+
+    .bundle-scene {
+      min-height: 378px;
+      position: relative;
+    }
+
+    .round-photo {
+      position: absolute;
+      width: 330px;
+      height: 330px;
+      right: 44px;
+      top: 24px;
+      overflow: hidden;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: 0 28px 80px rgba(0,0,0,.32);
+    }
+
+    .bundle-card {
+      position: absolute;
+      left: 0;
+      bottom: 28px;
+      width: 300px;
+      padding: 20px;
+      border-radius: 22px;
+      background: #f8f3e7;
+      color: #1f2d24;
+      box-shadow: 0 22px 70px rgba(0,0,0,.26);
+    }
+
+    .bundle-card b {
+      display: block;
+      margin-bottom: 10px;
+      color: #8d641d;
+      font-size: 11px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .bundle-card p {
+      margin: 0 0 14px;
+      font-size: 20px;
+      line-height: 1.12;
+      font-weight: 800;
+    }
+
+    .bundle-tags {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .bundle-tags span {
+      padding: 7px 9px;
+      border-radius: 999px;
+      background: #e8dcc5;
+      color: #31421f;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    @media (max-width: 900px) {
+      .site-header { height: 58px; padding: 0 16px; }
+      .brand { font-size: 16px; }
+      .hero { min-height: auto; }
+      .hero-inner {
+        width: calc(100% - 32px);
+        min-height: auto;
+        padding: 26px 0 30px;
+        grid-template-columns: 1fr !important;
+        gap: 20px;
+      }
+      h1 { font-size: 35px; line-height: 1.06; margin-bottom: 12px; }
+      .copy { font-size: 14px; line-height: 1.55; margin-bottom: 16px; }
+      .btn { flex: 1 1 0; min-width: 0; min-height: 42px; padding: 0 14px; font-size: 13px; }
+      .market-board { min-height: 340px; grid-template-columns: 1fr 1fr; }
+      .market-card.big { grid-row: auto; grid-column: span 2; }
+      .terra-card { padding: 24px; }
+      .terra-strip {
+        position: static;
+        width: calc(100% - 32px);
+        margin: -8px auto 28px;
+        grid-template-columns: 1fr 1fr;
+      }
+      .lab-layout { grid-template-columns: 1fr; }
+      .report-card,
+      .ingredient-photo { min-height: 250px; }
+      .bundle-scene { min-height: 360px; }
+      .round-photo { width: 260px; height: 260px; right: 0; top: 0; }
+      .bundle-card { width: 280px; left: 0; bottom: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="option-nav">
+    <strong>Competitor-inspired hero concepts</strong>
+    <div>
+      <a href="#option-1">Option 1</a>
+      <a href="#option-2">Option 2</a>
+      <a href="#option-3">Option 3</a>
+      <a href="#option-4">Option 4</a>
+    </div>
+  </nav>
+
+  <div class="note">
+    <strong>New exploration:</strong> these deliberately break away from the current navy/gold-only system. I used competitor patterns as inspiration: strong hero imagery, trust proof, category clarity, and sharper positioning.
+  </div>
+
+  <div class="label" id="option-1"><strong>Option 1:</strong> warm organic market board. Softer, more premium grocery feel.</div>
+  <header class="site-header">
+    <div class="hamburger"></div>
+    <div class="brand">Earthen Story</div>
+    <div class="header-actions"><span>⌕</span><span>♙</span><span>▢</span></div>
+  </header>
+  <section class="hero hero-market">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">Certified organic pantry</div>
+        <h1>Real ingredients,<br>without the guesswork.</h1>
+        <p class="copy">Certified organic staples, lab-tested batches, and traditional processing for kitchens that care about what goes into everyday food.</p>
+        <div class="actions">
+          <a class="btn primary" href="#">Shop Clean Staples</a>
+          <a class="btn secondary" href="#">View Lab Reports</a>
+        </div>
+        <div class="market-stats">
+          <span>Ghee</span><span>Honey</span><span>Oils</span><span>Flours</span><span>Seeds</span><span>Dry Fruits</span>
+        </div>
+      </div>
+      <div class="market-board">
+        <div class="market-card big"><img class="img-fill" src="https://images.unsplash.com/photo-1506368249639-73a05d6f6488?auto=format&fit=crop&w=900&q=84" alt="Pantry ingredients"><span>Premium pantry staples</span></div>
+        <div class="market-card"><img class="img-fill" src="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=700&q=82" alt="Cold pressed oil"><span>Cold pressed oils</span></div>
+        <div class="market-card"><img class="img-fill" src="https://images.unsplash.com/photo-1587049352851-8d4e89133924?auto=format&fit=crop&w=700&q=82" alt="Honey"><span>Raw honey</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="label" id="option-2"><strong>Option 2:</strong> terracotta tradition hero. More emotional, founder/story-driven.</div>
+  <header class="site-header">
+    <div class="hamburger"></div>
+    <div class="brand">Earthen Story</div>
+    <div class="header-actions"><span>⌕</span><span>♙</span><span>▢</span></div>
+  </header>
+  <section class="hero hero-terra">
+    <div class="hero-inner">
+      <div class="terra-card">
+        <div class="eyebrow">Ancient methods. Modern proof.</div>
+        <h1>The food your kitchen<br>was meant to trust.</h1>
+        <p class="copy">Bilona, cold pressed, stone ground, residue tested. Earthen Story brings traditional Indian food back with documentation you can verify.</p>
+        <div class="actions">
+          <a class="btn primary" href="#">Explore Our Foods</a>
+          <a class="btn secondary" href="#">Our Story →</a>
+        </div>
+      </div>
+    </div>
+    <div class="terra-strip">
+      <div><strong>Bilona ghee</strong><small>Traditional curd churning</small></div>
+      <div><strong>Cold pressed oils</strong><small>Low-heat extraction</small></div>
+      <div><strong>Stone-ground flours</strong><small>Whole grain nutrition</small></div>
+      <div><strong>Lab reports</strong><small>Batch-level confidence</small></div>
+    </div>
+  </section>
+
+  <div class="label" id="option-3"><strong>Option 3:</strong> lab-meets-pantry. Strongest if you want “certified and tested” to be the hero.</div>
+  <header class="site-header">
+    <div class="hamburger"></div>
+    <div class="brand">Earthen Story</div>
+    <div class="header-actions"><span>⌕</span><span>♙</span><span>▢</span></div>
+  </header>
+  <section class="hero hero-lab">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">Proof before promise</div>
+        <h1>Organic should be<br>more than a label.</h1>
+        <p class="copy">We pair certified sourcing with third-party pesticide residue testing, so every pantry staple earns its place in your kitchen.</p>
+        <div class="actions">
+          <a class="btn primary" href="#">See Our Standards</a>
+          <a class="btn secondary" href="#">Shop Products</a>
+        </div>
+      </div>
+      <div class="lab-layout">
+        <div class="report-card">
+          <div class="eyebrow">Batch report</div>
+          <h2>Clean food,<br>documented.</h2>
+          <div class="check-list">
+            <span>Organic sourcing <b>Verified</b></span>
+            <span>Residue testing <b>Passed</b></span>
+            <span>Artificial additives <b>None</b></span>
+            <span>Traditional processing <b>Used</b></span>
+          </div>
+        </div>
+        <div class="ingredient-photo"><img class="img-fill" src="https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=800&q=84" alt="Grain and flour"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="label" id="option-4"><strong>Option 4:</strong> modern dark bundle hero. More D2C, conversion-focused, and distinct from the current site.</div>
+  <header class="site-header">
+    <div class="hamburger"></div>
+    <div class="brand">Earthen Story</div>
+    <div class="header-actions"><span>⌕</span><span>♙</span><span>▢</span></div>
+  </header>
+  <section class="hero hero-modern">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">Upgrade your everyday pantry</div>
+        <h1>Start with the foods<br>you use every day.</h1>
+        <p class="copy">Build a cleaner kitchen with certified staples: ghee, oils, flours, honey, seeds, dry fruits, and traditional wellness ingredients.</p>
+        <div class="actions">
+          <a class="btn primary" href="#">Shop Starter Bundle</a>
+          <a class="btn secondary" href="#">Browse All Foods</a>
+        </div>
+      </div>
+      <div class="bundle-scene">
+        <div class="round-photo"><img class="img-fill" src="https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?auto=format&fit=crop&w=900&q=84" alt="Indian food bowl"></div>
+        <div class="bundle-card">
+          <b>Clean Kitchen Starter</b>
+          <p>Ghee + Oil + Flour + Honey</p>
+          <div class="bundle-tags"><span>Certified</span><span>Tested</span><span>Traditional</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</body>
+</html>

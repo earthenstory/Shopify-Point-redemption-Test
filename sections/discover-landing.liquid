@@ -1,0 +1,721 @@
+{% comment %}
+  DISCOVER LANDING PAGE — discover-landing.liquid
+  Template: blog.discover.json
+
+  Architecture: JS-driven filtering.
+  Liquid renders ALL articles with data-tags attributes.
+  JavaScript reads URL params and shows/hides cards client-side.
+  This bypasses Shopify's query-string stripping on cached pages.
+
+  Tag system (art- namespace):
+    Topic : art-topic-ingredient, art-topic-processing, art-topic-health,
+            art-topic-food-system, art-topic-traditional-practices, art-topic-cooking-science
+    Video : art-video  (article has an embedded video)
+
+  Topic tags map to:
+    art-topic-ingredient            → Ingredient Knowledge
+    art-topic-processing            → Processing & Methods
+    art-topic-health                → Health & Nutrition
+    art-topic-food-system           → Food System
+    art-topic-traditional-practices → Traditional Practices
+    art-topic-cooking-science       → Cooking Science
+{% endcomment %}
+
+{%- liquid
+  assign discover_blog  = blogs['discover']
+  assign topic_labels   = 'Ingredient Knowledge,Processing & Methods,Health & Nutrition,Food System,Traditional Practices,Cooking Science' | split: ','
+  assign topic_emojis   = '🌿,⚙️,💚,🌾,🏺,🔭' | split: ','
+  assign topic_keys     = 'art-topic-ingredient,art-topic-processing,art-topic-health,art-topic-food-system,art-topic-traditional-practices,art-topic-cooking-science' | split: ','
+  assign topic_params   = 'ingredient,processing,health,food-system,traditional-practices,cooking-science' | split: ','
+-%}
+
+{%- style -%}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #112557; --navy-light: #1A3370;
+    --gold: #B8841E; --gold-hover: #C8922A; --gold-soft: #FAF3E4;
+    --gold-border: #DFC07A; --gold-mid: #D4A843;
+    --warm-white: #FFFDF8; --white: #FFFFFF;
+    --text-dark: #18181B; --text-mid: #44464F; --text-soft: #72747D;
+    --border: #EAE6DC; --border-mid: #D8D2C4; --section-bg: #FFFDF8;
+    --video-red: #CC2200;
+  }
+
+  /* PAGE HEADER */
+  .dl-page-header { background: var(--warm-white); border-bottom: 1px solid var(--border); padding: 28px 68px 0; }
+  .dl-page-header-inner { max-width: 1280px; margin: 0 auto; }
+  .dl-title-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+  .dl-page-title { font-family: 'Cormorant', serif; font-size: 34px; font-weight: 500; color: var(--text-dark); }
+  .dl-article-count { font-size: 13px; color: var(--text-soft); }
+
+  /* FILTER BAR */
+  .dl-filter-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding-bottom: 16px; }
+  .dl-search-box { display: flex; align-items: center; gap: 8px; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; flex: 0 0 200px; transition: border-color 0.15s; }
+  .dl-search-box:focus-within { border-color: var(--gold-border); }
+  .dl-search-box svg { width: 14px; height: 14px; color: var(--text-soft); flex-shrink: 0; }
+  .dl-search-box input { border: none; outline: none; font-size: 13px; color: var(--text-dark); font-family: 'DM Sans', sans-serif; background: transparent; width: 100%; }
+  .dl-search-box input::placeholder { color: var(--text-soft); }
+  .dl-filter-divider { width: 1px; height: 28px; background: var(--border); margin: 0 2px; flex-shrink: 0; }
+
+  /* Topic dropdown */
+  .dl-filter-dropdown { position: relative; display: inline-block; }
+  .dl-filter-btn { display: flex; align-items: center; gap: 6px; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 8px 13px; font-size: 13px; color: var(--text-mid); cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; transition: border-color 0.15s, color 0.15s; user-select: none; }
+  .dl-filter-btn:hover { border-color: var(--gold-border); color: var(--text-dark); }
+  .dl-filter-btn.dl-active { border-color: var(--navy); background: var(--navy); color: white; }
+  .dl-filter-btn svg { width: 12px; height: 12px; flex-shrink: 0; opacity: 0.6; }
+  .dl-filter-btn.dl-active svg { opacity: 0.7; }
+  .dl-dropdown-panel { display: none; position: absolute; top: calc(100% + 6px); left: 0; background: white; border: 1px solid var(--border); border-radius: 10px; padding: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.09); z-index: 50; min-width: 200px; }
+  .dl-filter-dropdown.dl-open .dl-dropdown-panel { display: block; }
+  .dl-dropdown-item { display: block; padding: 8px 12px; border-radius: 6px; font-size: 13px; color: var(--text-mid); cursor: pointer; white-space: nowrap; text-decoration: none; transition: background 0.12s; }
+  .dl-dropdown-item:hover { background: var(--gold-soft); color: var(--text-dark); }
+  .dl-dropdown-item.dl-selected { background: var(--navy); color: white; }
+
+  /* Video toggle pill */
+  .dl-video-toggle { display: flex; align-items: center; gap: 7px; background: white; border: 1px solid var(--border); border-radius: 20px; padding: 7px 14px; font-size: 12.5px; color: var(--text-mid); cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; transition: border-color 0.15s, color 0.15s, background 0.15s; user-select: none; font-weight: 500; }
+  .dl-video-toggle:hover { border-color: var(--video-red); color: var(--video-red); }
+  .dl-video-toggle.dl-active { border-color: var(--video-red); background: var(--video-red); color: white; }
+  .dl-video-play-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--video-red); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s; }
+  .dl-video-toggle.dl-active .dl-video-play-dot { background: rgba(255,255,255,0.25); }
+  .dl-video-play-dot svg { width: 7px; height: 7px; fill: white; margin-left: 1px; }
+
+  .dl-filter-clear { display: none; margin-left: auto; font-size: 12px; color: var(--text-soft); text-decoration: none; cursor: pointer; padding: 8px 4px; transition: color 0.15s; white-space: nowrap; background: none; border: none; font-family: 'DM Sans', sans-serif; }
+  .dl-filter-clear:hover { color: var(--gold); }
+  .dl-filter-clear.dl-visible { display: block; }
+
+  /* ACTIVE CHIPS */
+  .dl-active-chips { display: none; gap: 6px; flex-wrap: wrap; padding: 10px 68px 14px; background: var(--warm-white); }
+  .dl-active-chips.dl-visible { display: flex; }
+  .dl-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--navy); color: white; border-radius: 20px; padding: 4px 10px 4px 12px; font-size: 11.5px; font-weight: 500; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; }
+  .dl-chip.dl-video-chip { background: var(--video-red); }
+  .dl-chip-x { width: 14px; height: 14px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 10px; }
+  .dl-chip-clear { font-size: 12px; color: var(--text-soft); background: none; border: none; cursor: pointer; padding: 4px 6px; font-family: 'DM Sans', sans-serif; }
+  .dl-chip-clear:hover { color: var(--gold); }
+
+  /* BROWSE BY TOPIC */
+  .dl-browse-section { padding: 18px 68px 16px; border-bottom: 1px solid var(--border); }
+  .dl-browse-inner { max-width: 1280px; margin: 0 auto; }
+  .dl-browse-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-soft); margin-bottom: 14px; }
+  .dl-topic-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .dl-topic-tile { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 8px 8px 7px; border: 1px solid var(--border); border-radius: 10px; background: white; cursor: pointer; text-decoration: none; color: inherit; transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
+  .dl-topic-tile:hover { border-color: var(--gold-border); box-shadow: 0 3px 12px rgba(184,132,30,0.09); transform: translateY(-2px); }
+  .dl-topic-tile.dl-active { border-color: var(--navy); background: var(--navy); }
+  .dl-topic-tile.dl-active .dl-topic-name,
+  .dl-topic-tile.dl-active .dl-topic-count { color: rgba(255,255,255,0.85); }
+  .dl-topic-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--gold-soft); border: 1px solid var(--gold-border); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .dl-topic-name { font-size: 11px; font-weight: 500; color: var(--text-dark); text-align: center; line-height: 1.3; }
+  .dl-topic-count { font-size: 10px; color: var(--text-soft); }
+
+  /* FEATURED ARTICLE */
+  .dl-featured-section { padding: 36px 68px 0; background: var(--warm-white); border-top: 1px solid var(--border); }
+  .dl-featured-section.dl-hidden { display: none; }
+  .dl-featured-inner { max-width: 1280px; margin: 0 auto; }
+  .dl-section-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 5px; }
+
+  .dl-featured-card { display: grid; grid-template-columns: 1fr 400px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: white; cursor: pointer; text-decoration: none; color: inherit; transition: box-shadow 0.18s, border-color 0.18s; }
+  .dl-featured-card:hover { box-shadow: 0 10px 30px rgba(184,132,30,0.10); border-color: var(--gold-border); }
+  .dl-featured-img { position: relative; overflow: hidden; min-height: 260px; background: linear-gradient(145deg, #F0EBE0, #DDD0BE); display: flex; align-items: center; justify-content: center; }
+  .dl-featured-img img { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; inset: 0; }
+  .dl-featured-img-placeholder { font-size: 72px; }
+  .dl-featured-badge { position: absolute; top: 14px; left: 14px; background: var(--navy); color: white; font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; z-index: 1; }
+  .dl-featured-video-badge { position: absolute; top: 14px; right: 14px; background: var(--video-red); color: white; font-size: 9px; font-weight: 600; letter-spacing: 0.04em; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 4px; z-index: 1; }
+  .dl-featured-video-badge svg { width: 8px; height: 8px; fill: white; }
+  .dl-featured-body { padding: 28px; display: flex; flex-direction: column; justify-content: center; }
+  .dl-featured-cat { font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 8px; }
+  .dl-featured-title { font-family: 'Cormorant', serif; font-size: 26px; font-weight: 500; color: var(--text-dark); line-height: 1.2; margin-bottom: 10px; }
+  .dl-featured-excerpt { font-size: 13px; color: var(--text-mid); line-height: 1.7; margin-bottom: 16px; }
+  .dl-featured-meta { display: flex; align-items: center; gap: 12px; }
+  .dl-featured-read { font-size: 11.5px; color: var(--text-soft); }
+  .dl-featured-read-link { font-size: 12.5px; font-weight: 600; color: var(--navy); text-decoration: none; }
+  .dl-featured-read-link:hover { color: var(--gold); }
+
+  /* SHARED section header */
+  .dl-section-hd { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+  .dl-block-title { font-family: 'Cormorant', serif; font-size: 26px; font-weight: 500; color: var(--text-dark); }
+  .dl-section-hd a { font-size: 13px; color: var(--gold); font-weight: 600; text-decoration: none; }
+  .dl-section-hd a:hover { color: var(--gold-hover); }
+
+  /* ARTICLE GRID */
+  .dl-articles-section { padding: 24px 68px 40px; background: var(--warm-white); border-top: 1px solid var(--border); }
+  .dl-articles-section.dl-filtered { background: white; }
+  .dl-articles-inner { max-width: 1280px; margin: 0 auto; }
+  .dl-article-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+  .dl-article-card { border: 1px solid var(--border); border-radius: 10px; background: white; overflow: hidden; cursor: pointer; transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s; text-decoration: none; color: inherit; display: block; }
+  .dl-article-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(184,132,30,0.10); border-color: var(--gold-border); }
+  .dl-article-card.dl-hidden { display: none; }
+
+  .dl-ac-img { aspect-ratio: 1/1; position: relative; overflow: hidden; background: linear-gradient(135deg, #F0EBE0, #E4DDD0); display: flex; align-items: center; justify-content: center; }
+  .dl-ac-img img { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; inset: 0; }
+  .dl-ac-img-placeholder { font-size: 28px; }
+
+  /* Topic-tinted backgrounds */
+  .dl-ac-img.t-ingredient  { background: linear-gradient(135deg, #F5EDE0, #E8D8C0); }
+  .dl-ac-img.t-processing  { background: linear-gradient(135deg, #E8EDF5, #D0DAF0); }
+  .dl-ac-img.t-health      { background: linear-gradient(135deg, #E8F5ED, #C8E8D4); }
+  .dl-ac-img.t-food-system { background: linear-gradient(135deg, #F5E8E0, #EAD0C0); }
+  .dl-ac-img.t-traditional { background: linear-gradient(135deg, #F5F0E0, #EAE0C0); }
+  .dl-ac-img.t-science     { background: linear-gradient(135deg, #EDE8F5, #D8D0F0); }
+
+  .dl-ac-read-time { position: absolute; bottom: 7px; right: 8px; background: rgba(17,37,87,0.82); color: white; font-size: 9px; font-weight: 500; padding: 2px 7px; border-radius: 20px; z-index: 1; }
+  .dl-ac-video-badge { position: absolute; top: 8px; left: 8px; background: var(--video-red); color: white; font-size: 8.5px; font-weight: 600; padding: 2px 7px; border-radius: 20px; display: flex; align-items: center; gap: 3px; z-index: 1; }
+  .dl-ac-video-badge svg { width: 7px; height: 7px; fill: white; }
+
+  .dl-ac-body { padding: 10px 12px 14px; }
+  .dl-ac-cat { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 3px; }
+  .dl-ac-title { font-family: 'Cormorant', serif; font-size: 16px; font-weight: 500; color: var(--text-dark); line-height: 1.25; margin-bottom: 5px; }
+  .dl-ac-excerpt { font-size: 11px; color: var(--text-soft); line-height: 1.5; }
+
+  /* RESULTS BAR (filtered mode) */
+  .dl-results-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+  .dl-results-count { font-size: 13px; color: var(--text-soft); }
+  .dl-results-count strong { color: var(--text-dark); font-weight: 600; }
+
+  /* LOAD MORE */
+  .dl-pagination { display: flex; justify-content: center; align-items: center; gap: 6px; padding: 28px 0 8px; border-top: 1px solid var(--border); margin-top: 24px; flex-wrap: wrap; }
+  .dl-page-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: white; color: var(--text-mid); font-size: 13px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+  .dl-page-btn:hover { border-color: var(--navy); color: var(--navy); }
+  .dl-page-btn.active { background: var(--navy); border-color: var(--navy); color: white; }
+
+  /* EMPTY STATE */
+  .dl-empty { padding: 60px 20px; text-align: center; color: var(--text-soft); display: none; }
+  .dl-empty.dl-visible { display: block; }
+  .dl-empty-icon { font-size: 36px; margin-bottom: 16px; }
+  .dl-empty h3 { font-family: 'Cormorant', serif; font-size: 22px; color: var(--text-dark); margin-bottom: 8px; }
+  .dl-empty p { font-size: 13px; line-height: 1.6; margin-bottom: 20px; }
+  .dl-empty-link { font-size: 13px; color: var(--gold); text-decoration: none; font-weight: 600; }
+
+  @media (max-width: 1024px) {
+    .dl-page-header, .dl-browse-section, .dl-articles-section { padding-left: 24px; padding-right: 24px; }
+    .dl-active-chips, .dl-featured-section { padding-left: 24px; padding-right: 24px; }
+    .dl-topic-grid { grid-template-columns: repeat(3, 1fr); }
+    .dl-article-grid { grid-template-columns: repeat(3, 1fr); }
+    .dl-featured-card { grid-template-columns: 1fr; }
+    .dl-featured-img { min-height: 220px; }
+  }
+  @media (max-width: 640px) {
+    .dl-page-header, .dl-browse-section, .dl-articles-section { padding-left: 16px; padding-right: 16px; }
+    .dl-active-chips, .dl-featured-section { padding-left: 16px; padding-right: 16px; }
+    .dl-topic-grid { grid-template-columns: repeat(3, 1fr); }
+    .dl-article-grid { grid-template-columns: repeat(2, 1fr); }
+    .dl-page-title { font-size: 26px; }
+    .dl-filter-bar { gap: 6px; }
+    .dl-search-box { flex: 0 0 140px; }
+  }
+{%- endstyle -%}
+
+{%- comment -%} ── PAGE HEADER ── {%- endcomment -%}
+<div class="dl-page-header">
+  <div class="dl-page-header-inner">
+    <div class="dl-title-row">
+      <h1 class="dl-page-title">Discover</h1>
+      <span class="dl-article-count">{{ discover_blog.articles_count }} articles</span>
+    </div>
+
+    <div class="dl-filter-bar">
+      <div class="dl-search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="dl-search-input" placeholder="Search articles…" autocomplete="off">
+      </div>
+
+      <div class="dl-filter-divider"></div>
+{%- comment -%}
+      {%- comment -%} By Topic dropdown {%- endcomment -%}
+      <div class="dl-filter-dropdown" data-filter="topic">
+        <button type="button" class="dl-filter-btn" data-toggle>
+          <span class="dl-btn-label">By Topic</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="dl-dropdown-panel">
+          {%- for tp in topic_params -%}
+            <span class="dl-dropdown-item" data-value="{{ tp }}">{{ topic_labels[forloop.index0] }}</span>
+          {%- endfor -%}
+        </div>
+      </div>
+
+      <div class="dl-filter-divider"></div>
+{%- endcomment -%}
+
+      {%- comment -%} Videos only toggle pill {%- endcomment -%}
+      <button type="button" class="dl-video-toggle" id="dl-video-toggle">
+        <div class="dl-video-play-dot">
+          <svg viewBox="0 0 10 10"><polygon points="2 1 9 5 2 9"/></svg>
+        </div>
+        Videos only
+      </button>
+
+      <button class="dl-filter-clear" id="dl-clear-all">Clear all</button>
+    </div>
+  </div>
+</div>
+
+{%- comment -%} ── ACTIVE CHIPS ── {%- endcomment -%}
+<div class="dl-active-chips" id="dl-chips-bar"></div>
+
+{%- comment -%} ── ALL CONTENT rendered server-side, JS controls visibility ── {%- endcomment -%}
+{%- paginate discover_blog.articles by 250 -%}
+
+{%- comment -%} ── BROWSE BY TOPIC TILES ── {%- endcomment -%}
+<section class="dl-browse-section" id="dl-browse-section">
+  <div class="dl-browse-inner">
+    <div class="dl-browse-label">Browse by Topic</div>
+    <div class="dl-topic-grid">
+      {%- for tp in topic_params -%}
+        {%- assign tile_key = topic_keys[forloop.index0] -%}
+        {%- assign tile_count = 0 -%}
+        {%- for art in discover_blog.articles -%}
+          {%- if art.tags contains tile_key -%}{%- assign tile_count = tile_count | plus: 1 -%}{%- endif -%}
+        {%- endfor -%}
+        <button class="dl-topic-tile" data-value="{{ tp }}">
+          <div class="dl-topic-icon">{{ topic_emojis[forloop.index0] }}</div>
+          <div class="dl-topic-name">{{ topic_labels[forloop.index0] }}</div>
+          <div class="dl-topic-count">{{ tile_count }} articles</div>
+        </button>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{%- comment -%} ── FEATURED ARTICLE (most recent or first article) ── {%- endcomment -%}
+{%- assign featured_art = discover_blog.articles | first -%}
+{%- if featured_art != blank -%}
+  {%- assign featured_read_time = featured_art.metafields.custom.blog_read_time -%}
+  {%- assign featured_is_video = false -%}
+  {%- if featured_art.tags contains 'art-video' -%}{%- assign featured_is_video = true -%}{%- endif -%}
+
+  {%- comment -%} Derive category label from first matching topic tag {%- endcomment -%}
+  {%- assign featured_cat = '' -%}
+  {%- for tk in topic_keys -%}
+    {%- if featured_art.tags contains tk and featured_cat == '' -%}
+      {%- assign featured_cat = topic_labels[forloop.index0] -%}
+    {%- endif -%}
+  {%- endfor -%}
+
+<section class="dl-featured-section" id="dl-featured-section">
+  <div class="dl-featured-inner">
+    <div style="margin-bottom:14px;">
+      <span class="dl-section-eyebrow">Featured</span>
+    </div>
+    <a href="{{ featured_art.url }}" class="dl-featured-card">
+      <div class="dl-featured-img">
+        {%- if featured_art.image -%}
+          <img src="{{ featured_art.image | image_url: width: 900 }}" alt="{{ featured_art.image.alt | default: featured_art.title | escape }}" loading="lazy">
+        {%- else -%}
+          <div class="dl-featured-img-placeholder">📖</div>
+        {%- endif -%}
+        <div class="dl-featured-badge">Featured</div>
+        {%- if featured_is_video -%}
+          <div class="dl-featured-video-badge">
+            <svg viewBox="0 0 10 10"><polygon points="2 1 9 5 2 9"/></svg>
+            Video
+          </div>
+        {%- endif -%}
+      </div>
+      <div class="dl-featured-body">
+        {%- if featured_cat != '' -%}<div class="dl-featured-cat">{{ featured_cat }}</div>{%- endif -%}
+        <div class="dl-featured-title">{{ featured_art.title }}</div>
+        {%- if featured_art.excerpt != blank -%}
+          <div class="dl-featured-excerpt">{{ featured_art.excerpt | strip_html | truncate: 200 }}</div>
+        {%- endif -%}
+        <div class="dl-featured-meta">
+          {%- if featured_read_time != blank -%}<span class="dl-featured-read">{{ featured_read_time }}</span><span style="color:var(--border-mid);">·</span>{%- endif -%}
+          <span class="dl-featured-read-link">Read Article →</span>
+        </div>
+      </div>
+    </a>
+  </div>
+</section>
+{%- endif -%}
+
+{%- comment -%} ── ARTICLE GRID ── {%- endcomment -%}
+<section class="dl-articles-section dl-browse-mode" id="dl-articles-section">
+  <div class="dl-articles-inner">
+
+    <div id="dl-browse-header" class="dl-section-hd">
+      <h2 class="dl-block-title">Latest Articles</h2>
+      <a href="#" id="dl-show-all-link">All Articles →</a>
+    </div>
+
+    <div id="dl-filtered-header" class="dl-results-bar" style="display:none;">
+      <div class="dl-results-count">
+        Showing <strong id="dl-result-count">0</strong> articles
+        <span id="dl-result-label"></span>
+      </div>
+    </div>
+
+    <div class="dl-article-grid" id="dl-article-grid">
+      {%- for art in discover_blog.articles -%}
+        {%- assign art_tags = art.tags | join: ',' | downcase -%}
+        {%- assign read_time = art.metafields.custom.blog_read_time -%}
+        {%- assign is_video = false -%}
+        {%- if art.tags contains 'art-video' -%}{%- assign is_video = true -%}{%- endif -%}
+
+        {%- comment -%} Derive category label from first matching topic tag {%- endcomment -%}
+        {%- assign cat_label = '' -%}
+        {%- assign img_class = '' -%}
+        {%- for tk in topic_keys -%}
+          {%- if art.tags contains tk and cat_label == '' -%}
+            {%- assign cat_label = topic_labels[forloop.index0] -%}
+            {%- assign tp_val = topic_params[forloop.index0] -%}
+            {%- case tp_val -%}
+              {%- when 'ingredient' -%}{%- assign img_class = 't-ingredient' -%}
+              {%- when 'processing' -%}{%- assign img_class = 't-processing' -%}
+              {%- when 'health' -%}{%- assign img_class = 't-health' -%}
+              {%- when 'food-system' -%}{%- assign img_class = 't-food-system' -%}
+              {%- when 'traditional-practices' -%}{%- assign img_class = 't-traditional' -%}
+              {%- when 'cooking-science' -%}{%- assign img_class = 't-science' -%}
+            {%- endcase -%}
+          {%- endif -%}
+        {%- endfor -%}
+
+        <a href="{{ art.url }}"
+           class="dl-article-card"
+           data-tags="{{ art_tags }}"
+           data-title="{{ art.title | downcase | escape }}">
+          <div class="dl-ac-img {{ img_class }}">
+            {%- if art.image -%}
+              <img src="{{ art.image | image_url: width: 480 }}" alt="{{ art.image.alt | default: art.title | escape }}" loading="lazy" width="480" height="270">
+            {%- else -%}
+              <div class="dl-ac-img-placeholder">📄</div>
+            {%- endif -%}
+            {%- if read_time != blank -%}<div class="dl-ac-read-time">{{ read_time }}</div>{%- endif -%}
+            {%- if is_video -%}
+              <div class="dl-ac-video-badge"><svg viewBox="0 0 10 10"><polygon points="2 1 9 5 2 9"/></svg> Video</div>
+            {%- endif -%}
+          </div>
+          <div class="dl-ac-body">
+            {%- if cat_label != '' -%}<div class="dl-ac-cat">{{ cat_label }}</div>{%- endif -%}
+            <div class="dl-ac-title">{{ art.title }}</div>
+            {%- if art.excerpt != blank -%}
+              <div class="dl-ac-excerpt">{{ art.excerpt | strip_html | truncate: 80 }}</div>
+            {%- endif -%}
+          </div>
+        </a>
+      {%- endfor -%}
+    </div>
+
+    <div class="dl-empty" id="dl-empty-state">
+      <div class="dl-empty-icon">🔍</div>
+      <h3>No articles found</h3>
+      <p>We don't have articles matching those filters yet.<br>Try a different topic or browse all articles.</p>
+      <a href="{{ request.path }}" class="dl-empty-link">View All Articles →</a>
+    </div>
+
+    <div class="dl-pagination" id="dl-pagination" style="display:none;"></div>
+
+  </div>
+</section>
+
+{%- endpaginate -%}
+
+<script>
+(function () {
+  // ── Label maps ──────────────────────────────────────────────
+  var TOPIC_LABELS = {
+    'ingredient':  'Ingredient Knowledge',
+    'processing':  'Processing & Methods',
+    'health':      'Health & Nutrition',
+    'food-system': 'Food System',
+    'traditional-practices': 'Traditional Practices',
+    'cooking-science':       'Cooking Science'
+  };
+
+  // ── State ───────────────────────────────────────────────────
+  var filters     = { topic: '' };
+  var videoOnly   = false;
+  var searchQ     = '';
+  var showAll     = false;
+  var currentPage = 1;
+  var PAGE_SIZE   = 12;
+  var BROWSE_LIMIT = 8;
+
+  // ── DOM refs ────────────────────────────────────────────────
+  var cards          = Array.from(document.querySelectorAll('#dl-article-grid .dl-article-card'));
+  var browseSection  = document.getElementById('dl-browse-section');
+  var featuredSection= document.getElementById('dl-featured-section');
+  var articlesSection= document.getElementById('dl-articles-section');
+  var browseHeader   = document.getElementById('dl-browse-header');
+  var filteredHeader = document.getElementById('dl-filtered-header');
+  var resultCount    = document.getElementById('dl-result-count');
+  var resultLabel    = document.getElementById('dl-result-label');
+  var chipsBar       = document.getElementById('dl-chips-bar');
+  var emptyState     = document.getElementById('dl-empty-state');
+  var clearAll       = document.getElementById('dl-clear-all');
+  var searchInput    = document.getElementById('dl-search-input');
+  var showAllLink    = document.getElementById('dl-show-all-link');
+  var paginationEl   = document.getElementById('dl-pagination');
+  var videoToggle    = document.getElementById('dl-video-toggle');
+
+  // ── Has any filter active ───────────────────────────────────
+  function hasFilters() {
+    return filters.topic || videoOnly || searchQ;
+  }
+
+  // ── Build matching cards list ────────────────────────────────
+  function getMatchingCards() {
+    return cards.filter(function(card) {
+      var tags  = card.getAttribute('data-tags') || '';
+      var title = card.getAttribute('data-title') || '';
+      if (filters.topic && !tags.includes('art-topic-' + filters.topic)) return false;
+      if (videoOnly && !tags.includes('art-video')) return false;
+      if (searchQ && !title.includes(searchQ.toLowerCase())) return false;
+      return true;
+    });
+  }
+
+  // ── Read URL params on load ─────────────────────────────────
+  function readURL() {
+    var qs = window.location.search.slice(1);
+    qs.split('&').forEach(function(part) {
+      var kv = part.split('=');
+      var k  = kv[0];
+      var v  = decodeURIComponent((kv[1] || '').replace(/\+/g, ' ')).toLowerCase().trim();
+      if (k === 'topic')  filters.topic = v;
+      if (k === 'video')  videoOnly = (v === '1');
+      if (k === 'q')      searchQ = decodeURIComponent((kv[1] || '').replace(/\+/g, ' ')).trim();
+      if (k === 'view' && v === 'all') showAll = true;
+      if (k === 'page') currentPage = Math.max(1, parseInt(v) || 1);
+    });
+    if (searchInput && searchQ) searchInput.value = searchQ;
+  }
+
+  // ── Write URL params ────────────────────────────────────────
+  function writeURL() {
+    var parts = [];
+    if (filters.topic) parts.push('topic=' + encodeURIComponent(filters.topic));
+    if (videoOnly)     parts.push('video=1');
+    if (searchQ)       parts.push('q=' + encodeURIComponent(searchQ));
+    if (showAll && !hasFilters()) parts.push('view=all');
+    if (currentPage > 1) parts.push('page=' + currentPage);
+    var newURL = window.location.pathname + (parts.length ? '?' + parts.join('&') : '');
+    window.history.replaceState(null, '', newURL);
+  }
+
+  // ── Render pagination ───────────────────────────────────────
+  function renderPagination(total) {
+    paginationEl.innerHTML = '';
+    var totalPages = Math.ceil(total / PAGE_SIZE);
+    if (totalPages <= 1) { paginationEl.style.display = 'none'; return; }
+    paginationEl.style.display = 'flex';
+    for (var p = 1; p <= totalPages; p++) {
+      var btn = document.createElement('button');
+      btn.textContent = p;
+      btn.className = 'dl-page-btn' + (p === currentPage ? ' active' : '');
+      (function(pg) {
+        btn.addEventListener('click', function() {
+          currentPage = pg;
+          applyFilters();
+          articlesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      })(p);
+      paginationEl.appendChild(btn);
+    }
+  }
+
+  // ── Apply filters ───────────────────────────────────────────
+  function applyFilters() {
+    var isFiltered = hasFilters();
+    var isPaged    = true;  // always paginated
+
+    var matching = getMatchingCards();
+
+    // Hide all cards
+    cards.forEach(function(c) { c.classList.add('dl-hidden'); });
+
+    // Show current page slice
+    var start = (currentPage - 1) * PAGE_SIZE;
+    matching.forEach(function(card, idx) {
+      if (idx >= start && idx < start + PAGE_SIZE) card.classList.remove('dl-hidden');
+    });
+
+    renderPagination(matching.length);
+
+    // Toggle sections — browse tiles always stay visible
+    browseSection.style.cssText = 'display:block !important; visibility:visible !important;';
+    if (featuredSection) featuredSection.style.display = isFiltered ? 'none' : '';
+    browseHeader.style.display     = (isFiltered || showAll) ? 'none' : '';
+    filteredHeader.style.display   = (isFiltered || showAll) ? 'flex' : 'none';
+    articlesSection.classList.toggle('dl-filtered', isFiltered);
+    articlesSection.classList.toggle('dl-browse-mode', !isFiltered);
+    emptyState.classList.toggle('dl-visible', matching.length === 0);
+
+    if (isFiltered || showAll) {
+      resultCount.textContent = matching.length;
+      var labelParts = [];
+      if (filters.topic) labelParts.push(TOPIC_LABELS[filters.topic] || filters.topic);
+      if (videoOnly) labelParts.push('Videos only');
+      if (searchQ) labelParts.push('"' + searchQ + '"');
+      resultLabel.textContent = labelParts.length ? ' for ' + labelParts.join(' · ') : '';
+    }
+
+    updateChips();
+    updateFilterBtns();
+    updateTopicTiles();
+    writeURL();
+  }
+
+  // ── Chips bar ───────────────────────────────────────────────
+  function updateChips() {
+    chipsBar.innerHTML = '';
+    var isFiltered = hasFilters();
+    chipsBar.classList.toggle('dl-visible', !!isFiltered);
+    clearAll.classList.toggle('dl-visible', !!isFiltered);
+
+    function makeChip(label, key, isVideo) {
+      var btn = document.createElement('button');
+      btn.className = 'dl-chip' + (isVideo ? ' dl-video-chip' : '');
+      if (isVideo) {
+        btn.innerHTML = '<svg width="8" height="8" viewBox="0 0 10 10" fill="white" style="flex-shrink:0"><polygon points="2 1 9 5 2 9"/></svg>' + label + '<span class="dl-chip-x">×</span>';
+      } else {
+        btn.innerHTML = label + '<span class="dl-chip-x">×</span>';
+      }
+      btn.addEventListener('click', function() {
+        if (key === 'q')     { searchQ = ''; if (searchInput) searchInput.value = ''; }
+        else if (key === 'video') { videoOnly = false; }
+        else filters[key] = '';
+        currentPage = 1;
+        applyFilters();
+      });
+      chipsBar.appendChild(btn);
+    }
+
+    if (filters.topic) makeChip(TOPIC_LABELS[filters.topic] || filters.topic, 'topic', false);
+    if (videoOnly)     makeChip('Videos only', 'video', true);
+    if (searchQ)       makeChip('"' + searchQ + '"', 'q', false);
+
+    if (isFiltered) {
+      var clr = document.createElement('button');
+      clr.className = 'dl-chip-clear';
+      clr.textContent = 'Clear all';
+      clr.addEventListener('click', clearFilters);
+      chipsBar.appendChild(clr);
+    }
+  }
+
+  // ── Filter button active states ─────────────────────────────
+  function updateFilterBtns() {
+    document.querySelectorAll('.dl-filter-dropdown').forEach(function(dd) {
+      var key = dd.getAttribute('data-filter');
+      var val = filters[key] || '';
+      var btn = dd.querySelector('.dl-filter-btn');
+      var label = dd.querySelector('.dl-btn-label');
+      btn.classList.toggle('dl-active', !!val);
+      if (val && key === 'topic') {
+        label.textContent = TOPIC_LABELS[val] || val;
+      } else {
+        label.textContent = 'By Topic';
+      }
+      dd.querySelectorAll('.dl-dropdown-item').forEach(function(item) {
+        item.classList.toggle('dl-selected', item.getAttribute('data-value') === val);
+      });
+    });
+    // Video toggle
+    videoToggle.classList.toggle('dl-active', videoOnly);
+  }
+
+  // ── Topic tile active states ────────────────────────────────
+  function updateTopicTiles() {
+    document.querySelectorAll('.dl-topic-tile').forEach(function(tile) {
+      tile.classList.toggle('dl-active', tile.getAttribute('data-value') === filters.topic);
+    });
+  }
+
+  // ── Clear all ───────────────────────────────────────────────
+  function clearFilters() {
+    filters = { topic: '' };
+    videoOnly = false;
+    searchQ = '';
+    showAll = false;
+    currentPage = 1;
+    if (searchInput) searchInput.value = '';
+    applyFilters();
+  }
+
+  // ── Dropdown toggle ─────────────────────────────────────────
+  document.querySelectorAll('[data-toggle]').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var dd = btn.closest('.dl-filter-dropdown');
+      var isOpen = dd.classList.contains('dl-open');
+      document.querySelectorAll('.dl-filter-dropdown').forEach(function(d) { d.classList.remove('dl-open'); });
+      if (!isOpen) dd.classList.add('dl-open');
+    });
+  });
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.dl-filter-dropdown').forEach(function(d) { d.classList.remove('dl-open'); });
+  });
+
+  // ── Dropdown item click ─────────────────────────────────────
+  document.querySelectorAll('.dl-dropdown-item').forEach(function(item) {
+    item.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var dd  = item.closest('.dl-filter-dropdown');
+      var key = dd.getAttribute('data-filter');
+      var val = item.getAttribute('data-value');
+      if (filters[key] === val) filters[key] = '';
+      else filters[key] = val;
+      showAll = false; currentPage = 1;
+      dd.classList.remove('dl-open');
+      applyFilters();
+    });
+  });
+
+  // ── Topic tile click ────────────────────────────────────────
+  document.querySelectorAll('.dl-topic-tile').forEach(function(tile) {
+    tile.addEventListener('click', function() {
+      var val = tile.getAttribute('data-value');
+      filters.topic = (filters.topic === val) ? '' : val;
+      showAll = false; currentPage = 1;
+      applyFilters();
+    });
+  });
+
+  // ── Video toggle ────────────────────────────────────────────
+  if (videoToggle) {
+    videoToggle.addEventListener('click', function() {
+      videoOnly = !videoOnly;
+      showAll = false; currentPage = 1;
+      applyFilters();
+    });
+  }
+
+  // ── Search input ────────────────────────────────────────────
+  var searchTimer;
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(function() {
+        searchQ = searchInput.value.trim();
+        showAll = false; currentPage = 1;
+        applyFilters();
+      }, 300);
+    });
+  }
+
+  // ── All Articles link ────────────────────────────────────────
+  if (showAllLink) {
+    showAllLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      showAll = true; currentPage = 1;
+      applyFilters();
+    });
+  }
+
+  // ── Clear all button ────────────────────────────────────────
+  if (clearAll) clearAll.addEventListener('click', clearFilters);
+
+  // ── Init ────────────────────────────────────────────────────
+  readURL();
+  applyFilters();
+
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Discover Landing",
+  "tag": "div",
+  "class": "discover-landing-section",
+  "settings": [],
+  "presets": [{ "name": "Discover Landing" }]
+}
+{% endschema %}

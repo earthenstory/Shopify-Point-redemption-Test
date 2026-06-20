@@ -1,0 +1,226 @@
+{
+  "sections": {
+    "es-privacy": {
+      "type": "es-policy-page",
+      "blocks": {
+        "s01": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "overview",
+            "toc_label": "Overview",
+            "section_num": "01",
+            "section_title": "Overview",
+            "icon": "info",
+            "content": "<p>This Privacy Policy describes the kinds of information we may collect from you when you visit our website or make a purchase, and how we use, maintain, protect, and disclose that information.<\/p><p>We do not collect identifiable information from individuals unless they provide it knowingly. By using our website, you agree to the collection and use of information in accordance with this policy.<\/p>",
+            "highlight_text": "",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "Who this applies to",
+            "card1_text": "All visitors to earthenstory.com and customers who make purchases from us.",
+            "card2_icon": "shield",
+            "card2_title": "Our commitment",
+            "card2_text": "We are always determined to protect your privacy with transparency at every step."
+          }
+        },
+        "s02": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "information-we-collect",
+            "toc_label": "Information We Collect",
+            "section_num": "02",
+            "section_title": "Information We Collect",
+            "icon": "database",
+            "content": "<p>We collect information in two ways — information you provide to us directly, and information collected automatically when you use our site.<\/p><p><strong>Information you provide directly:<\/strong><\/p><ul><li>Name, email address, phone number, and delivery address when placing an order or creating an account<\/li><li>Payment information (processed securely by third-party payment processors — we do not store card details)<\/li><li>Messages or queries submitted through our contact form<\/li><li>Email address when you subscribe to our newsletter<\/li><\/ul><p><strong>Information collected automatically:<\/strong><\/p><ul><li>Browser type, device type, and operating system<\/li><li>IP address and general location data<\/li><li>Pages visited, time spent on site, and referring URLs<\/li><li>Cookie and tracking data (see our Cookies section below)<\/li><\/ul>",
+            "highlight_text": "<p><strong>Note:<\/strong> The email address you provide will be used for internal purposes such as confirming and tracking your orders, or as otherwise described in this Policy. We do not collect your personal information beyond what is necessary to provide our services.<\/p>",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s03": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "how-we-use",
+            "toc_label": "How We Use It",
+            "section_num": "03",
+            "section_title": "How We Use Your Information",
+            "icon": "activity",
+            "content": "<p>We use the information we collect to deliver and improve our services. Specifically, we use your information to:<\/p><ul><li>Process and fulfil your orders, and send order confirmations and tracking updates<\/li><li>Respond to your customer service enquiries and support requests<\/li><li>Send marketing communications (only with your consent, and you can opt out at any time)<\/li><li>Improve our website experience and product offerings based on usage patterns<\/li><li>Comply with applicable legal obligations<\/li><li>Detect and prevent fraud or misuse of our platform<\/li><\/ul><p>We will communicate with you on a regular basis to provide the services and any other requested services, and in regards to issues relating to your account — via email or phone, in accordance with your wishes.<\/p>",
+            "highlight_text": "",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s04": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "sharing",
+            "toc_label": "Sharing Your Data",
+            "section_num": "04",
+            "section_title": "Sharing Your Data",
+            "icon": "share",
+            "content": "<p><strong>We do not sell your personal information to third parties.<\/strong> We do not share your personal information with third parties for advertising purposes.<\/p><p>We may share your information in the following limited circumstances:<\/p><ul><li><strong>Payment processors:<\/strong> To complete transactions securely on your behalf<\/li><li><strong>Order fulfilment partners:<\/strong> Logistics and delivery partners who need your address to deliver your order<\/li><li><strong>Site maintenance vendors:<\/strong> Vendors performing technical maintenance may have limited, temporary access to data<\/li><li><strong>Legal requirements:<\/strong> If required by law or in response to valid legal process<\/li><\/ul>",
+            "highlight_text": "<p><strong>We will never transfer your information to any agent or partner<\/strong> unless they first agree to provide at least the same level of privacy protection as required by applicable data privacy laws.<\/p>",
+            "content_after": "<p>We may share electronic data in an aggregated, de-identified (non-personal) manner with third-party analytics providers to better understand how our site is used and how to improve it.<\/p>",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s05": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "cookies",
+            "toc_label": "Cookies",
+            "section_num": "05",
+            "section_title": "Cookies & Tracking",
+            "icon": "cookie",
+            "content": "<p>We use cookies and similar technologies to enhance your experience on our website. Cookies are small text files stored on your device that help us remember your preferences and understand how you use our site.<\/p><p>We use the following types of cookies:<\/p><ul><li><strong>Essential cookies:<\/strong> Required for the website to function — such as maintaining your shopping cart and login session<\/li><li><strong>Analytics cookies:<\/strong> Help us understand visitor behaviour so we can improve the site (e.g. Google Analytics)<\/li><li><strong>Marketing cookies:<\/strong> Used to deliver relevant advertisements on third-party platforms (e.g. Meta Pixel, Google Ads)<\/li><\/ul><p>You can control and manage cookies through your browser settings. Please note that disabling certain cookies may affect the functionality of our website. By continuing to use our site, you consent to our use of cookies as described in this Policy.<\/p>",
+            "highlight_text": "",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s06": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "your-rights",
+            "toc_label": "Your Rights",
+            "section_num": "06",
+            "section_title": "Your Rights & Account Control",
+            "icon": "shield-check",
+            "content": "<p>After setting up an account with Earthen Story, you can access, review, correct and\/or delete the information you have provided to us by logging into your account at any time.<\/p><p>You also have the right to:<\/p><ul><li>Request a copy of the personal data we hold about you<\/li><li>Ask us to correct any inaccurate or incomplete information<\/li><li>Request deletion of your personal data from our systems<\/li><li>Withdraw consent for marketing communications at any time<\/li><li>Object to processing of your data in certain circumstances<\/li><\/ul><p>To exercise any of these rights, you may contact us at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a>. We will comply with your request within a reasonable timeframe (typically within 30 days, or as required by applicable law).<\/p><p>If a user's personally identifiable information changes (such as phone, email or postal address), or if a user no longer desires the service, you may update or delete this via the account member information page or by emailing us directly.<\/p>",
+            "highlight_text": "",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s07": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "security",
+            "toc_label": "Security",
+            "section_num": "07",
+            "section_title": "Security",
+            "icon": "lock",
+            "content": "<p>We take your privacy and security seriously. We maintain administrative, physical, and technical safeguards designed to protect your personal information from accidental, unlawful, or unauthorised destruction, loss, access, disclosure, or use.<\/p><p>Our security measures include:<\/p><ul><li>SSL encryption on all data transmitted between your browser and our servers<\/li><li>Secure, password-protected servers with restricted access<\/li><li>Third-party payment processors (such as Razorpay) who handle all financial transactions in compliance with PCI-DSS standards — we never store your complete card details<\/li><li>Regular review of our data collection and storage practices<\/li><\/ul>",
+            "highlight_text": "<p>While we implement robust security measures, no system is completely impenetrable. We cannot guarantee the absolute security of data transmitted over the internet, and any information you include in public-facing areas of the site may be visible to others.<\/p>",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s08": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "marketing",
+            "toc_label": "Marketing",
+            "section_num": "08",
+            "section_title": "Marketing Communications",
+            "icon": "mail",
+            "content": "<p>With your consent, we may send you marketing emails about new products, special offers, recipes, and updates. Our order forms include an opt-out mechanism so you can buy from us without being added to our marketing list.<\/p><p>If you would rather not receive marketing emails from us:<\/p><ul><li>Click the <strong>Unsubscribe<\/strong> link in any marketing email we send<\/li><li>Reply to any email with \"Unsubscribe\" in the subject line<\/li><li>Contact us directly at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a><\/li><\/ul><p>We will process your opt-out request promptly. Note that even after opting out of marketing, you will still receive transactional emails related to your orders (order confirmations, shipping updates, etc.).<\/p>",
+            "highlight_text": "",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s09": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "changes",
+            "toc_label": "Policy Changes",
+            "section_num": "09",
+            "section_title": "Changes to This Policy",
+            "icon": "edit",
+            "content": "<p>Earthen Story will update this Policy periodically to reflect changes in our practices, technology, legal requirements, or other factors. We invite you to review this page regularly.<\/p><p>When we make material changes to this policy, we will notify you by:<\/p><ul><li>Posting a prominent notice on our website homepage<\/li><li>Updating the \"Last Updated\" date at the top of this page<\/li><li>Sending an email notification to registered users (for significant changes)<\/li><\/ul><p>The new Policy will apply to all past and current users of our website and will replace any prior policies. Your continued use of the site after any changes constitutes your acceptance of the updated policy.<\/p>",
+            "highlight_text": "",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s10": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "contact",
+            "toc_label": "Contact Us",
+            "section_num": "10",
+            "section_title": "Contact Us",
+            "icon": "phone",
+            "content": "<p>If you have any questions, concerns, or requests related to this Privacy Policy or the handling of your personal data, please reach out to us:<\/p>",
+            "highlight_text": "",
+            "content_after": "<p>You may also write to us by visiting our <a href=\"\/pages\/contact\">Contact Us page<\/a>. We aim to respond to all privacy-related enquiries within 5–7 business days.<\/p>",
+            "card1_icon": "email",
+            "card1_title": "Email",
+            "card1_text": "contact@earthenstory.com",
+            "card2_icon": "building",
+            "card2_title": "Company",
+            "card2_text": "Earthen Story Pvt. Ltd., Bangalore, India"
+          }
+        }
+      },
+      "block_order": [
+        "s01",
+        "s02",
+        "s03",
+        "s04",
+        "s05",
+        "s06",
+        "s07",
+        "s08",
+        "s09",
+        "s10"
+      ],
+      "settings": {
+        "hero_eyebrow": "Legal & Trust",
+        "hero_title": "Privacy Policy",
+        "hero_title_highlight": "Policy",
+        "hero_last_updated": "April 2026",
+        "hero_company": "Earthen Story · Earthen Story Pvt. Ltd.",
+        "toc_label": "On this page",
+        "toc_contact_label": "Privacy questions?",
+        "toc_contact_text": "Reach our team directly for any data-related requests.",
+        "toc_contact_email": "contact@earthenstory.com",
+        "intro_text": "<p>Earthen Story (a registered trademark of <strong>Earthen Story Pvt. Ltd.<\/strong>) is committed to protecting your privacy and maintaining full transparency about how your information is collected and used. This Policy applies to all past and current users of our website and will replace any prior policies. We invite you to review this page periodically as we may update it from time to time.<\/p>"
+      }
+    }
+  },
+  "order": [
+    "es-privacy"
+  ]
+}

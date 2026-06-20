@@ -1,0 +1,11 @@
+phase1-setup.js
+setup-log-*.json
+.DS_Store
+.claude/
+Untitled
+.env
+.env.*
+*.pem
+*.key
+credentials*.json
+service-account*.json

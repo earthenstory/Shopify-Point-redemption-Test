@@ -1,0 +1,206 @@
+{
+  "sections": {
+    "custom_liquid_iEtcjW": {
+      "type": "custom-liquid",
+      "name": "t:names.custom_liquid",
+      "settings": {
+        "custom_liquid": "<div class=\"custom-category-section\">\n  <div class=\"categories-container\">\n\n    <div class=\"category-item\">\n      <a href=\"https:\/\/www.earthenstory.com\/collections\/all\">\n        <div class=\"image-container\">\n          <img src=\"https:\/\/cdn.shopify.com\/s\/files\/1\/0585\/0182\/4608\/files\/cropped-logo-golden.png?v=1721762628\" alt=\"All Products\">\n        <\/div>\n        <span>All Products<\/span>\n      <\/a>\n    <\/div>\n\n    <div class=\"category-item\">\n      <a href=\"https:\/\/www.earthenstory.com\/collections\/flour\">\n        <div class=\"image-container\">\n          <img src=\"https:\/\/cdn.shopify.com\/s\/files\/1\/0585\/0182\/4608\/files\/istockphoto-1417717229-612x612-removebg-preview_1_1.png?v=1725308878\" alt=\"Flour\">\n        <\/div>\n        <span>Flour<\/span>\n      <\/a>\n    <\/div>\n\n    <div class=\"category-item\">\n      <a href=\"https:\/\/www.earthenstory.com\/collections\/gulkand\">\n        <div class=\"image-container\">\n          <img src=\"https:\/\/cdn.shopify.com\/s\/files\/1\/0585\/0182\/4608\/files\/png-clipart-chutney-cranberry-sauce-gulkand-congee-rose-bowl-of-sauce-frutti-di-bosco-recipe-thumbnail-removebg-preview_1.png?v=1725307662\" alt=\"Gulkand\">\n        <\/div>\n        <span>Gulkand<\/span>\n      <\/a>\n    <\/div>\n\n    <div class=\"category-item\">\n      <a href=\"https:\/\/www.earthenstory.com\/collections\/ghee\">\n        <div class=\"image-container\">\n          <img src=\"https:\/\/cdn.shopify.com\/s\/files\/1\/0585\/0182\/4608\/files\/download_18.png?v=1725309014\" alt=\"Ghee\">\n        <\/div>\n        <span>Ghee<\/span>\n      <\/a>\n    <\/div>\n\n    <div class=\"category-item\">\n      <a href=\"https:\/\/www.earthenstory.com\/collections\/honey\">\n        <div class=\"image-container\">\n          <img src=\"https:\/\/cdn.shopify.com\/s\/files\/1\/0585\/0182\/4608\/files\/honey-icon-13.png?v=1725307162\" alt=\"Honey\">\n        <\/div>\n        <span>Honey<\/span>\n      <\/a>\n    <\/div>\n\n    <div class=\"category-item\">\n      <a href=\"https:\/\/www.earthenstory.com\/collections\/seeds\">\n        <div class=\"image-container\">\n          <img src=\"https:\/\/cdn.shopify.com\/s\/files\/1\/0585\/0182\/4608\/files\/6113320.png?v=1725307267\" alt=\"Seeds\">\n        <\/div>\n        <span>Seeds<\/span>\n      <\/a>\n    <\/div>\n\n    <div class=\"category-item\">\n      <a href=\"https:\/\/www.earthenstory.com\/collections\/oil\">\n        <div class=\"image-container\">\n          <img src=\"https:\/\/cdn.shopify.com\/s\/files\/1\/0585\/0182\/4608\/files\/depositphotos_273977352-stock-illustration-vector-illustration-of-sesame-and-removebg-preview_1_1.png?v=1725308878\" alt=\"Oils\">\n        <\/div>\n        <span>Oils<\/span>\n      <\/a>\n    <\/div>\n\n    <div class=\"category-item\">\n      <a href=\"https:\/\/www.earthenstory.com\/collections\/amla-candy\">\n        <div class=\"image-container\">\n          <img src=\"https:\/\/cdn.shopify.com\/s\/files\/1\/0585\/0182\/4608\/files\/download_19.png?v=1725309014\" alt=\"Amla Candy\">\n        <\/div>\n        <span>Amla Candy<\/span>\n      <\/a>\n    <\/div>\n\n    <div class=\"category-item\">\n      <a href=\"https:\/\/www.earthenstory.com\/collections\/dry-fruits\">\n        <div class=\"image-container\">\n          <img src=\"https:\/\/cdn.shopify.com\/s\/files\/1\/0585\/0182\/4608\/files\/download_17.png?v=1725309014\" alt=\"Dry Fruits\">\n        <\/div>\n        <span>Dry Fruits<\/span>\n      <\/a>\n    <\/div>\n\n  <\/div>\n<\/div>\n\n<style>\n.custom-category-section {\n  padding: 10px 0;\n  width: 100%;\n}\n\n.categories-container {\n  display: flex;\n  gap: 14px;\n  padding: 0 12px;\n  overflow-x: auto;\n  scroll-snap-type: x mandatory;\n  -webkit-overflow-scrolling: touch;\n}\n\n.categories-container::-webkit-scrollbar {\n  display: none;\n}\n\n.category-item {\n  flex: 0 0 auto;\n  scroll-snap-align: center;\n}\n\n.category-item a {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  text-decoration: none;\n  color: #222;\n}\n\n.image-container {\n  background: #F4F2E9;\n  border-radius: 50%;\n  padding: 12px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.category-item img {\n  width: 56px;\n  height: 56px;\n  object-fit: contain;\n}\n\n.category-item span {\n  margin-top: 6px;\n  font-size: 13px;\n  font-weight: 500;\n  white-space: nowrap;\n}\n\n\/* Tablet & Desktop *\/\n@media (min-width: 768px) {\n  .categories-container {\n    justify-content: center;\n    overflow-x: visible;\n    gap: 32px;\n  }\n\n  .category-item img {\n    width: 66px;\n    height: 66px;\n  }\n\n  .category-item span {\n    font-size: 16px;\n  }\n}\n<\/style>",
+        "color_scheme": "",
+        "section_width": "page-width",
+        "padding-block-start": 0,
+        "padding-block-end": 0
+      }
+    },
+    "main": {
+      "type": "main-collection",
+      "blocks": {
+        "filters": {
+          "type": "filters",
+          "static": true,
+          "settings": {
+            "enable_filtering": true,
+            "filter_style": "horizontal",
+            "filter_width": "centered",
+            "text_label_case": "default",
+            "show_swatch_label": false,
+            "show_filter_label": false,
+            "enable_sorting": true,
+            "enable_grid_density": true,
+            "inherit_color_scheme": true,
+            "color_scheme": "",
+            "padding-block-start": 8,
+            "padding-block-end": 8,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0,
+            "facets_margin_bottom": 8,
+            "facets_margin_right": 20
+          },
+          "blocks": {}
+        },
+        "product-card": {
+          "type": "_product-card",
+          "static": true,
+          "settings": {
+            "product_card_gap": 26,
+            "inherit_color_scheme": true,
+            "color_scheme": "",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 30,
+            "padding-inline-end": 30
+          },
+          "blocks": {
+            "card-gallery": {
+              "type": "_product-card-gallery",
+              "settings": {
+                "image_ratio": "portrait",
+                "border": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "group": {
+              "type": "_product-card-group",
+              "settings": {
+                "content_direction": "column",
+                "vertical_on_mobile": true,
+                "horizontal_alignment": "flex-start",
+                "vertical_alignment": "center",
+                "align_baseline": false,
+                "horizontal_alignment_flex_direction_column": "flex-start",
+                "vertical_alignment_flex_direction_column": "center",
+                "gap": 4,
+                "width": "fill",
+                "custom_width": 100,
+                "width_mobile": "fill",
+                "custom_width_mobile": 100,
+                "height": "fit",
+                "custom_height": 100,
+                "inherit_color_scheme": true,
+                "color_scheme": "",
+                "background_media": "none",
+                "video_position": "cover",
+                "background_image_position": "cover",
+                "border": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_radius": 0,
+                "toggle_overlay": false,
+                "overlay_color": "#00000026",
+                "overlay_style": "solid",
+                "gradient_direction": "to top",
+                "link": "",
+                "open_in_new_tab": false,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {
+                "text": {
+                  "type": "text",
+                  "settings": {
+                    "text": "<h4>{{ closest.product.title }}<\/h4>",
+                    "width": "100%",
+                    "max_width": "normal",
+                    "alignment": "left",
+                    "type_preset": "h5",
+                    "font": "var(--font-primary--family)",
+                    "font_size": "",
+                    "line_height": "normal",
+                    "letter_spacing": "normal",
+                    "case": "none",
+                    "wrap": "pretty",
+                    "color": "",
+                    "background": false,
+                    "background_color": "#00000026",
+                    "corner_radius": 0,
+                    "padding-block-start": 0,
+                    "padding-block-end": 0,
+                    "padding-inline-start": 0,
+                    "padding-inline-end": 0
+                  },
+                  "blocks": {}
+                },
+                "price": {
+                  "type": "price",
+                  "settings": {
+                    "show_sale_price_first": true,
+                    "show_installments": false,
+                    "show_tax_info": false,
+                    "type_preset": "paragraph",
+                    "width": "100%",
+                    "alignment": "left",
+                    "font": "var(--font-body--family)",
+                    "font_size": "1rem",
+                    "line_height": "normal",
+                    "letter_spacing": "normal",
+                    "case": "none",
+                    "color": "var(--color-foreground)",
+                    "padding-block-start": 0,
+                    "padding-block-end": 0,
+                    "padding-inline-start": 0,
+                    "padding-inline-end": 0
+                  },
+                  "blocks": {}
+                },
+                "swatches": {
+                  "type": "swatches",
+                  "settings": {
+                    "product_swatches_alignment": "flex-start",
+                    "product_swatches_alignment_mobile": "flex-start",
+                    "hide_padding": false,
+                    "product_swatches_padding_top": 4,
+                    "product_swatches_padding_bottom": 0,
+                    "product_swatches_padding_left": 0,
+                    "product_swatches_padding_right": 0
+                  },
+                  "blocks": {}
+                }
+              },
+              "block_order": [
+                "text",
+                "price",
+                "swatches"
+              ]
+            }
+          },
+          "block_order": [
+            "card-gallery",
+            "group"
+          ]
+        }
+      },
+      "settings": {
+        "layout_type": "grid",
+        "product_card_size": "small",
+        "mobile_product_card_size": "small",
+        "enable_infinite_scroll": true,
+        "products_per_page": 24,
+        "product_grid_width": "centered",
+        "full_width_on_mobile": true,
+        "columns_gap_horizontal": 20,
+        "columns_gap_vertical": 20,
+        "padding-inline-start": 30,
+        "padding-inline-end": 30,
+        "color_scheme": "",
+        "padding-block-start": 32,
+        "padding-block-end": 64
+      }
+    }
+  },
+  "order": [
+    "custom_liquid_iEtcjW",
+    "main"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "sections": {
+    "breadcrumb": {
+      "type": "breadcrumb",
+      "settings": {}
+    },
+    "main-product-hero": {
+      "type": "main-product-hero",
+      "settings": {}
+    },
+    "product-description": {
+      "type": "product-description",
+      "settings": {}
+    },
+    "product-certifications": {
+      "type": "product-certifications",
+      "settings": {}
+    },
+    "es-recipes": {
+      "type": "es-recipes",
+      "settings": {}
+    },
+    "es-discover": {
+      "type": "es-discover",
+      "settings": {}
+    },
+    "es-seo-content": {
+      "type": "es-seo-content",
+      "settings": {}
+    },
+    "es-email-invite": {
+      "type": "es-email-invite",
+      "settings": {}
+    }
+  },
+  "order": [
+    "breadcrumb",
+    "main-product-hero",
+    "product-description",
+    "es-recipes",
+    "es-discover",
+    "product-certifications",
+    "es-seo-content",
+    "es-email-invite"
+  ]
+}

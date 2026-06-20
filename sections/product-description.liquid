@@ -1,0 +1,78 @@
+{%- comment -%}
+  sections/product-description.liquid
+  Earthen Story — Section 1: Video + Description
+  CSS: earthen-story.css — .esd-section-inner, .esd-video-desc-grid,
+       .esd-video-wrap, .esd-play-btn, .esd-desc-text, .esd-benefits-list
+{%- endcomment -%}
+
+{%- liquid
+  assign product_video  = product.media | where: 'media_type', 'external_video' | first
+  if product_video == blank
+    assign product_video = product.media | where: 'media_type', 'video' | first
+  endif
+  assign benefits_raw   = product.metafields.custom.benefits.value
+  if benefits_raw != blank
+    assign benefit_lines = benefits_raw | newline_to_br | split: '<br />'
+  endif
+  assign desc_stripped  = product.description | strip_html
+-%}
+
+<div class="esd-section-inner">
+  <div class="esd-video-desc-grid">
+
+    <div class="esd-video-wrap" id="EsdVideo-{{ section.id }}">
+      {%- if product_video != nil -%}
+        {%- if product_video.external_id != blank -%}
+          <iframe
+            src="https://www.youtube.com/embed/{{ product_video.external_id }}?rel=0&modestbranding=1"
+            title="{{ product.title | escape }} — Product Video"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowfullscreen
+            loading="lazy"
+          ></iframe>
+        {%- else -%}
+          <video controls playsinline preload="none"
+            poster="{{ product_video.preview_image | image_url: width: 900 }}"
+            aria-label="{{ product.title | escape }} — Product Video"
+          >
+            {%- for source in product_video.sources -%}
+              {%- if source.format == 'mp4' or source.mime_type contains 'video' -%}
+                <source src="{{ source.url }}" type="{{ source.mime_type }}">
+              {%- endif -%}
+            {%- endfor -%}
+          </video>
+        {%- endif -%}
+      {%- else -%}
+        <div class="esd-play-btn" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+        <span class="esd-video-caption">{{ product.title }}</span>
+      {%- endif -%}
+    </div>
+
+    <div>
+      {%- if desc_stripped != blank -%}
+        <p class="esd-desc-text">{{ desc_stripped | truncate: 320 }}</p>
+      {%- endif -%}
+      {%- if benefits_raw != blank -%}
+        <ul class="esd-benefits-list">
+          {%- for line in benefit_lines -%}
+            {%- assign line_clean = line | strip -%}
+            {%- if line_clean != blank -%}<li><span>{{ line_clean }}</span></li>{%- endif -%}
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+    </div>
+
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Video + Description",
+  "tag": "section",
+  "class": "product-video-description-section",
+  "presets": [{ "name": "Video + Description" }],
+  "settings": []
+}
+{% endschema %}

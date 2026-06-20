@@ -1,0 +1,229 @@
+{
+  "sections": {
+    "es-refund": {
+      "type": "es-policy-page",
+      "settings": {
+        "hero_eyebrow": "Customer Care",
+        "hero_title": "Refund & Return Policy",
+        "hero_title_highlight": "Policy",
+        "hero_last_updated": "January 2025",
+        "hero_company": "Earthen Story Pvt. Ltd.",
+        "hero_email": "contact@earthenstory.com",
+        "promise_items": "3-day return window|Full refund for damaged items|Refunds within 7–10 business days|Dedicated support team",
+        "toc_label": "On this page",
+        "toc_contact_label": "Need to raise a return?",
+        "toc_contact_text": "Email us with your order number and we'll sort it within 1 business day.",
+        "toc_contact_email": "",
+        "toc_cta_label": "Email Us Now",
+        "toc_cta_url": "mailto:contact@earthenstory.com",
+        "intro_text": "<p>At Earthen Story, your satisfaction matters to us deeply. We take great care in sourcing, packaging, and delivering every product — but we understand that sometimes things don't go as expected.<\/p><p>This policy outlines when and how you can request a return or refund. If you have any questions not covered here, please reach out to us directly at <a href=\"mailto:hello@earthenstory.com\">hello@earthenstory.com<\/a> — we're always happy to help.<\/p>",
+        "cta_eyebrow": "We're here to help",
+        "cta_title": "Something wrong with your order?",
+        "cta_desc": "Get in touch within 3 days of delivery and we'll make it right.",
+        "cta_primary_label": "Email Us",
+        "cta_primary_url": "mailto:contact@earthenstory.com",
+        "cta_secondary_label": "Contact Page",
+        "cta_secondary_url": "\/pages\/contact"
+      },
+      "blocks": {
+        "s01": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "our-commitment",
+            "toc_label": "Our Commitment",
+            "section_num": "01",
+            "section_tag": "Overview",
+            "section_title": "Our Commitment to You",
+            "icon": "shield-check",
+            "content": "<p>We stand behind every product we sell. If your order arrives damaged, defective, or incorrect, we will make it right — no questions asked.<\/p>",
+            "advanced_content": "",
+            "highlight_text": "",
+            "warning_text": "",
+            "success_text": "<p><strong>3-day return window:<\/strong> You have 3 days from the date of delivery to contact us about a return or refund request. Requests made after this window may not be eligible.<\/p>",
+            "content_after": "<p>Because our products are perishable food items, we handle each case individually and fairly. We ask that you contact us as soon as you notice any issue so we can resolve it as quickly as possible.<\/p>",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s02": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "return-eligibility",
+            "toc_label": "Return Eligibility",
+            "section_num": "02",
+            "section_tag": "Eligibility",
+            "section_title": "Return Eligibility",
+            "icon": "shield",
+            "content": "<p>Not all situations qualify for a return or refund. Here's a clear breakdown:<\/p>",
+            "advanced_content": "<div class=\"ep-elig-grid\"><div class=\"ep-elig-card ep-elig-eligible\"><div class=\"ep-elig-header\"><span class=\"ep-elig-badge\">✓ Eligible<\/span><\/div><ul><li>Product arrived damaged or broken<\/li><li>Wrong item delivered<\/li><li>Product is defective or spoiled on arrival<\/li><li>Seal broken before delivery<\/li><li>Missing items from order<\/li><\/ul><\/div><div class=\"ep-elig-card ep-elig-not-eligible\"><div class=\"ep-elig-header\"><span class=\"ep-elig-badge\">✗ Not Eligible<\/span><\/div><ul><li>Change of mind after opening<\/li><li>Dislike of taste or flavour<\/li><li>Request made after 3 days of delivery<\/li><\/ul><\/div><\/div>",
+            "highlight_text": "",
+            "warning_text": "<p><strong>Pro tip:<\/strong> We strongly recommend recording a short unboxing video when you receive your order. This helps us resolve any damage or missing item claims quickly and without any back-and-forth.<\/p>",
+            "success_text": "",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s03": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "how-to-initiate",
+            "toc_label": "How to Initiate",
+            "section_num": "03",
+            "section_tag": "Process",
+            "section_title": "How to Initiate a Return",
+            "icon": "activity",
+            "content": "<p>Starting a return is simple. Follow these steps:<\/p>",
+            "advanced_content": "<div class=\"ep-steps\"><div class=\"ep-step\"><div class=\"ep-step-num\">1<\/div><div class=\"ep-step-body\"><strong>Email us within 3 days of delivery<\/strong><p>Write to <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a> with your order number, a description of the issue, and photos or a video of the problem.<\/p><\/div><\/div><div class=\"ep-step\"><div class=\"ep-step-num\">2<\/div><div class=\"ep-step-body\"><strong>We review your request<\/strong><p>Our team will assess your case and respond within 1–2 business days with a resolution — either a replacement, refund, or further instructions.<\/p><\/div><\/div><div class=\"ep-step\"><div class=\"ep-step-num\">3<\/div><div class=\"ep-step-body\"><strong>Return the item (if required)<\/strong><p>In some cases we may request the product be returned. We will provide return instructions and, where applicable, arrange pickup at no cost to you.<\/p><\/div><\/div><div class=\"ep-step\"><div class=\"ep-step-num\">4<\/div><div class=\"ep-step-body\"><strong>Refund or replacement issued<\/strong><p>Once approved, your refund or replacement will be processed promptly. Refunds go to your original payment method within 7–10 business days.<\/p><\/div><\/div><\/div>",
+            "highlight_text": "",
+            "warning_text": "",
+            "success_text": "",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s04": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "refund-timeline",
+            "toc_label": "Refund Timeline",
+            "section_num": "04",
+            "section_tag": "Timelines",
+            "section_title": "Refund Timeline",
+            "icon": "activity",
+            "content": "<p>Once your return is approved, here's what to expect:<\/p>",
+            "advanced_content": "<div class=\"ep-timeline\"><div class=\"ep-timeline-step\"><div class=\"ep-timeline-dot\">✓<\/div><div class=\"ep-timeline-label\">Approval<\/div><div class=\"ep-timeline-sub\">Same day or next business day<\/div><\/div><div class=\"ep-timeline-line\"><\/div><div class=\"ep-timeline-step\"><div class=\"ep-timeline-dot\">↻<\/div><div class=\"ep-timeline-label\">Processing<\/div><div class=\"ep-timeline-sub\">1–3 business days<\/div><\/div><div class=\"ep-timeline-line\"><\/div><div class=\"ep-timeline-step\"><div class=\"ep-timeline-dot\">₹<\/div><div class=\"ep-timeline-label\">Refund Credited<\/div><div class=\"ep-timeline-sub\">7–10 business days<\/div><\/div><\/div><p style=\"font-size:14px;color:#44464F;line-height:1.85;margin-top:20px;\">Refunds are credited to the original payment method used at checkout — UPI, credit\/debit card, or net banking. Please allow up to 10 business days for your bank to process the credit.<\/p>",
+            "highlight_text": "<p><strong>Note:<\/strong> If you haven't received your refund after 10 business days, please first check with your bank or payment provider. If the issue persists, contact us at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a> and we will investigate immediately.<\/p>",
+            "warning_text": "",
+            "success_text": "",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s05": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "damaged-wrong-items",
+            "toc_label": "Damaged or Wrong Items",
+            "section_num": "05",
+            "section_tag": "Priority Cases",
+            "section_title": "Damaged or Wrong Items",
+            "icon": "shield-check",
+            "content": "<p>If your order arrives damaged, spoiled, or contains the wrong items, please contact us <strong>immediately upon receipt<\/strong> — ideally within 24–48 hours of delivery.<\/p><ul><li>Take clear photos of the damaged packaging and the product itself<\/li><li>If possible, record a short unboxing video showing the condition on arrival<\/li><li>Email us at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a> with your order number and the evidence<\/li><\/ul>",
+            "advanced_content": "",
+            "highlight_text": "",
+            "warning_text": "",
+            "success_text": "<p><strong>We will prioritise your case<\/strong> and offer either a full refund or a replacement shipment at no additional cost to you. You will not be required to return damaged food products.<\/p>",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s06": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "non-returnable",
+            "toc_label": "Non-Returnable Items",
+            "section_num": "06",
+            "section_tag": "Exceptions",
+            "section_title": "Non-Returnable Items",
+            "icon": "info",
+            "content": "<p>Due to the perishable and consumable nature of our products, the following are not eligible for return or refund:<\/p><ul><li>Products that have been opened, used, or partially consumed — unless they arrived defective or damaged<\/li><li>Returns requested after the 3-day window from delivery date<\/li><li>Products where damage was caused after delivery due to improper storage or handling<\/li><li>Items from promotional offers or flash sales marked as final sale<\/li><\/ul><p>If you're unsure whether your situation qualifies, please reach out to us — we review all cases individually and always try to find a fair resolution.<\/p>",
+            "advanced_content": "",
+            "highlight_text": "",
+            "warning_text": "",
+            "success_text": "",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s07": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "shipping-costs",
+            "toc_label": "Shipping Costs",
+            "section_num": "07",
+            "section_tag": "Costs",
+            "section_title": "Shipping Costs",
+            "icon": "activity",
+            "content": "<p>How shipping costs are handled depends on the reason for return:<\/p><ul><li><strong>Our error (wrong or damaged item):<\/strong> We bear all return shipping costs. We will arrange pickup or reimburse you for postage.<\/li><li><strong>Original shipping charges:<\/strong> Shipping fees paid at checkout are non-refundable, unless the return is due to our error.<\/li><\/ul>",
+            "advanced_content": "",
+            "highlight_text": "<p><strong>Please do not return items without contacting us first.<\/strong> Unauthorised returns may not be accepted and could delay your refund.<\/p>",
+            "warning_text": "",
+            "success_text": "",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s08": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "contact",
+            "toc_label": "Contact Us",
+            "section_num": "08",
+            "section_tag": "Get in Touch",
+            "section_title": "Contact Us",
+            "icon": "phone",
+            "content": "<p>For all return and refund requests, or if you have any questions about this policy, please contact our support team:<\/p><ul><li><strong>Email:<\/strong> <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a><\/li><li><strong>Response time:<\/strong> Within 1–2 business days<\/li><li><strong>Include in your email:<\/strong> Order number, reason for return, and photos or video of the issue<\/li><\/ul><p>We read every message personally and are committed to resolving your issue as fairly and quickly as possible.<\/p>",
+            "advanced_content": "",
+            "highlight_text": "",
+            "warning_text": "",
+            "success_text": "",
+            "content_after": "",
+            "card1_icon": "email",
+            "card1_title": "Email Support",
+            "card1_text": "contact@earthenstory.com",
+            "card2_icon": "shield",
+            "card2_title": "Response Time",
+            "card2_text": "Within 1–2 business days. We read every message personally."
+          }
+        }
+      },
+      "block_order": [
+        "s01",
+        "s02",
+        "s03",
+        "s04",
+        "s05",
+        "s06",
+        "s07",
+        "s08"
+      ]
+    }
+  },
+  "order": [
+    "es-refund"
+  ]
+}

@@ -1,0 +1,310 @@
+{% comment %}
+  sections/bundle.liquid
+  Used on: templates/product.bundle.json
+
+  METAFIELD STORAGE (confirmed from Shopify admin + working reference files)
+  ──────────────────────────────────────────────────────────────────────────
+  custom.bundle_products          Single line text — comma-separated product HANDLES
+                                  e.g. "wheatgrass-powder, shatavari-powder, amla-powder"
+                                  → split on ',', strip, look up via all_products[handle]
+
+  custom.trust_strip              Single line text — semicolon-separated metaobject HANDLES
+                                  e.g. "certified-organic; lab-tested-pesticide-free; no-additives"
+                                  → split on ';', map handle → label + icon via {% case %}
+
+  custom.tagline                  Single line text → read directly ✓
+
+  custom.bundle_related_recipes   Single line text — semicolon-separated article HANDLES
+                                  e.g. "ghee-coffee-bulletproof; honey-lemon-drink"
+                                  → split on ';', strip, look up via articles['recipes/' + handle]
+
+  custom.bundle_related_articles  Single line text — semicolon-separated article HANDLES
+                                  e.g. "bilona-method-explained; raw-honey-vs-processed"
+                                  → split on ';', strip, look up via articles['blogs/' + handle]
+
+  variant.price / compare_at_price  → NATIVE ✓
+{% endcomment %}
+
+{{ 'bundle.css' | asset_url | stylesheet_tag }}
+
+{%- comment -%} ══ SHARED VARIABLES ══ {%- endcomment -%}
+{%- assign bundle_price  = product.selected_or_first_available_variant.price -%}
+{%- assign compare_price = product.selected_or_first_available_variant.compare_at_price -%}
+{%- assign save_amount   = compare_price | minus: bundle_price -%}
+{%- assign save_pct      = 0 -%}
+{%- if compare_price > 0 -%}
+  {%- assign save_pct = save_amount | times: 100 | divided_by: compare_price -%}
+{%- endif -%}
+
+{%- comment -%} Parse bundle_products: comma-separated handles → product objects {%- endcomment -%}
+{%- assign bp_raw        = product.metafields.custom.bundle_products.value | default: '' -%}
+{%- assign bp_handles    = bp_raw | split: ',' -%}
+{%- assign product_count = bp_handles | size -%}
+
+{%- comment -%} Sum individual prices for savings bar {%- endcomment -%}
+{%- assign individual_total = 0 -%}
+{%- for bp_handle_raw in bp_handles -%}
+  {%- assign bp_handle = bp_handle_raw | strip -%}
+  {%- assign bp_item   = all_products[bp_handle] -%}
+  {%- if bp_item -%}
+    {%- assign individual_total = individual_total | plus: bp_item.price -%}
+  {%- endif -%}
+{%- endfor -%}
+
+
+{%- comment -%} ══════════════════════════════════════
+  1. BUNDLE HERO
+══════════════════════════════════════ {%- endcomment -%}
+<section class="bundle-hero">
+  <div class="hero-inner">
+
+    {%- comment -%} ── LEFT: stacked product rows ── {%- endcomment -%}
+    <div class="bundle-left">
+
+      <span class="bundle-eyebrow">Bundle · {{ product_count }} Products</span>
+      <h1 class="bundle-title">{{ product.title }}</h1>
+      {%- if product.metafields.custom.tagline.value != blank -%}
+        <p class="bundle-tagline">{{ product.metafields.custom.tagline.value }}</p>
+      {%- endif -%}
+
+      <div class="included-list">
+        {%- for bp_handle_raw in bp_handles -%}
+          {%- assign bp_handle = bp_handle_raw | strip -%}
+          {%- assign bp = all_products[bp_handle] -%}
+          {%- if bp == blank -%}{%- continue -%}{%- endif -%}
+          {%- assign bp_tagline = bp.metafields.custom.tagline.value -%}
+
+          <a href="{{ bp.url }}" class="included-row">
+            <div class="ir-thumb">
+              <div class="mandala-bg"></div>
+              {%- if bp.featured_image -%}
+                {{
+                  bp.featured_image
+                  | image_url: width: 160
+                  | image_tag:
+                    class: 'ir-product-img',
+                    alt: bp.title,
+                    loading: 'lazy',
+                    width: 80,
+                    height: 80
+                }}
+              {%- else -%}
+                <span class="ir-emoji">🫙</span>
+              {%- endif -%}
+            </div>
+            <div class="ir-body">
+              {%- if bp.type != blank -%}
+                <div class="ir-meta">{{ bp.type }}</div>
+              {%- endif -%}
+              <div class="ir-name">{{ bp.title }}</div>
+              {%- if bp_tagline != blank -%}
+                <div class="ir-usp">{{ bp_tagline }}</div>
+              {%- endif -%}
+            </div>
+            <div class="ir-right">
+              <span class="ir-price">{{ bp.price | money }}</span>
+              <span class="ir-link">View ↗</span>
+            </div>
+          </a>
+
+        {%- endfor -%}
+      </div>
+
+      {%- comment -%} ── Savings bar ── {%- endcomment -%}
+      <div class="savings-bar">
+        <div class="savings-bar-left">
+          <span class="savings-icon">🎁</span>
+          <div class="savings-text">
+            Individual price: <strong>{{ individual_total | money }}</strong>
+            &nbsp;·&nbsp;
+            You save <strong>{{ save_amount | money }}</strong> with this bundle
+          </div>
+        </div>
+        <div class="savings-amount">Save {{ save_pct }}%</div>
+      </div>
+
+    </div>
+
+    {%- comment -%} ── RIGHT: purchase panel ── {%- endcomment -%}
+    <div class="bundle-right">
+
+      <div class="br-bundle-flag">✦ Curated Bundle</div>
+      <div class="br-name">{{ product.title }}</div>
+      <div class="br-sub">{{ product_count }} products · Free shipping included</div>
+
+      {%- comment -%}
+        ── Trust strip ──
+        Semicolon-separated handles: "certified-organic; lab-tested-pesticide-free; no-additives"
+        {% case %} maps each handle to the correct label + icon.
+      {%- endcomment -%}
+      {%- assign ts_raw     = product.metafields.custom.trust_strip.value | default: '' -%}
+      {%- assign ts_handles = ts_raw | split: ';' -%}
+
+      {%- if ts_raw != blank -%}
+        <div class="trust-strip">
+          {%- for ts_handle_raw in ts_handles -%}
+            {%- assign tsh = ts_handle_raw | strip | downcase -%}
+            {%- case tsh -%}
+              {%- when 'india-organic-certified', 'certified-organic' -%}
+                <div class="trust-item">
+                  <div class="cert-logo">India<br>Organic</div>
+                  <span class="trust-label">India Organic<br>Certified</span>
+                </div>
+              {%- when 'lab-tested-pesticide-free' -%}
+                <div class="trust-item">
+                  <span class="trust-icon">🔬</span>
+                  <span class="trust-label">Lab Tested<br>Pesticide-Free</span>
+                </div>
+              {%- when 'traditionally-processed' -%}
+                <div class="trust-item">
+                  <span class="trust-icon">⚗️</span>
+                  <span class="trust-label">Traditionally<br>Processed</span>
+                </div>
+              {%- when 'no-additives' -%}
+                <div class="trust-item">
+                  <span class="trust-icon">🌿</span>
+                  <span class="trust-label">No<br>Additives</span>
+                </div>
+              {%- else -%}
+                {%- if tsh != blank -%}
+                  <div class="trust-item">
+                    <span class="trust-icon">✓</span>
+                    <span class="trust-label">{{ tsh | replace: '-', ' ' | capitalize }}</span>
+                  </div>
+                {%- endif -%}
+            {%- endcase -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      {%- comment -%} ── Price + policy row ── {%- endcomment -%}
+      <div class="price-policy-row">
+        <span class="price-current">{{ bundle_price | money }}</span>
+        {%- if compare_price > bundle_price -%}
+          <span class="price-compare">{{ compare_price | money }}</span>
+          <span class="price-save-pct">Save {{ save_pct }}%</span>
+        {%- endif -%}
+        <div class="price-divider"></div>
+        <div class="policy-inline">
+          <span class="policy-item">
+            <svg viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/></svg>
+            Free shipping
+          </span>
+          <span class="policy-item">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            30-day returns
+          </span>
+        </div>
+      </div>
+
+      {%- comment -%} ── Purchase options + ATC form ── {%- endcomment -%}
+      {%- form 'product', product, id: 'bundle-product-form', data-type: 'add-to-cart-form' -%}
+        <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+
+        {%- if product.selling_plan_groups.size > 0 -%}
+          <div class="purchase-options" id="bundle-purchase-options">
+            <div class="purchase-option active" data-type="once">
+              <div class="radio-circle"><div class="radio-dot-inner"></div></div>
+              <div class="opt-body">
+                <div class="opt-row">
+                  <span class="opt-label">One-time</span>
+                  <span class="opt-price">{{ bundle_price | money }}</span>
+                </div>
+                <div class="opt-note">No commitment</div>
+              </div>
+            </div>
+
+            {%- assign sub_price = bundle_price | times: 0.9 | round -%}
+            <div class="purchase-option" data-type="sub">
+              <span class="opt-badge">Save 10%</span>
+              <div class="radio-circle"><div class="radio-dot-inner"></div></div>
+              <div class="opt-body">
+                <div class="opt-row">
+                  <span class="opt-label">Subscribe &amp; Save</span>
+                  <span class="opt-price sub">{{ sub_price | money }}</span>
+                </div>
+                <div class="opt-note">Cancel anytime</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="freq-box" id="freq-box">
+            <div class="freq-label-text">Delivery frequency</div>
+            <div class="freq-pills">
+              {%- for group in product.selling_plan_groups -%}
+                {%- for plan in group.selling_plans -%}
+                  <div class="freq-pill{% if forloop.index == 2 %} active{% endif %}"
+                       data-selling-plan-id="{{ plan.id }}">
+                    {{ plan.name }}
+                  </div>
+                {%- endfor -%}
+              {%- endfor -%}
+            </div>
+          </div>
+
+          <input type="hidden" name="selling_plan" id="bundle-selling-plan" value="">
+
+        {%- else -%}
+          <div class="purchase-options">
+            <div class="purchase-option active" style="grid-column: 1 / -1;" data-type="once">
+              <div class="radio-circle"><div class="radio-dot-inner"></div></div>
+              <div class="opt-body">
+                <div class="opt-row">
+                  <span class="opt-label">One-time purchase</span>
+                  <span class="opt-price">{{ bundle_price | money }}</span>
+                </div>
+                <div class="opt-note">No commitment</div>
+              </div>
+            </div>
+          </div>
+        {%- endif -%}
+
+        <div class="qty-cart-row">
+          <div class="qty-control">
+            <button type="button" class="qty-btn" id="bundle-qty-minus">−</button>
+            <div class="qty-val" id="bundle-qty">1</div>
+            <button type="button" class="qty-btn" id="bundle-qty-plus">+</button>
+          </div>
+          <input type="hidden" name="quantity" id="bundle-qty-input" value="1">
+          <button type="submit" class="add-to-cart">Add Bundle to Cart</button>
+        </div>
+
+      {%- endform -%}
+
+      <div class="guarantee-row">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        30-day money-back guarantee · If you're not satisfied, we'll refund you in full.
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+{%- comment -%} ══════════════════════════════════════
+  2. WHY THIS BUNDLE WORKS
+  Source: product.description (NATIVE rich text)
+  The description field contains exactly 3 .why-card div blocks authored
+  directly in Shopify's HTML editor. {{ product.description }} outputs
+  them raw — .why-grid provides the 3-column CSS grid wrapper.
+  DO NOT parse, split, or strip_html this field.
+══════════════════════════════════════ {%- endcomment -%}
+{%- if product.description != blank -%}
+  <div class="below-fold">
+    <div class="section-block">
+      <h2 class="section-title">Why This Bundle Works</h2>
+      <div class="why-grid">
+        {{ product.description }}
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+
+{%- comment -%} ══════════════════════════════════════
+  3. RECIPES & DISCOVER
+  Handled by es-recipes and es-discover sections in product.bundle.json.
+  Metafields: custom.bundle_related_recipes, custom.bundle_related_articles
+══════════════════════════════════════ {%- endcomment -%}
+
+<script src="{{ 'bundle.js' | asset_url }}" defer></script>

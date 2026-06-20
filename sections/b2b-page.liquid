@@ -1,0 +1,691 @@
+{% comment %}
+  ════════════════════════════════════════════════════════════════
+  Section: b2b-page.liquid
+  Template: page.b2b.json
+
+  All content is managed via section settings and blocks.
+  Edit everything from the Shopify theme editor — no code changes needed.
+
+  Block types:
+    audience_tag  — "We supply to" cards in the hero right column
+    problem_card  — Mission section problem / solution cards
+    category      — Product category tiles in the supply grid
+    trust_card    — "Why source from us" trust cards
+  ════════════════════════════════════════════════════════════════
+{% endcomment %}
+
+{{ 'b2b-page.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign b2b_email       = section.settings.contact_email | default: 'biz.earthenstory@gmail.com'
+  assign lab_reports_url = section.settings.lab_reports_url | default: '/pages/test-reports'
+  assign story_url       = section.settings.story_url | default: '/pages/our-story'
+  assign collections_url = section.settings.collections_url | default: '/collections/all-products'
+  assign google_form_id  = section.settings.google_form_id
+
+  assign audience_tags = section.blocks | where: "type", "audience_tag"
+  assign problem_cards = section.blocks | where: "type", "problem_card"
+  assign categories    = section.blocks | where: "type", "category"
+  assign trust_cards   = section.blocks | where: "type", "trust_card"
+-%}
+
+<!-- ══════════════════════════════════════
+     BREADCRUMB
+══════════════════════════════════════ -->
+<div class="b2b-breadcrumb">
+  <a href="{{ routes.root_url }}">Home</a> &nbsp;/&nbsp;
+  <span>{{ section.settings.breadcrumb_label | default: 'B2B &amp; Wholesale' }}</span>
+</div>
+
+<!-- ══════════════════════════════════════
+     1. HERO
+══════════════════════════════════════ -->
+<section class="b2b-hero">
+  <div class="b2b-hero-inner">
+    <div>
+      <span class="b2b-hero-eyebrow">{{ section.settings.hero_eyebrow | default: 'B2B &amp; Wholesale' }}</span>
+      <h1 class="b2b-hero-title">
+        {{ section.settings.hero_title | default: 'Certified Organic Supply' }}
+        {%- if section.settings.hero_title_em != blank -%}
+          <br><em>{{ section.settings.hero_title_em }}</em>
+        {%- endif -%}
+      </h1>
+      <p class="b2b-hero-sub">{{ section.settings.hero_subtitle | default: 'Consistent supply of genuinely organic, lab-tested products — backed by transaction certificates, NABL lab reports, and FSSAI certification.' }}</p>
+      <div class="b2b-hero-ctas">
+        <a href="#b2b-inquiry" class="b2b-btn-gold">{{ section.settings.hero_cta_primary_label | default: 'Send an Inquiry' }}</a>
+        <a href="{{ lab_reports_url }}" class="b2b-btn-ghost">{{ section.settings.hero_cta_ghost_label | default: 'View Lab Reports →' }}</a>
+      </div>
+    </div>
+    <div>
+      <div class="b2b-audience-label">{{ section.settings.hero_audience_label | default: 'We supply to' }}</div>
+      <div class="b2b-audience-tags">
+        {%- for block in audience_tags -%}
+          <div class="b2b-audience-tag" {{ block.shopify_attributes }}>
+            <span class="b2b-at-icon">{{ block.settings.icon }}</span>
+            <div>
+              <div class="b2b-at-name">{{ block.settings.name }}</div>
+              <div class="b2b-at-desc">{{ block.settings.desc }}</div>
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     2. MISSION
+══════════════════════════════════════ -->
+<section class="b2b-mission">
+  <div class="b2b-mission-inner">
+    <div>
+      <span class="b2b-eyebrow">{{ section.settings.mission_eyebrow | default: 'Why We Started' }}</span>
+      <h2 class="b2b-mission-title">{{ section.settings.mission_title | default: 'First-Generation Entrepreneurs, One Clear Mission.' }}</h2>
+      {%- if section.settings.mission_body_1 != blank -%}
+        <p class="b2b-mission-body">{{ section.settings.mission_body_1 }}</p>
+      {%- endif -%}
+      {%- if section.settings.mission_body_2 != blank -%}
+        <p class="b2b-mission-body">{{ section.settings.mission_body_2 }}</p>
+      {%- endif -%}
+      <a href="{{ story_url }}" class="b2b-mission-link">{{ section.settings.mission_cta_label | default: 'Read Our Full Story →' }}</a>
+    </div>
+    <div class="b2b-mission-right">
+      {%- for block in problem_cards -%}
+        <div class="b2b-problem-card{% if block.settings.highlight %} highlight{% endif %}" {{ block.shopify_attributes }}>
+          <div class="b2b-pc-icon">{{ block.settings.icon }}</div>
+          <div class="b2b-pc-title">{{ block.settings.title }}</div>
+          <div class="b2b-pc-body">{{ block.settings.body }}</div>
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     3. WHAT WE SUPPLY
+══════════════════════════════════════ -->
+<section class="b2b-supply">
+  <div class="b2b-supply-inner">
+    <span class="b2b-eyebrow">{{ section.settings.supply_eyebrow | default: 'Our Range' }}</span>
+    <div class="b2b-supply-title">{{ section.settings.supply_title | default: 'What We Supply' }}</div>
+    <div class="b2b-supply-sub">{{ section.settings.supply_subtitle | default: 'Browse any category to see individual products, certifications, and specifications.' }}</div>
+    <div class="b2b-cat-grid">
+      {%- for block in categories -%}
+        <a href="{{ block.settings.url }}" class="b2b-cat-tile" {{ block.shopify_attributes }}>
+          <div class="b2b-cat-icon">{{ block.settings.icon }}</div>
+          <div class="b2b-cat-name">{{ block.settings.name }}</div>
+        </a>
+      {%- endfor -%}
+    </div>
+    {%- if section.settings.supply_browse_text != blank -%}
+      <div class="b2b-supply-browse">
+        {{ section.settings.supply_browse_text }} &nbsp;<a href="{{ collections_url }}">earthenstory.com/collections/all-products</a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     4. WHY SOURCE FROM US
+══════════════════════════════════════ -->
+<section class="b2b-trust">
+  <div class="b2b-trust-inner">
+    <span class="b2b-eyebrow">{{ section.settings.trust_eyebrow | default: 'Why Earthen Story' }}</span>
+    <div class="b2b-trust-title">{{ section.settings.trust_title | default: 'What Sets Our Supply Apart' }}</div>
+    <div class="b2b-trust-grid">
+      {%- for block in trust_cards -%}
+        <div class="b2b-trust-card" {{ block.shopify_attributes }}>
+          <div class="b2b-tc-icon">{{ block.settings.icon }}</div>
+          <div>
+            <div class="b2b-tc-title">{{ block.settings.title }}</div>
+            <div class="b2b-tc-desc">{{ block.settings.desc }}</div>
+            {%- if block.settings.show_lab_link -%}
+              <a href="{{ lab_reports_url }}" class="b2b-tc-link">{{ block.settings.lab_link_label | default: 'View all lab reports →' }}</a>
+            {%- endif -%}
+          </div>
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     5. INQUIRY FORM
+══════════════════════════════════════ -->
+<section class="b2b-form-section" id="b2b-inquiry">
+  <div class="b2b-form-inner">
+
+    <div>
+      <span class="b2b-eyebrow">{{ section.settings.form_eyebrow | default: 'Get in Touch' }}</span>
+      <h2 class="b2b-form-title">{{ section.settings.form_title | default: 'Tell Us About Your Requirements' }}</h2>
+      <p class="b2b-form-desc">{{ section.settings.form_desc | default: 'Fill in the form and we will get back to you within 2 business days.' }}</p>
+      <div class="b2b-form-contact-block">
+        <span class="b2b-fcb-label">{{ section.settings.form_direct_label | default: 'Prefer to write directly?' }}</span>
+        <a href="mailto:{{ b2b_email }}" class="b2b-fcb-email">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          {{ b2b_email }}
+        </a>
+        {%- if section.settings.contact_phone != blank -%}
+          <a href="tel:{{ section.settings.contact_phone | remove: ' ' }}" class="b2b-fcb-email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.9 1.17h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 5.99 5.99l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.02z"/>
+            </svg>
+            {{ section.settings.contact_phone }}
+          </a>
+        {%- endif -%}
+        <div class="b2b-fcb-note">{{ section.settings.form_response_note | default: 'We typically respond within 1-2 business days.' }}</div>
+      </div>
+    </div>
+
+    <div class="b2b-form-panel">
+      <h3>{{ section.settings.form_panel_title | default: 'Wholesale Inquiry' }}</h3>
+
+      {%- if google_form_id != blank -%}
+        <iframe
+          src="https://docs.google.com/forms/d/e/{{ google_form_id }}/viewform?embedded=true"
+          width="100%" height="800" frameborder="0"
+          marginheight="0" marginwidth="0"
+          title="Wholesale Inquiry Form">Loading…</iframe>
+      {%- else -%}
+        {%- assign form_to    = section.settings.contact_email | default: 'biz.earthenstory@gmail.com' -%}
+        {%- assign form_cc    = section.settings.contact_email_cc | default: '' -%}
+        {%- assign form_subj  = section.settings.form_email_subject | default: 'B2B Wholesale Inquiry — Earthen Story' -%}
+
+        <div id="b2b-form-success" class="b2b-form-success" style="display:none;">
+          ✓ Thank you — we'll be in touch within 2 business days.
+        </div>
+
+        <form
+          id="b2b-contact-form"
+          action="https://formsubmit.co/ajax/{{ form_to }}"
+          method="POST"
+          style="display:block;">
+
+          {{- '' -}}<!-- Formsubmit.co hidden controls -->
+          {%- if form_cc != blank -%}
+            <input type="hidden" name="_cc" value="{{ form_cc }}">
+          {%- endif -%}
+          <input type="hidden" name="_subject" value="{{ form_subj }}">
+          <input type="hidden" name="_captcha" value="false">
+          <input type="hidden" name="_template" value="table">
+
+          <div class="b2b-form-row-2">
+            <div>
+              <label class="b2b-form-label" for="b2b-name">Your Name <span class="req">*</span></label>
+              <input class="b2b-form-input" id="b2b-name" type="text" name="Name" placeholder="Full name" required>
+            </div>
+            <div>
+              <label class="b2b-form-label" for="b2b-org">Organisation <span class="req">*</span></label>
+              <input class="b2b-form-input" id="b2b-org" type="text" name="Organisation" placeholder="Company / restaurant name" required>
+            </div>
+          </div>
+
+          <div class="b2b-form-row-2">
+            <div>
+              <label class="b2b-form-label" for="b2b-email">Email <span class="req">*</span></label>
+              <input class="b2b-form-input" id="b2b-email" type="email" name="Email" placeholder="you@company.com" required>
+            </div>
+            <div>
+              <label class="b2b-form-label" for="b2b-country">Country <span class="req">*</span></label>
+              <select class="b2b-form-select" id="b2b-country" name="Country">
+                <option value="" disabled selected>Select country</option>
+                <option>India</option>
+                <option>United States</option>
+                <option>United Kingdom</option>
+                <option>UAE</option>
+                <option>Singapore</option>
+                <option>Australia</option>
+                <option>Canada</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="b2b-form-row">
+            <label class="b2b-form-label">Categories of Interest <span class="req">*</span></label>
+            <div class="b2b-checkbox-group">
+              <label class="b2b-checkbox-item"><input type="checkbox" name="Categories" value="Ghee"> <span>Ghee</span></label>
+              <label class="b2b-checkbox-item"><input type="checkbox" name="Categories" value="Honey"> <span>Honey</span></label>
+              <label class="b2b-checkbox-item"><input type="checkbox" name="Categories" value="Oils"> <span>Oils</span></label>
+              <label class="b2b-checkbox-item"><input type="checkbox" name="Categories" value="Flours"> <span>Flours</span></label>
+              <label class="b2b-checkbox-item"><input type="checkbox" name="Categories" value="Seeds"> <span>Seeds</span></label>
+              <label class="b2b-checkbox-item"><input type="checkbox" name="Categories" value="Dry Fruits"> <span>Dry Fruits</span></label>
+              <label class="b2b-checkbox-item"><input type="checkbox" name="Categories" value="Gulkand"> <span>Gulkand</span></label>
+              <label class="b2b-checkbox-item"><input type="checkbox" name="Categories" value="Herbal Powders"> <span>Herbal Powders</span></label>
+            </div>
+          </div>
+
+          <div class="b2b-form-row">
+            <label class="b2b-form-label" for="b2b-volume">Approximate Monthly Quantity</label>
+            <select class="b2b-form-select" id="b2b-volume" name="Monthly Volume">
+              <option value="" disabled selected>Select approximate volume</option>
+              <option>Under 50 kg / month</option>
+              <option>50 - 200 kg / month</option>
+              <option>200 - 500 kg / month</option>
+              <option>500 kg - 1 tonne / month</option>
+              <option>Over 1 tonne / month</option>
+            </select>
+          </div>
+
+          <div class="b2b-form-row">
+            <label class="b2b-form-label" for="b2b-message">Tell us more about your requirements</label>
+            <textarea class="b2b-form-input" id="b2b-message" name="Message" rows="3"
+              placeholder="Products needed, certifications required, delivery location, any other details..."
+              style="resize:vertical;"></textarea>
+          </div>
+
+          <button type="submit" id="b2b-submit-btn" class="b2b-form-submit">
+            {{ section.settings.form_submit_label | default: 'Submit Inquiry' }}
+          </button>
+          <p class="b2b-form-note">{{ section.settings.form_privacy_note | default: 'We will respond within 2 business days. Your information is never shared.' }}</p>
+        </form>
+
+        <script>
+          (function () {
+            var form    = document.getElementById('b2b-contact-form');
+            var btn     = document.getElementById('b2b-submit-btn');
+            var success = document.getElementById('b2b-form-success');
+            if (!form) return;
+
+            form.addEventListener('submit', function (e) {
+              e.preventDefault();
+
+              var originalLabel = btn.textContent.trim();
+              btn.disabled    = true;
+              btn.textContent = 'Sending…';
+
+              fetch(form.action, {
+                method:  'POST',
+                body:    new FormData(form),
+                headers: { 'Accept': 'application/json' }
+              })
+              .then(function (res) { return res.json(); })
+              .then(function (data) {
+                if (data.success === 'true' || data.success === true) {
+                  form.style.display    = 'none';
+                  success.style.display = 'block';
+                } else {
+                  btn.disabled    = false;
+                  btn.textContent = originalLabel;
+                  alert('Something went wrong. Please email us directly at {{ b2b_email }}');
+                }
+              })
+              .catch(function () {
+                btn.disabled    = false;
+                btn.textContent = originalLabel;
+                alert('Something went wrong. Please email us directly at {{ b2b_email }}');
+              });
+            });
+          })();
+        </script>
+      {%- endif -%}
+    </div>
+
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "B2B Page",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "header",
+      "content": "— Hero —"
+    },
+    {
+      "type": "text",
+      "id": "hero_eyebrow",
+      "label": "Eyebrow text",
+      "default": "B2B & Wholesale"
+    },
+    {
+      "type": "text",
+      "id": "hero_title",
+      "label": "Headline",
+      "default": "Certified Organic Supply"
+    },
+    {
+      "type": "text",
+      "id": "hero_title_em",
+      "label": "Headline — italic second line",
+      "default": "for Businesses.",
+      "info": "Displayed in italics on the second line of the hero heading"
+    },
+    {
+      "type": "textarea",
+      "id": "hero_subtitle",
+      "label": "Sub-headline paragraph",
+      "default": "Consistent supply of genuinely organic, lab-tested products — backed by transaction certificates, NABL lab reports, and FSSAI certification. For distributors, HoReCa, and export buyers who need traceability they can rely on."
+    },
+    {
+      "type": "text",
+      "id": "hero_cta_primary_label",
+      "label": "Primary CTA label",
+      "default": "Send an Inquiry"
+    },
+    {
+      "type": "text",
+      "id": "hero_cta_ghost_label",
+      "label": "Ghost CTA label",
+      "default": "View Lab Reports →"
+    },
+    {
+      "type": "text",
+      "id": "hero_audience_label",
+      "label": "Audience column heading",
+      "default": "We supply to"
+    },
+    {
+      "type": "header",
+      "content": "— Mission —"
+    },
+    {
+      "type": "text",
+      "id": "mission_eyebrow",
+      "label": "Eyebrow text",
+      "default": "Why We Started"
+    },
+    {
+      "type": "text",
+      "id": "mission_title",
+      "label": "Section heading",
+      "default": "First-Generation Entrepreneurs, One Clear Mission."
+    },
+    {
+      "type": "textarea",
+      "id": "mission_body_1",
+      "label": "Paragraph 1",
+      "default": "We started Earthen Story because we saw two problems that nobody was solving honestly. Indian agriculture uses some of the highest concentrations of pesticides in the world — yet most \"organic\" products on shelves offer no verifiable proof. And the traditional processing methods that preserved nutrition for generations — bilona churning, cold pressing, stone grinding — have been replaced by industrial shortcuts that cut cost but strip quality."
+    },
+    {
+      "type": "textarea",
+      "id": "mission_body_2",
+      "label": "Paragraph 2",
+      "default": "Earthen Story was built to fix both. We source directly from certified organic farms with transaction certificates for every batch. We process the traditional way. And we test everything — independently, by NABL-accredited labs — and publish every report publicly. No selective disclosure."
+    },
+    {
+      "type": "text",
+      "id": "mission_cta_label",
+      "label": "Story link label",
+      "default": "Read Our Full Story →"
+    },
+    {
+      "type": "header",
+      "content": "— What We Supply —"
+    },
+    {
+      "type": "text",
+      "id": "supply_eyebrow",
+      "label": "Eyebrow text",
+      "default": "Our Range"
+    },
+    {
+      "type": "text",
+      "id": "supply_title",
+      "label": "Section heading",
+      "default": "What We Supply"
+    },
+    {
+      "type": "text",
+      "id": "supply_subtitle",
+      "label": "Subtitle",
+      "default": "Browse any category to see individual products, certifications, and specifications."
+    },
+    {
+      "type": "text",
+      "id": "supply_browse_text",
+      "label": "Browse link prefix text",
+      "default": "Full product range at"
+    },
+    {
+      "type": "header",
+      "content": "— Why Source From Us —"
+    },
+    {
+      "type": "text",
+      "id": "trust_eyebrow",
+      "label": "Eyebrow text",
+      "default": "Why Earthen Story"
+    },
+    {
+      "type": "text",
+      "id": "trust_title",
+      "label": "Section heading",
+      "default": "What Sets Our Supply Apart"
+    },
+    {
+      "type": "header",
+      "content": "— Inquiry Form —"
+    },
+    {
+      "type": "text",
+      "id": "form_eyebrow",
+      "label": "Eyebrow text",
+      "default": "Get in Touch"
+    },
+    {
+      "type": "text",
+      "id": "form_title",
+      "label": "Form section heading",
+      "default": "Tell Us About Your Requirements"
+    },
+    {
+      "type": "textarea",
+      "id": "form_desc",
+      "label": "Form description",
+      "default": "Fill in the form and we will get back to you within 2 business days. We will share product specifications, certifications, pricing, and discuss supply terms directly."
+    },
+    {
+      "type": "text",
+      "id": "form_direct_label",
+      "label": "Direct email prompt",
+      "default": "Prefer to write directly?"
+    },
+    {
+      "type": "text",
+      "id": "form_response_note",
+      "label": "Response time note",
+      "default": "We typically respond within 1-2 business days."
+    },
+    {
+      "type": "text",
+      "id": "form_panel_title",
+      "label": "Form panel heading",
+      "default": "Wholesale Inquiry"
+    },
+    {
+      "type": "text",
+      "id": "form_submit_label",
+      "label": "Submit button label",
+      "default": "Submit Inquiry"
+    },
+    {
+      "type": "text",
+      "id": "form_privacy_note",
+      "label": "Privacy note below button",
+      "default": "We will respond within 2 business days. Your information is never shared."
+    },
+    {
+      "type": "header",
+      "content": "— Page Links —"
+    },
+    {
+      "type": "text",
+      "id": "contact_email",
+      "label": "B2B contact email (primary)",
+      "default": "biz.earthenstory@gmail.com",
+      "info": "Form submissions are sent to this address"
+    },
+    {
+      "type": "text",
+      "id": "contact_email_cc",
+      "label": "CC email (second recipient)",
+      "default": "earthenstory@gmail.com",
+      "info": "Leave blank to send to the primary address only"
+    },
+    {
+      "type": "text",
+      "id": "form_email_subject",
+      "label": "Inquiry email subject line",
+      "default": "B2B Wholesale Inquiry — Earthen Story"
+    },
+    {
+      "type": "text",
+      "id": "contact_phone",
+      "label": "B2B contact phone",
+      "placeholder": "+91 93218 08835",
+      "info": "Leave blank to hide the phone number"
+    },
+    {
+      "type": "url",
+      "id": "lab_reports_url",
+      "label": "Lab Reports page URL"
+    },
+    {
+      "type": "url",
+      "id": "story_url",
+      "label": "Our Story page URL"
+    },
+    {
+      "type": "url",
+      "id": "collections_url",
+      "label": "All collections URL"
+    },
+    {
+      "type": "text",
+      "id": "google_form_id",
+      "label": "Google Form embed ID",
+      "info": "Paste only the ID from the Google Form URL (part after /d/e/ and before /viewform). Leave blank to use the native Shopify contact form."
+    },
+    {
+      "type": "text",
+      "id": "breadcrumb_label",
+      "label": "Breadcrumb label",
+      "default": "B2B & Wholesale"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "audience_tag",
+      "name": "Audience Tag",
+      "settings": [
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icon (emoji)",
+          "default": "🏭"
+        },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Audience name",
+          "default": "Distributors & Bulk Buyers"
+        },
+        {
+          "type": "text",
+          "id": "desc",
+          "label": "Short description",
+          "default": "Consistent supply with full certification documentation"
+        }
+      ]
+    },
+    {
+      "type": "problem_card",
+      "name": "Problem / Solution Card",
+      "settings": [
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icon (emoji)",
+          "default": "🌾"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Card title",
+          "default": "Problem 1 — Title"
+        },
+        {
+          "type": "textarea",
+          "id": "body",
+          "label": "Card body text"
+        },
+        {
+          "type": "checkbox",
+          "id": "highlight",
+          "label": "Highlight card (gold background)",
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "category",
+      "name": "Product Category",
+      "settings": [
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icon (emoji)",
+          "default": "🫙"
+        },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Category name",
+          "default": "Ghee"
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "Collection URL"
+        }
+      ]
+    },
+    {
+      "type": "trust_card",
+      "name": "Trust Card",
+      "settings": [
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icon (emoji)",
+          "default": "📜"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Card title",
+          "default": "Why we're different"
+        },
+        {
+          "type": "textarea",
+          "id": "desc",
+          "label": "Card description"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_lab_link",
+          "label": "Show lab reports link",
+          "default": false,
+          "info": "Adds a 'View all lab reports →' link at the bottom of this card"
+        },
+        {
+          "type": "text",
+          "id": "lab_link_label",
+          "label": "Lab link label",
+          "default": "View all lab reports →"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "B2B Page"
+    }
+  ]
+}
+{% endschema %}

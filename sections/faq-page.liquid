@@ -1,0 +1,450 @@
+{{ 'faq-page.css' | asset_url | stylesheet_tag }}
+
+<!-- ══════════════════════════════════════
+     BREADCRUMB
+══════════════════════════════════════ -->
+<nav class="faq-breadcrumb">
+  <a href="{{ routes.root_url }}">Home</a>
+  <span class="faq-bc-sep">/</span>
+  <span>{{ section.settings.breadcrumb_label }}</span>
+</nav>
+
+<!-- ══════════════════════════════════════
+     HERO
+══════════════════════════════════════ -->
+<section class="faq-hero">
+  <svg class="faq-hero-watermark" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+    <path d="M200 20 C200 20 340 80 360 200 C380 320 280 380 200 380 C120 380 20 320 40 200 C60 80 200 20 200 20Z" fill="white"/>
+    <path d="M200 20 L200 380" stroke="white" stroke-width="1.5"/>
+    <path d="M200 100 C230 120 280 150 300 200" stroke="white" stroke-width="1"/>
+    <path d="M200 140 C170 160 130 180 110 220" stroke="white" stroke-width="1"/>
+    <path d="M200 200 C240 210 280 230 310 260" stroke="white" stroke-width="1"/>
+    <path d="M200 200 C160 215 130 240 100 270" stroke="white" stroke-width="1"/>
+  </svg>
+  <div class="faq-hero-inner">
+    {%- if section.settings.hero_eyebrow != blank -%}
+      <span class="faq-hero-eyebrow">{{ section.settings.hero_eyebrow }}</span>
+    {%- endif -%}
+    <h1 class="faq-hero-title">
+      {{ section.settings.hero_title }}
+      {%- if section.settings.hero_title_highlight != blank -%}
+        <em>{{ section.settings.hero_title_highlight }}</em>
+      {%- endif -%}
+    </h1>
+    {%- if section.settings.hero_subtitle != blank -%}
+      <p class="faq-hero-sub">{{ section.settings.hero_subtitle }}</p>
+    {%- endif -%}
+    {%- if section.settings.show_search -%}
+      <div class="faq-hero-search">
+        <input
+          type="text"
+          id="faqSearchInput"
+          placeholder="{{ section.settings.search_placeholder }}"
+          oninput="faqSearch(this.value)"
+          autocomplete="off"
+        >
+        <button type="button" onclick="faqSearch(document.getElementById('faqSearchInput').value)">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          {{ section.settings.search_btn_label }}
+        </button>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     MOBILE CATEGORY CHIPS
+══════════════════════════════════════ -->
+<div class="faq-cat-chips" aria-hidden="true">
+  {%- for block in section.blocks -%}
+    {%- if block.type == 'faq_category' -%}
+      {%- assign cat_anchor = block.settings.anchor | default: block.settings.title | handleize -%}
+      <a href="#{{ cat_anchor }}" class="faq-cat-chip">{{ block.settings.icon }} {{ block.settings.title }}</a>
+    {%- endif -%}
+  {%- endfor -%}
+</div>
+
+<!-- ══════════════════════════════════════
+     BODY — sidebar + content
+══════════════════════════════════════ -->
+<div class="faq-body">
+
+  <!-- SIDEBAR CATEGORY NAV -->
+  <aside class="faq-cat-nav">
+    <span class="faq-cat-nav-label">Categories</span>
+    <ul class="faq-cat-nav-list">
+      {%- assign first_cat = true -%}
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'faq_category' -%}
+          {%- assign cat_anchor = block.settings.anchor | default: block.settings.title | handleize -%}
+          <li>
+            <a href="#{{ cat_anchor }}"{% if first_cat %} class="active"{% endif %}>
+              <span class="faq-cat-nav-icon">{{ block.settings.icon }}</span>
+              {{ block.settings.title }}
+            </a>
+          </li>
+          {%- assign first_cat = false -%}
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+
+    {%- if section.settings.still_stuck_heading != blank -%}
+      <div class="faq-still-stuck">
+        <h4>{{ section.settings.still_stuck_heading }}</h4>
+        <p>{{ section.settings.still_stuck_body }}</p>
+        <a href="mailto:{{ section.settings.still_stuck_email }}" class="faq-still-stuck-btn">
+          <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          {{ section.settings.still_stuck_btn_label }}
+        </a>
+      </div>
+    {%- endif -%}
+  </aside>
+
+  <!-- FAQ CONTENT -->
+  <div class="faq-content">
+
+    <!-- No results state -->
+    <div class="faq-no-results" id="faqNoResults">
+      <p>No results found for <strong id="faqSearchTerm"></strong>. Try a different keyword or <a href="mailto:{{ section.settings.still_stuck_email }}">contact us directly</a>.</p>
+    </div>
+
+    <!-- Categories + items (interleaved blocks) -->
+    {%- assign in_category = false -%}
+    {%- for block in section.blocks -%}
+
+      {%- if block.type == 'faq_category' -%}
+
+        {%- if in_category -%}
+          </div><!-- /faq-list -->
+        </div><!-- /faq-category -->
+        {%- endif -%}
+
+        {%- assign cat_anchor = block.settings.anchor | default: block.settings.title | handleize -%}
+        {%- assign in_category = true -%}
+
+        <div class="faq-category" id="{{ cat_anchor }}" {{ block.shopify_attributes }}>
+          <div class="faq-cat-header">
+            <div class="faq-cat-icon-wrap">{{ block.settings.icon }}</div>
+            <div>
+              <span class="faq-cat-tag">{{ block.settings.tag }}</span>
+              <h2 class="faq-cat-title">{{ block.settings.title }}</h2>
+            </div>
+          </div>
+          <div class="faq-list">
+
+      {%- elsif block.type == 'faq_item' and in_category -%}
+
+            <div class="faq-item" {{ block.shopify_attributes }}>
+              <button type="button" class="faq-question" onclick="faqToggle(this)">
+                <span class="faq-q-text">{{ block.settings.question }}</span>
+                <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="faq-answer">
+                <div class="faq-answer-inner">{{ block.settings.answer }}</div>
+              </div>
+            </div>
+
+      {%- endif -%}
+
+    {%- endfor -%}
+
+    {%- if in_category -%}
+          </div><!-- /faq-list -->
+        </div><!-- /faq-category -->
+    {%- endif -%}
+
+    <!-- CONTACT CTA -->
+    <div class="faq-contact">
+      <div>
+        {%- if section.settings.contact_eyebrow != blank -%}
+          <span class="faq-contact-eyebrow">{{ section.settings.contact_eyebrow }}</span>
+        {%- endif -%}
+        <h3 class="faq-contact-title">{{ section.settings.contact_title }}</h3>
+        {%- if section.settings.contact_desc != blank -%}
+          <p class="faq-contact-desc">{{ section.settings.contact_desc }}</p>
+        {%- endif -%}
+      </div>
+      <div class="faq-contact-right">
+        {%- if section.settings.contact_email != blank -%}
+          <a href="mailto:{{ section.settings.contact_email }}" class="faq-contact-btn primary">
+            <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            {{ section.settings.contact_email_label }}
+          </a>
+        {%- endif -%}
+        {%- if section.settings.contact_page_url != blank -%}
+          <a href="{{ section.settings.contact_page_url }}" class="faq-contact-btn secondary">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            {{ section.settings.contact_page_label }}
+          </a>
+        {%- endif -%}
+      </div>
+    </div>
+
+  </div><!-- /faq-content -->
+
+</div><!-- /faq-body -->
+
+<script>
+  /* ── Accordion ── */
+  function faqToggle(btn) {
+    var answer = btn.nextElementSibling;
+    var isOpen = btn.classList.contains('open');
+    document.querySelectorAll('.faq-question.open').forEach(function(q) {
+      q.classList.remove('open');
+      q.nextElementSibling.classList.remove('open');
+    });
+    if (!isOpen) {
+      btn.classList.add('open');
+      answer.classList.add('open');
+    }
+  }
+
+  /* ── Search / filter ── */
+  function faqSearch(query) {
+    var q = query.trim().toLowerCase();
+    var noResults = document.getElementById('faqNoResults');
+    var searchTerm = document.getElementById('faqSearchTerm');
+    var totalVisible = 0;
+
+    document.querySelectorAll('.faq-item').forEach(function(item) {
+      var qText = item.querySelector('.faq-q-text');
+      var aText = item.querySelector('.faq-answer-inner');
+      var text = (qText ? qText.textContent : '') + ' ' + (aText ? aText.textContent : '');
+      var match = !q || text.toLowerCase().includes(q);
+      item.classList.toggle('faq-item--hidden', !match);
+      if (match) totalVisible++;
+    });
+
+    document.querySelectorAll('.faq-category').forEach(function(cat) {
+      var visible = cat.querySelectorAll('.faq-item:not(.faq-item--hidden)').length;
+      cat.style.display = (visible === 0 && q) ? 'none' : '';
+    });
+
+    if (q && totalVisible === 0) {
+      if (noResults) noResults.style.display = 'block';
+      if (searchTerm) searchTerm.textContent = '\u201c' + query + '\u201d';
+    } else {
+      if (noResults) noResults.style.display = 'none';
+    }
+  }
+
+  /* ── Enter key on search ── */
+  var searchInput = document.getElementById('faqSearchInput');
+  if (searchInput) {
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') { this.value = ''; faqSearch(''); }
+    });
+  }
+
+  /* ── Active sidebar link on scroll ── */
+  (function() {
+    var cats = document.querySelectorAll('.faq-category');
+    var navLinks = document.querySelectorAll('.faq-cat-nav-list li a');
+    if (!cats.length || !navLinks.length) return;
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          navLinks.forEach(function(l) { l.classList.remove('active'); });
+          var active = document.querySelector('.faq-cat-nav-list li a[href="#' + entry.target.id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    cats.forEach(function(c) { observer.observe(c); });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "FAQ Page",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Breadcrumb"
+    },
+    {
+      "type": "text",
+      "id": "breadcrumb_label",
+      "label": "Current page label",
+      "default": "FAQs"
+    },
+    {
+      "type": "header",
+      "content": "Hero"
+    },
+    {
+      "type": "text",
+      "id": "hero_eyebrow",
+      "label": "Eyebrow label",
+      "default": "Help Centre"
+    },
+    {
+      "type": "text",
+      "id": "hero_title",
+      "label": "Title (main text)",
+      "default": "Frequently Asked"
+    },
+    {
+      "type": "text",
+      "id": "hero_title_highlight",
+      "label": "Title highlight (italic gold word)",
+      "info": "This word appears in italic gold after the main title.",
+      "default": "Questions"
+    },
+    {
+      "type": "textarea",
+      "id": "hero_subtitle",
+      "label": "Subtitle",
+      "default": "Find quick answers about our products, sourcing, orders, and more."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "Show search bar",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Search bar placeholder text",
+      "default": "Search questions…"
+    },
+    {
+      "type": "text",
+      "id": "search_btn_label",
+      "label": "Search button label",
+      "default": "Search"
+    },
+    {
+      "type": "header",
+      "content": "Sidebar — Still have a question?"
+    },
+    {
+      "type": "text",
+      "id": "still_stuck_heading",
+      "label": "Card heading",
+      "default": "Still have a question?"
+    },
+    {
+      "type": "textarea",
+      "id": "still_stuck_body",
+      "label": "Card body text",
+      "default": "Our team is happy to help. We reply within 1 business day."
+    },
+    {
+      "type": "text",
+      "id": "still_stuck_email",
+      "label": "Contact email address",
+      "default": "contact@earthenstory.com"
+    },
+    {
+      "type": "text",
+      "id": "still_stuck_btn_label",
+      "label": "Button label",
+      "default": "Email Us"
+    },
+    {
+      "type": "header",
+      "content": "Contact CTA (bottom of page)"
+    },
+    {
+      "type": "text",
+      "id": "contact_eyebrow",
+      "label": "Eyebrow label",
+      "default": "Still have a question?"
+    },
+    {
+      "type": "text",
+      "id": "contact_title",
+      "label": "Title",
+      "default": "We're happy to help"
+    },
+    {
+      "type": "textarea",
+      "id": "contact_desc",
+      "label": "Description",
+      "default": "Our team reads every message personally and replies within 1 business day."
+    },
+    {
+      "type": "text",
+      "id": "contact_email_label",
+      "label": "Email button label",
+      "default": "Email Us"
+    },
+    {
+      "type": "text",
+      "id": "contact_email",
+      "label": "Email address",
+      "default": "contact@earthenstory.com"
+    },
+    {
+      "type": "text",
+      "id": "contact_page_label",
+      "label": "Secondary button label",
+      "default": "Contact Page"
+    },
+    {
+      "type": "url",
+      "id": "contact_page_url",
+      "label": "Secondary button URL"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "faq_category",
+      "name": "📂 Category",
+      "settings": [
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icon (emoji)",
+          "default": "💬"
+        },
+        {
+          "type": "text",
+          "id": "tag",
+          "label": "Tag label (small text above title)",
+          "default": "General",
+          "info": "Shown in gold uppercase above the category title."
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Category title",
+          "default": "General Questions"
+        },
+        {
+          "type": "text",
+          "id": "anchor",
+          "label": "Anchor ID",
+          "info": "Used in the URL (e.g. 'products' → #products). Leave blank to auto-generate from title. Lowercase, no spaces or special characters."
+        }
+      ]
+    },
+    {
+      "type": "faq_item",
+      "name": "❓ FAQ Item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Question",
+          "default": "Your question here?",
+          "info": "Place this block directly below its Category block."
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "default": "<p>Your answer here. You can use <strong>bold</strong>, lists, and links.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ Page"
+    }
+  ]
+}
+{% endschema %}

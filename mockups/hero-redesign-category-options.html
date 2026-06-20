@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Earthen Story Category Hero Options</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #112557;
+      --navy-2: #192f64;
+      --navy-3: #24396d;
+      --gold: #d4a843;
+      --gold-2: #efc867;
+      --cream: #fffdf8;
+      --tile: rgba(255,255,255,.075);
+      --line: rgba(255,255,255,.16);
+      --muted: rgba(255,255,255,.68);
+      --ink: #20243a;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "DM Sans", system-ui, sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+    }
+
+    .option-nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px clamp(16px, 4vw, 48px);
+      background: rgba(255,253,248,.96);
+      border-bottom: 1px solid #e7dcc5;
+      backdrop-filter: blur(14px);
+    }
+
+    .option-nav strong {
+      font-size: 12px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .option-nav div { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .option-nav a {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #f1e6cf;
+      color: #263253;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .note,
+    .label {
+      padding: 14px clamp(16px, 4vw, 48px);
+      background: #fffaf0;
+      border-bottom: 1px solid #eadfc9;
+      color: #596074;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .label {
+      background: #fffdf8;
+      border-top: 1px solid #eadfc9;
+    }
+
+    .note strong,
+    .label strong { color: #1c263f; }
+
+    .site-header {
+      height: 76px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 clamp(18px, 5vw, 72px);
+      background: white;
+      border-bottom: 1px solid #eee7dc;
+    }
+
+    .brand {
+      justify-self: center;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .hamburger {
+      width: 22px;
+      height: 14px;
+      position: relative;
+    }
+
+    .hamburger::before,
+    .hamburger::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 22px;
+      height: 1.5px;
+      background: #293049;
+    }
+
+    .hamburger::before { top: 2px; }
+    .hamburger::after { bottom: 2px; }
+
+    .header-actions {
+      justify-self: end;
+      display: flex;
+      gap: 18px;
+      color: #293049;
+      font-size: 20px;
+    }
+
+    .hero {
+      min-height: 528px;
+      position: relative;
+      overflow: hidden;
+      color: white;
+      background:
+        radial-gradient(circle at 76% 18%, rgba(212,168,67,.15), transparent 26%),
+        linear-gradient(135deg, #102453, #1a3168);
+    }
+
+    .hero-inner {
+      width: min(1280px, calc(100% - 40px));
+      min-height: 528px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(380px, .86fr) minmax(480px, 1.08fr);
+      gap: clamp(28px, 5vw, 64px);
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 13px;
+      color: var(--gold-2);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 30px;
+      height: 1px;
+      background: currentColor;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-family: "Cormorant", Georgia, serif;
+      font-size: clamp(46px, 5.2vw, 72px);
+      font-weight: 500;
+      line-height: .98;
+      letter-spacing: 0;
+    }
+
+    h1 em { color: var(--gold); font-style: italic; }
+
+    .copy {
+      max-width: 550px;
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.62;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .btn.gold { background: var(--gold); color: white; }
+    .btn.ghost {
+      border: 1px solid rgba(255,255,255,.23);
+      color: rgba(255,255,255,.82);
+      background: rgba(255,255,255,.04);
+    }
+
+    .image-card,
+    .product-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 50% 18%, rgba(255,255,255,.14), transparent 42%),
+        rgba(255,255,255,.065);
+      box-shadow: 0 18px 46px rgba(7,18,50,.2);
+    }
+
+    .image-card img,
+    .product-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      padding: 14px;
+      filter: drop-shadow(0 18px 22px rgba(0,0,0,.22));
+    }
+
+    .image-card span,
+    .product-card span {
+      position: absolute;
+      left: 12px;
+      bottom: 10px;
+      z-index: 2;
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .image-card::after,
+    .product-card::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 48%;
+      background: linear-gradient(180deg, transparent, rgba(8,18,45,.65));
+      pointer-events: none;
+    }
+
+    .image-card span,
+    .product-card span { pointer-events: none; }
+
+    /* Option 1 */
+    .range-grid {
+      display: grid;
+      grid-template-columns: 1.2fr .78fr .78fr;
+      grid-template-rows: 168px 168px;
+      gap: 10px;
+    }
+
+    .range-grid .image-card:first-child {
+      grid-row: span 2;
+    }
+
+    .range-grid .image-card:first-child img {
+      padding: 22px;
+    }
+
+    .range-grid .image-card {
+      min-height: 168px;
+    }
+
+    .range-grid .image-card img {
+      background: rgba(255,255,255,.04);
+    }
+
+    .proof-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 22px;
+      max-width: 540px;
+    }
+
+    .proof-row div {
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+
+    .proof-row strong {
+      display: block;
+      color: white;
+      font-size: 17px;
+      margin-bottom: 3px;
+    }
+
+    .proof-row small {
+      color: rgba(255,255,255,.62);
+      font-size: 11.5px;
+    }
+
+    /* Option 2 */
+    .shelf {
+      min-height: 360px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      align-items: end;
+      gap: 12px;
+      padding: 24px 22px 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,.16);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.035)),
+        radial-gradient(circle at 50% 0%, rgba(212,168,67,.16), transparent 42%);
+    }
+
+    .shelf .product-card {
+      height: 255px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .shelf .product-card:nth-child(2),
+    .shelf .product-card:nth-child(4) {
+      height: 300px;
+    }
+
+    .shelf .product-card img {
+      padding: 20px 12px 30px;
+    }
+
+    .shelf-line {
+      grid-column: 1 / -1;
+      height: 12px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(212,168,67,.22), rgba(255,255,255,.15), rgba(212,168,67,.22));
+    }
+
+    /* Option 3 */
+    .spotlight-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1.02fr;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .spotlight-main {
+      min-height: 350px;
+    }
+
+    .spotlight-main img { padding: 30px; }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .mini-grid .image-card { min-height: 170px; }
+
+    .category-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+      max-width: 560px;
+    }
+
+    .category-pills span {
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.14);
+      color: rgba(255,255,255,.76);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    /* Option 4 */
+    .pantry-wall {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .pantry-wall .image-card {
+      min-height: 160px;
+    }
+
+    .pantry-wall .image-card:nth-child(1),
+    .pantry-wall .image-card:nth-child(4) {
+      transform: translateY(18px);
+    }
+
+    .pantry-wall .image-card:nth-child(3),
+    .pantry-wall .image-card:nth-child(6) {
+      transform: translateY(-16px);
+    }
+
+    .trust-band {
+      position: absolute;
+      left: clamp(20px, 5vw, 72px);
+      right: clamp(20px, 5vw, 72px);
+      bottom: 22px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .trust-band div {
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(17,37,87,.66);
+      backdrop-filter: blur(10px);
+    }
+
+    .trust-band strong {
+      display: block;
+      color: white;
+      font-size: 12.5px;
+      margin-bottom: 2px;
+    }
+
+    .trust-band small {
+      color: rgba(255,255,255,.58);
+      font-size: 11.5px;
+    }
+
+    @media (max-width: 900px) {
+      .site-header {
+        height: 58px;
+        padding: 0 16px;
+      }
+
+      .brand { font-size: 16px; }
+
+      .hero { min-height: auto; }
+
+      .hero-inner {
+        width: calc(100% - 32px);
+        min-height: auto;
+        padding: 26px 0 30px;
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      h1 {
+        font-size: 33px;
+        line-height: 1.08;
+        margin-bottom: 12px;
+      }
+
+      .copy {
+        font-size: 14px;
+        line-height: 1.55;
+        margin-bottom: 16px;
+      }
+
+      .btn {
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 42px;
+        padding: 0 14px;
+        font-size: 13px;
+      }
+
+      .range-grid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: auto;
+      }
+
+      .range-grid .image-card,
+      .mini-grid .image-card,
+      .pantry-wall .image-card {
+        min-height: 132px;
+      }
+
+      .range-grid .image-card:first-child {
+        grid-row: auto;
+        grid-column: span 2;
+        min-height: 190px;
+      }
+
+      .proof-row,
+      .trust-band {
+        grid-template-columns: 1fr;
+      }
+
+      .shelf {
+        min-height: auto;
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .shelf .product-card,
+      .shelf .product-card:nth-child(2),
+      .shelf .product-card:nth-child(4) {
+        height: 180px;
+      }
+
+      .spotlight-wrap {
+        grid-template-columns: 1fr;
+      }
+
+      .spotlight-main { min-height: 220px; }
+
+      .pantry-wall {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .pantry-wall .image-card:nth-child(n) {
+        transform: none;
+      }
+
+      .trust-band {
+        position: static;
+        width: calc(100% - 32px);
+        margin: -8px auto 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="option-nav">
+    <strong>Category-correct hero concepts</strong>
+    <div>
+      <a href="#option-1">Option 1</a>
+      <a href="#option-2">Option 2</a>
+      <a href="#option-3">Option 3</a>
+      <a href="#option-4">Option 4</a>
+    </div>
+  </nav>
+
+  <div class="note">
+    <strong>Updated:</strong> all hero imagery below uses Earthen Story-relevant product categories and actual product imagery from the live site collections. No unrelated vegetable/onion images.
+  </div>
+
+  <div class="label" id="option-1"><strong>Option 1:</strong> compact category range board with ghee as the anchor.</div>
+  <header class="site-header">
+    <div class="hamburger"></div>
+    <div class="brand">Earthen Story</div>
+    <div class="header-actions"><span>⌕</span><span>♙</span><span>▢</span></div>
+  </header>
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">Certified organic food</div>
+        <h1>Food the Way<br>It Was Meant <em>to Be.</em></h1>
+        <p class="copy">Organic sourcing with transaction certificates. Pesticide-free, lab tested. Traditional processing that preserves nutrition — the way Indian food has always worked.</p>
+        <div class="actions">
+          <a class="btn gold" href="#">Explore Our Foods</a>
+          <a class="btn ghost" href="#">Our Story →</a>
+        </div>
+        <div class="proof-row">
+          <div><strong>250+</strong><small>Residues tested</small></div>
+          <div><strong>100%</strong><small>Organic focus</small></div>
+          <div><strong>0</strong><small>Artificial additives</small></div>
+        </div>
+      </div>
+      <div class="range-grid">
+        <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/a2-gir-cow-ghee-glass-jar-front.webp?v=1775935337&width=700" alt="A2 Gir Cow Ghee"><span>A2 Gir Cow Ghee</span></div>
+        <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/wild-forest-honey-glass-jar-front.webp?v=1775994873&width=500" alt="Wild Forest Honey"><span>Honey</span></div>
+        <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/groundnut-oil-glass-bottle-front.webp?v=1775978800&width=500" alt="Groundnut Oil"><span>Cold Pressed Oils</span></div>
+        <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/multigrain-flour-kraft-pouch-packaging.webp?v=1775989076&width=500" alt="Multigrain Flour"><span>Flours</span></div>
+        <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/pumpkin-seeds-pouch-front.webp?v=1775994734&width=500" alt="Pumpkin Seeds"><span>Seeds</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="label" id="option-2"><strong>Option 2:</strong> premium product shelf using only hero-worthy product packshots.</div>
+  <header class="site-header">
+    <div class="hamburger"></div>
+    <div class="brand">Earthen Story</div>
+    <div class="header-actions"><span>⌕</span><span>♙</span><span>▢</span></div>
+  </header>
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">Premium kitchen ingredients</div>
+        <h1>A cleaner pantry,<br>built from proof.</h1>
+        <p class="copy">From ghee and oils to flours, honey, seeds, dry fruits, and herbal powders, every product is chosen for traceability, testing, and traditional processing.</p>
+        <div class="actions">
+          <a class="btn gold" href="#">Shop the Pantry</a>
+          <a class="btn ghost" href="#">Build a Bundle →</a>
+        </div>
+      </div>
+      <div class="shelf">
+        <div class="product-card"><img src="https://www.earthenstory.com/cdn/shop/files/wild-forest-honey-glass-jar-front.webp?v=1775994873&width=500" alt="Honey"><span>Honey</span></div>
+        <div class="product-card"><img src="https://www.earthenstory.com/cdn/shop/files/a2-gir-cow-ghee-glass-jar-front.webp?v=1775935337&width=600" alt="Ghee"><span>Ghee</span></div>
+        <div class="product-card"><img src="https://www.earthenstory.com/cdn/shop/files/yellow-mustard-oil-bottle-front.webp?v=1775978951&width=500" alt="Mustard Oil"><span>Oils</span></div>
+        <div class="product-card"><img src="https://www.earthenstory.com/cdn/shop/files/mamra-almonds-pouch-front.webp?v=1775988852&width=500" alt="Mamra Almonds"><span>Dry Fruits</span></div>
+        <div class="product-card"><img src="https://www.earthenstory.com/cdn/shop/files/chia-seeds-pouch-front.webp?v=1775989132&width=500" alt="Chia Seeds"><span>Seeds</span></div>
+        <div class="shelf-line"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="label" id="option-3"><strong>Option 3:</strong> category spotlight with actual SKUs grouped into a cleaner merchandising panel.</div>
+  <header class="site-header">
+    <div class="hamburger"></div>
+    <div class="brand">Earthen Story</div>
+    <div class="header-actions"><span>⌕</span><span>♙</span><span>▢</span></div>
+  </header>
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">Certified range</div>
+        <h1>Organic staples for<br>the Indian kitchen.</h1>
+        <p class="copy">Shop clean, premium kitchen essentials across daily-use categories: ghee, oils, flours, seeds, dry fruits, amla, gulkand, and herbal powders.</p>
+        <div class="actions">
+          <a class="btn gold" href="#">Explore Categories</a>
+          <a class="btn ghost" href="#">View Lab Reports →</a>
+        </div>
+        <div class="category-pills">
+          <span>Ghee</span><span>Honey</span><span>Oils</span><span>Flours</span><span>Seeds</span><span>Dry Fruits</span><span>Gulkand</span><span>Amla</span>
+        </div>
+      </div>
+      <div class="spotlight-wrap">
+        <div class="image-card spotlight-main"><img src="https://www.earthenstory.com/cdn/shop/files/gulkand-glass-jar-front.webp?v=1775989201&width=700" alt="Gulkand"><span>Gulkand</span></div>
+        <div class="mini-grid">
+          <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/amla-candy-sweet-pouch-front.webp?v=1775975591&width=500" alt="Amla Candy"><span>Amla Candy</span></div>
+          <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/moringa-powder-kraft-pouch-front.webp?v=1775988942&width=500" alt="Moringa Powder"><span>Herbal Powders</span></div>
+          <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/ragi-flour-pouch-packaging-front.webp?v=1775994931&width=500" alt="Ragi Flour"><span>Flours</span></div>
+          <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/sunflower-seeds-pouch-front.webp?v=1775994832&width=500" alt="Sunflower Seeds"><span>Seeds</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="label" id="option-4"><strong>Option 4:</strong> dense pantry wall with every image tied to a real Earthen Story category.</div>
+  <header class="site-header">
+    <div class="hamburger"></div>
+    <div class="brand">Earthen Story</div>
+    <div class="header-actions"><span>⌕</span><span>♙</span><span>▢</span></div>
+  </header>
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">Food standards you can see</div>
+        <h1>Clean food starts<br>with a clean pantry.</h1>
+        <p class="copy">A premium organic range for everyday cooking, with transparent sourcing, pesticide residue testing, and traditional processing across the products you use most.</p>
+        <div class="actions">
+          <a class="btn gold" href="#">Shop Best Sellers</a>
+          <a class="btn ghost" href="#">Our Standards →</a>
+        </div>
+      </div>
+      <div class="pantry-wall">
+        <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/a2-gir-cow-ghee-glass-jar-front.webp?v=1775935337&width=500" alt="Ghee"><span>Ghee</span></div>
+        <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/extra-virgin-coconut-oil-bottle-front.webp?v=1775978997&width=500" alt="Coconut Oil"><span>Oils</span></div>
+        <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/whole-wheat-flour-whole-wheat-grains-lifestyle.webp?v=1775995156&width=500" alt="Whole Wheat Flour"><span>Flours</span></div>
+        <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/black-raisins-kraft-pouch-packaging.webp?v=1775978613&width=500" alt="Black Raisins"><span>Dry Fruits</span></div>
+        <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/flax-seeds-kraft-pouch-front.webp?v=1775989168&width=500" alt="Flax Seeds"><span>Seeds</span></div>
+        <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/amla-powder-kraft-pouch-front.webp?v=1775975652&width=500" alt="Amla Powder"><span>Herbal Powders</span></div>
+        <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/wild-forest-honey-glass-jar-front.webp?v=1775994873&width=500" alt="Honey"><span>Honey</span></div>
+        <div class="image-card"><img src="https://www.earthenstory.com/cdn/shop/files/gulkand-glass-jar-front.webp?v=1775989201&width=500" alt="Gulkand"><span>Gulkand</span></div>
+      </div>
+    </div>
+    <div class="trust-band">
+      <div><strong>Certified sourcing</strong><small>Transaction certificates</small></div>
+      <div><strong>Lab verified</strong><small>Pesticide residue reports</small></div>
+      <div><strong>Traditional methods</strong><small>Cold press, bilona, stone grind</small></div>
+      <div><strong>Premium categories</strong><small>Daily Indian kitchen staples</small></div>
+    </div>
+  </section>
+</body>
+</html>

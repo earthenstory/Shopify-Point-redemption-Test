@@ -1,0 +1,173 @@
+<section class="breadcrumb-section">
+
+<nav class="breadcrumb" role="navigation" aria-label="Breadcrumb">
+
+<a href="{{ routes.root_url }}" class="breadcrumb__link">
+Home
+</a>
+
+
+{% if template contains 'product' %}
+
+{%- comment -%}
+  Find the best collection to show in breadcrumb.
+  Priority:
+  1. The collection the user navigated through (collection variable)
+  2. First collection on the product that is NOT "all" / "All Products"
+{%- endcomment -%}
+
+{% assign current_collection = nil %}
+
+{% if collection != nil and collection.handle != 'all' %}
+  {% assign current_collection = collection %}
+{% else %}
+  {% for col in product.collections %}
+    {% if col.handle != 'all' and col.handle != 'all-products' %}
+      {% assign current_collection = col %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+
+{% if current_collection %}
+
+<span class="breadcrumb__sep">›</span>
+
+<a href="{{ current_collection.url }}" class="breadcrumb__link">
+{{ current_collection.title }}
+</a>
+
+{% endif %}
+
+
+<span class="breadcrumb__sep">›</span>
+
+<span class="breadcrumb__current">
+{{ product.title }}
+</span>
+
+{% endif %}
+
+
+
+{% if template contains 'collection' %}
+
+<span class="breadcrumb__sep">›</span>
+
+<span class="breadcrumb__current">
+{{ collection.title }}
+</span>
+
+{% endif %}
+
+
+
+{% if template contains 'page' %}
+
+<span class="breadcrumb__sep">›</span>
+
+<span class="breadcrumb__current">
+{{ page.title }}
+</span>
+
+{% endif %}
+
+
+
+{% if template contains 'blog' %}
+
+<span class="breadcrumb__sep">›</span>
+
+<span class="breadcrumb__current">
+{{ blog.title }}
+</span>
+
+{% endif %}
+
+
+
+{% if template contains 'article' %}
+
+<span class="breadcrumb__sep">›</span>
+
+<a href="{{ blog.url }}" class="breadcrumb__link">
+{{ blog.title }}
+</a>
+
+<span class="breadcrumb__sep">›</span>
+
+<span class="breadcrumb__current">
+{{ article.title }}
+</span>
+
+{% endif %}
+
+</nav>
+
+</section>
+
+
+
+<style>
+
+.breadcrumb-section{
+background:#FFFFF;
+border-bottom:1px solidrgb(255, 255, 255);
+}
+
+.breadcrumb{
+padding:9px 68px;
+font-size:13px;
+color:#6B6B75;
+font-family:'DM Sans', sans-serif;
+line-height:1.4;
+text-align:left;
+}
+
+.breadcrumb__link{
+text-decoration:none;
+color:#6B6B75;
+transition:color .2s ease;
+}
+
+.breadcrumb__link:hover{
+color:#18181B;
+}
+
+.breadcrumb__sep{
+margin:0 8px;
+color:#B0AABA;
+}
+
+.breadcrumb__current{
+color:#18181B;
+font-weight:500;
+}
+
+@media(max-width:768px){
+
+.breadcrumb{
+padding:14px 20px;
+font-size:12.5px;
+}
+
+}
+
+</style>
+
+
+
+{% schema %}
+{
+"name": "Breadcrumb",
+"tag": "section",
+"class": "section-breadcrumb",
+"settings": [],
+"presets": [
+{
+"name": "Breadcrumb"
+}
+]
+}
+{% endschema %}

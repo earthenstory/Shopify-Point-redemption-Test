@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ardhan Story Hero Redesign Options</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600;700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #112557;
+      --navy-deep: #0b1a3f;
+      --navy-soft: #1c3470;
+      --blue-card: #24396d;
+      --gold: #d4a843;
+      --gold-bright: #efc867;
+      --cream: #fff8e7;
+      --paper: #fffdf8;
+      --ink: #17213b;
+      --muted: #71798b;
+      --line: rgba(255,255,255,.16);
+      --shadow: 0 28px 80px rgba(8, 18, 45, .32);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "DM Sans", system-ui, sans-serif;
+      background: #f7f1e5;
+      color: var(--ink);
+    }
+
+    .option-nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px clamp(16px, 4vw, 44px);
+      background: rgba(255, 253, 248, .94);
+      border-bottom: 1px solid #e7dcc5;
+      backdrop-filter: blur(16px);
+    }
+
+    .option-nav strong {
+      font-size: 13px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .option-nav div {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .option-nav a {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #efe4cd;
+      color: #253052;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .hero {
+      min-height: 760px;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+      color: white;
+      background: var(--navy);
+    }
+
+    .brand-line {
+      position: absolute;
+      z-index: 10;
+      top: 28px;
+      left: clamp(20px, 5vw, 72px);
+      right: clamp(20px, 5vw, 72px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: rgba(255,255,255,.9);
+    }
+
+    .brand {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .mini-menu {
+      display: flex;
+      gap: 22px;
+      font-size: 13px;
+      color: rgba(255,255,255,.72);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      color: var(--gold-bright);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 34px;
+      height: 1px;
+      background: currentColor;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "Cormorant", Georgia, serif;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+
+    h1 em {
+      color: var(--gold);
+      font-style: italic;
+    }
+
+    .copy {
+      color: rgba(255,255,255,.74);
+      font-size: 16px;
+      line-height: 1.72;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      min-height: 52px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .btn.gold {
+      color: white;
+      background: var(--gold);
+      box-shadow: 0 18px 38px rgba(212, 168, 67, .26);
+    }
+
+    .btn.ghost {
+      color: rgba(255,255,255,.82);
+      border: 1px solid rgba(255,255,255,.24);
+      background: rgba(255,255,255,.05);
+    }
+
+    .image-credit {
+      position: absolute;
+      right: 16px;
+      bottom: 12px;
+      z-index: 4;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.28);
+      color: rgba(255,255,255,.74);
+      font-size: 10px;
+    }
+
+    .image-credit a { color: inherit; }
+
+    /* Option 1 */
+    .hero-one {
+      background:
+        radial-gradient(circle at 15% 22%, rgba(212,168,67,.2), transparent 28%),
+        linear-gradient(135deg, #0d1d47, #162d61 58%, #203968);
+    }
+
+    .hero-one .wrap {
+      width: min(1220px, calc(100% - 40px));
+      min-height: 760px;
+      margin: 0 auto;
+      padding: 112px 0 54px;
+      display: grid;
+      grid-template-columns: minmax(380px, .86fr) minmax(520px, 1.14fr);
+      gap: clamp(36px, 6vw, 76px);
+      align-items: center;
+    }
+
+    .hero-one h1 {
+      font-size: clamp(58px, 7.6vw, 104px);
+      line-height: .92;
+      margin-bottom: 24px;
+    }
+
+    .hero-one .copy { max-width: 520px; margin: 0 0 28px; }
+
+    .hero-one .trust-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 26px;
+      max-width: 580px;
+    }
+
+    .hero-one .trust-row span {
+      padding: 13px 12px;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 10px;
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.82);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .table-stage {
+      position: relative;
+      min-height: 570px;
+    }
+
+    .table-photo {
+      position: absolute;
+      inset: 14px 0 0 48px;
+      border-radius: 26px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.22);
+      box-shadow: var(--shadow);
+      background: #26395f;
+    }
+
+    .table-photo img {
+      width: 100%;
+      height: 100%;
+      min-height: 560px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .table-photo::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(6,16,39,.04), rgba(6,16,39,.48));
+    }
+
+    .proof-card {
+      position: absolute;
+      left: 0;
+      bottom: 28px;
+      width: min(390px, 72%);
+      padding: 21px;
+      border-radius: 18px;
+      background: rgba(255,253,248,.94);
+      color: var(--ink);
+      box-shadow: 0 22px 58px rgba(6,16,39,.3);
+    }
+
+    .proof-card b {
+      display: block;
+      margin-bottom: 10px;
+      color: #9b701a;
+      font-size: 11px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .proof-card p {
+      margin: 0;
+      color: #46506b;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .cert-pill {
+      position: absolute;
+      top: 54px;
+      right: -12px;
+      padding: 13px 16px;
+      border-radius: 999px;
+      background: var(--cream);
+      color: #6f5018;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      box-shadow: 0 18px 42px rgba(6,16,39,.26);
+    }
+
+    /* Option 2 */
+    .hero-two {
+      min-height: 780px;
+      background-image:
+        linear-gradient(90deg, rgba(9,22,54,.94) 0%, rgba(11,26,63,.86) 40%, rgba(11,26,63,.18) 72%, rgba(11,26,63,.45) 100%),
+        url("https://images.unsplash.com/photo-1509358271058-acd22cc93898?auto=format&fit=crop&w=1800&q=84");
+      background-size: cover;
+      background-position: center;
+    }
+
+    .hero-two .wrap {
+      width: min(1180px, calc(100% - 40px));
+      min-height: 780px;
+      margin: 0 auto;
+      padding: 118px 0 62px;
+      display: grid;
+      grid-template-columns: minmax(360px, 520px) 1fr;
+      align-items: center;
+    }
+
+    .hero-two h1 {
+      font-size: clamp(54px, 7vw, 96px);
+      line-height: .96;
+      margin-bottom: 24px;
+    }
+
+    .hero-two .copy { margin: 0 0 28px; max-width: 500px; }
+
+    .badge-stack {
+      position: absolute;
+      right: clamp(20px, 6vw, 84px);
+      bottom: 52px;
+      width: min(520px, calc(100% - 40px));
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .badge-stack div {
+      min-height: 118px;
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(17,37,87,.68);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 18px 45px rgba(6,16,39,.24);
+    }
+
+    .badge-stack strong {
+      display: block;
+      color: white;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .badge-stack span {
+      color: rgba(255,255,255,.62);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    /* Option 3 */
+    .hero-three {
+      background:
+        linear-gradient(90deg, #0c1d49, #172f66);
+    }
+
+    .hero-three::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(circle at 80% 18%, rgba(212,168,67,.18), transparent 25%),
+        radial-gradient(circle at 20% 82%, rgba(255,255,255,.08), transparent 22%);
+    }
+
+    .hero-three .wrap {
+      width: min(1240px, calc(100% - 40px));
+      min-height: 760px;
+      margin: 0 auto;
+      padding: 110px 0 54px;
+      display: grid;
+      grid-template-columns: 1fr 1.04fr;
+      gap: 48px;
+      align-items: center;
+    }
+
+    .hero-three .product-wall {
+      min-height: 550px;
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      align-content: center;
+    }
+
+    .product-tile {
+      min-height: 158px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+      box-shadow: 0 20px 50px rgba(6,16,39,.22);
+    }
+
+    .product-tile.big {
+      grid-column: span 2;
+      min-height: 230px;
+    }
+
+    .product-tile.tall {
+      min-height: 250px;
+      transform: translateY(34px);
+    }
+
+    .product-tile img {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      inset: 0;
+      object-fit: cover;
+      display: block;
+    }
+
+    .product-tile::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 38%, rgba(5,14,36,.72));
+    }
+
+    .product-tile span {
+      position: absolute;
+      left: 14px;
+      bottom: 12px;
+      z-index: 2;
+      color: white;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .hero-three h1 {
+      font-size: clamp(54px, 7vw, 94px);
+      line-height: .96;
+      margin-bottom: 24px;
+    }
+
+    .hero-three .copy { margin: 0 0 28px; max-width: 520px; }
+
+    .metric-row {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin-top: 28px;
+    }
+
+    .metric-row div {
+      min-width: 138px;
+      padding: 15px 16px;
+      border-left: 2px solid var(--gold);
+      background: rgba(255,255,255,.055);
+    }
+
+    .metric-row strong {
+      display: block;
+      color: white;
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    .metric-row span {
+      color: rgba(255,255,255,.62);
+      font-size: 12px;
+    }
+
+    /* Option 4 */
+    .hero-four {
+      min-height: 780px;
+      background: #101f4b;
+    }
+
+    .hero-four .bg-photo {
+      position: absolute;
+      inset: 0;
+      z-index: -3;
+    }
+
+    .hero-four .bg-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: saturate(.94) contrast(1.05);
+    }
+
+    .hero-four::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background:
+        linear-gradient(90deg, rgba(8,19,49,.92), rgba(8,19,49,.72) 42%, rgba(8,19,49,.24) 76%),
+        linear-gradient(180deg, rgba(8,19,49,.36), rgba(8,19,49,.66));
+    }
+
+    .hero-four .wrap {
+      width: min(1180px, calc(100% - 40px));
+      min-height: 780px;
+      margin: 0 auto;
+      padding: 120px 0 58px;
+      display: grid;
+      grid-template-columns: minmax(360px, 590px) 1fr;
+      align-items: center;
+    }
+
+    .story-card {
+      padding: clamp(28px, 4vw, 46px);
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(17,37,87,.68);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero-four h1 {
+      font-size: clamp(52px, 7vw, 92px);
+      line-height: .98;
+      margin-bottom: 24px;
+    }
+
+    .hero-four .copy { margin: 0 0 28px; }
+
+    .process-strip {
+      position: absolute;
+      left: clamp(20px, 5vw, 72px);
+      right: clamp(20px, 5vw, 72px);
+      bottom: 36px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .process-strip div {
+      padding: 15px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+      backdrop-filter: blur(10px);
+    }
+
+    .process-strip strong {
+      display: block;
+      margin-bottom: 4px;
+      color: white;
+      font-size: 13px;
+    }
+
+    .process-strip span {
+      color: rgba(255,255,255,.6);
+      font-size: 12px;
+    }
+
+    .section-label {
+      padding: 18px clamp(20px, 5vw, 72px);
+      background: #fffdf8;
+      border-top: 1px solid #e8dcc6;
+      border-bottom: 1px solid #e8dcc6;
+      color: #586072;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .section-label strong {
+      color: var(--ink);
+    }
+
+    @media (max-width: 980px) {
+      .brand-line { position: relative; top: auto; left: auto; right: auto; padding: 22px 20px; background: #0b1a3f; }
+      .mini-menu { display: none; }
+      .hero, .hero-two, .hero-four { min-height: auto; }
+      .hero-one .wrap,
+      .hero-two .wrap,
+      .hero-three .wrap,
+      .hero-four .wrap {
+        min-height: auto;
+        grid-template-columns: 1fr;
+        width: min(100% - 32px, 1220px);
+        padding: 44px 0 56px;
+      }
+      .table-stage { min-height: 540px; }
+      .badge-stack {
+        position: relative;
+        right: auto;
+        bottom: auto;
+        width: min(100% - 32px, 720px);
+        margin: -24px auto 50px;
+      }
+      .hero-three .product-wall { order: 2; min-height: auto; }
+      .process-strip {
+        position: relative;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        width: min(100% - 32px, 720px);
+        margin: -22px auto 48px;
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .option-nav { align-items: flex-start; flex-direction: column; }
+      .hero-one h1,
+      .hero-two h1,
+      .hero-three h1,
+      .hero-four h1 { font-size: 47px; }
+      .actions .btn { width: 100%; }
+      .hero-one .trust-row,
+      .badge-stack,
+      .process-strip { grid-template-columns: 1fr; }
+      .table-stage { min-height: 500px; }
+      .table-photo { inset: 0; border-radius: 18px; }
+      .table-photo img { min-height: 500px; }
+      .proof-card { left: 12px; right: 12px; bottom: 12px; width: auto; }
+      .cert-pill { top: 14px; right: 14px; }
+      .hero-three .product-wall { grid-template-columns: 1fr 1fr; }
+      .product-tile.big { grid-column: span 2; }
+      .product-tile.tall { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="option-nav">
+    <strong>Ardhan Story hero concepts</strong>
+    <div>
+      <a href="#option-1">Option 1</a>
+      <a href="#option-2">Option 2</a>
+      <a href="#option-3">Option 3</a>
+      <a href="#option-4">Option 4</a>
+    </div>
+  </nav>
+
+  <div class="section-label" id="option-1">
+    <strong>Option 1: Premium ingredient table.</strong> Best if you want the hero to feel full, shoppable, and trustworthy without looking like a generic brand brochure.
+  </div>
+  <section class="hero hero-one">
+    <header class="brand-line">
+      <div class="brand">Ardhan Story</div>
+      <div class="mini-menu"><span>Shop</span><span>Lab Reports</span><span>Our Story</span></div>
+    </header>
+    <div class="wrap">
+      <div>
+        <div class="eyebrow">Certified organic food</div>
+        <h1>Food the Way<br>It Was Meant<br><em>to Be.</em></h1>
+        <p class="copy">Organic sourcing with transaction certificates. Pesticide-free, lab tested. Traditional processing that preserves nutrition — the way Indian food has always worked.</p>
+        <div class="actions">
+          <a class="btn gold" href="#">Explore Our Foods</a>
+          <a class="btn ghost" href="#">Our Story →</a>
+        </div>
+        <div class="trust-row">
+          <span>Certified organic farms</span>
+          <span>Lab tested batches</span>
+          <span>Traditional processing</span>
+        </div>
+      </div>
+      <div class="table-stage">
+        <div class="table-photo">
+          <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1300&q=84" alt="Organic pantry ingredients on a kitchen table">
+        </div>
+        <div class="cert-pill">NPOP &amp; NOP certified</div>
+        <div class="proof-card">
+          <b>Proof before promise</b>
+          <p>Batch-level documentation, third-party residue testing, and old-world processing methods presented beside the food itself.</p>
+        </div>
+      </div>
+    </div>
+    <span class="image-credit">Image: Unsplash</span>
+  </section>
+
+  <div class="section-label" id="option-2">
+    <strong>Option 2: Full-bleed ingredient lifestyle.</strong> Strongest for emotion and scroll appeal. The image becomes the atmosphere, while the proof cards sit over it.
+  </div>
+  <section class="hero hero-two">
+    <header class="brand-line">
+      <div class="brand">Ardhan Story</div>
+      <div class="mini-menu"><span>Shop</span><span>Recipes</span><span>Discover</span></div>
+    </header>
+    <div class="wrap">
+      <div>
+        <div class="eyebrow">Clean food, fully traceable</div>
+        <h1>Ingredients your kitchen<br>can trust.</h1>
+        <p class="copy">Certified organic staples, tested for pesticide residues and processed with traditional Indian methods so everyday cooking starts with cleaner ingredients.</p>
+        <div class="actions">
+          <a class="btn gold" href="#">Shop Certified Foods</a>
+          <a class="btn ghost" href="#">View Lab Reports →</a>
+        </div>
+      </div>
+    </div>
+    <div class="badge-stack">
+      <div><strong>Certified Organic</strong><span>Sourced from documented organic supply chains.</span></div>
+      <div><strong>Residue Tested</strong><span>Third-party lab testing for batch confidence.</span></div>
+      <div><strong>No Shortcuts</strong><span>Cold pressed, stone ground, bilona where it matters.</span></div>
+    </div>
+    <span class="image-credit">Image: Unsplash</span>
+  </section>
+
+  <div class="section-label" id="option-3">
+    <strong>Option 3: Product-category collage.</strong> Best if you want users to immediately understand range: ghee, oils, grains, honey, seeds, dry fruits.
+  </div>
+  <section class="hero hero-three">
+    <header class="brand-line">
+      <div class="brand">Ardhan Story</div>
+      <div class="mini-menu"><span>All Products</span><span>Bundles</span><span>B2B</span></div>
+    </header>
+    <div class="wrap">
+      <div class="product-wall">
+        <div class="product-tile big">
+          <img src="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=900&q=82" alt="Golden cooking oil">
+          <span>Cold Pressed Oils</span>
+        </div>
+        <div class="product-tile tall">
+          <img src="https://images.unsplash.com/photo-1587049352851-8d4e89133924?auto=format&fit=crop&w=700&q=82" alt="Honey jar">
+          <span>Organic Honey</span>
+        </div>
+        <div class="product-tile">
+          <img src="https://images.unsplash.com/photo-1627485937980-221c88ac04f9?auto=format&fit=crop&w=700&q=82" alt="Grains">
+          <span>Stone Ground Flours</span>
+        </div>
+        <div class="product-tile">
+          <img src="https://images.unsplash.com/photo-1508747703725-719777637510?auto=format&fit=crop&w=700&q=82" alt="Seeds">
+          <span>Seeds &amp; Nuts</span>
+        </div>
+        <div class="product-tile big">
+          <img src="https://images.unsplash.com/photo-1615485500704-8e990f9900f7?auto=format&fit=crop&w=900&q=82" alt="Spices and kitchen ingredients">
+          <span>Premium Pantry Staples</span>
+        </div>
+      </div>
+      <div>
+        <div class="eyebrow">Premium kitchen ingredients</div>
+        <h1>A cleaner pantry,<br>built from proof.</h1>
+        <p class="copy">From ghee and oils to flours, honey, seeds, and dry fruits, every product is chosen for traceability, testing, and traditional processing.</p>
+        <div class="actions">
+          <a class="btn gold" href="#">Explore Categories</a>
+          <a class="btn ghost" href="#">Build a Bundle →</a>
+        </div>
+        <div class="metric-row">
+          <div><strong>250+</strong><span>Residues tested</span></div>
+          <div><strong>100%</strong><span>Organic focus</span></div>
+          <div><strong>0</strong><span>Artificial additives</span></div>
+        </div>
+      </div>
+    </div>
+    <span class="image-credit">Images: Unsplash</span>
+  </section>
+
+  <div class="section-label" id="option-4">
+    <strong>Option 4: Editorial proof card.</strong> Most premium and story-led. Good for positioning Ardhan Story as a serious certified brand, not only an online grocery store.
+  </div>
+  <section class="hero hero-four">
+    <div class="bg-photo">
+      <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1800&q=84" alt="Colorful whole food ingredients">
+    </div>
+    <header class="brand-line">
+      <div class="brand">Ardhan Story</div>
+      <div class="mini-menu"><span>Shop</span><span>Test Reports</span><span>About</span></div>
+    </header>
+    <div class="wrap">
+      <div class="story-card">
+        <div class="eyebrow">Certified organic. Lab verified.</div>
+        <h1>Food standards<br>you can see.</h1>
+        <p class="copy">Organic is not just a label. Ardhan Story brings transaction certificates, pesticide residue testing, and traditional Indian food processing into one transparent pantry.</p>
+        <div class="actions">
+          <a class="btn gold" href="#">Shop the Pantry</a>
+          <a class="btn ghost" href="#">See Our Standards →</a>
+        </div>
+      </div>
+    </div>
+    <div class="process-strip">
+      <div><strong>Certified sourcing</strong><span>Transaction certificates</span></div>
+      <div><strong>Lab verified</strong><span>Pesticide residue reports</span></div>
+      <div><strong>Traditional methods</strong><span>Cold press, bilona, stone grind</span></div>
+      <div><strong>Premium pantry</strong><span>Everyday Indian kitchen staples</span></div>
+    </div>
+    <span class="image-credit">Image: Unsplash</span>
+  </section>
+</body>
+</html>

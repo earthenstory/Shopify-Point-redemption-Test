@@ -1,0 +1,281 @@
+<!doctype html>
+<html
+  class="no-js{% if request.design_mode %} shopify-design-mode{% endif %}"
+  lang="{{ request.locale.iso_code }}"
+>
+  <head>
+    {%- comment -%}
+      Redirect the old built-in all-products collection (/collections/all) to the
+      current shop page (/collections/all-products). Shopify Admin URL redirects do
+      not fire for /collections/all because it is a live page that returns 200, so
+      this is handled in the theme. Runs as early as possible to minimise any flash.
+    {%- endcomment -%}
+    {%- if template.name == 'collection' and collection.handle == 'all' -%}
+      <script>window.location.replace('/collections/all-products');</script>
+      <meta http-equiv="refresh" content="0; url=/collections/all-products">
+    {%- endif -%}
+      <meta name="google-site-verification" content="fArwDqdKpZjEAVYiCwL-Gc8KDRkACMwvd6QrlXv2-Jw" />
+      <meta name="p:domain_verify" content="4a49924320459a81b1b5db3ed61435c7"/>
+    {%- if settings.favicon != blank -%}
+      <link
+        rel="icon"
+        type="image/png"
+        href="{{ settings.favicon | image_url: width: 32, height: 32 }}"
+      >
+    {%- endif -%}
+
+    {% comment %} View transition render blocker — only blocks during client-side navigation, not on first load {% endcomment %}
+    <link
+      rel="expect"
+      href="#MainContent"
+      id="view-transition-render-blocker"
+    >
+
+    {%- render 'meta-tags' -%}
+    {%- render 'theme-styles-variables' -%}
+    {%- render 'color-schemes' -%}
+    {%- render 'stylesheets' -%}
+    {%- render 'fonts' -%}
+
+    {% comment %} ATC interceptor — must run before any async app scripts cache window.fetch {% endcomment %}
+    <script>
+      window.__esAtcQueue = [];
+      (function () {
+        var _f = window.fetch;
+        var _xO = XMLHttpRequest.prototype.open;
+        var _xS = XMLHttpRequest.prototype.send;
+        var RE = /\/cart\/add(\.js)?(\?|$)/;
+        function enqueue(data, pageUrl, ts) {
+          if (!data || data.status) return;
+          var item = (data.items && data.items.length) ? data.items[0] : data;
+          if (item && item.product_id) window.__esAtcQueue.push({ item: item, pageUrl: pageUrl, ts: ts });
+        }
+        window.fetch = function (url, opts) {
+          var p = _f.apply(this, arguments);
+          var u = (url && url.url) ? url.url : String(url || '');
+          var m = ((url && url.method) || (opts && opts.method) || 'GET').toUpperCase();
+          if (RE.test(u) && m !== 'GET') {
+            var pu = window.location.href, ts = new Date().toISOString();
+            p.then(function (r) { r.clone().json().then(function (d) { enqueue(d, pu, ts); }).catch(function () {}); }).catch(function () {});
+          }
+          return p;
+        };
+        XMLHttpRequest.prototype.open = function (m, u) {
+          this._eu = String(u || ''); this._em = String(m || 'GET').toUpperCase(); this._ep = window.location.href;
+          return _xO.apply(this, arguments);
+        };
+        XMLHttpRequest.prototype.send = function () {
+          if (RE.test(this._eu) && this._em !== 'GET') {
+            var s = this, ts = new Date().toISOString();
+            this.addEventListener('load', function () { try { enqueue(JSON.parse(s.responseText), s._ep, ts); } catch (e) {} });
+          }
+          return _xS.apply(this, arguments);
+        };
+      })();
+    </script>
+
+    {%- render 'scripts' -%}
+
+    {% if request.design_mode %}
+      {%- render 'theme-editor' -%}
+    {% endif %}
+
+    {{ content_for_header }}
+
+    {%- if template == 'index' and sections['homepage'].settings.hero_image != blank -%}
+      {%- assign _hi = sections['homepage'].settings.hero_image -%}
+      <link
+        rel="preload"
+        as="image"
+        href="{{ _hi | image_url: width: 840 }}"
+        imagesrcset="{{ _hi | image_url: width: 420 }} 420w, {{ _hi | image_url: width: 640 }} 640w, {{ _hi | image_url: width: 840 }} 840w, {{ _hi | image_url: width: 1200 }} 1200w"
+        imagesizes="(min-width: 990px) 50vw, 100vw"
+        fetchpriority="high"
+      >
+    {%- endif -%}
+
+    <!-- Earthen Story Design System: sync on product pages (above-fold styles), async everywhere else -->
+    {%- if template.name == 'product' -%}
+      {{- 'earthen-story.css' | asset_url | stylesheet_tag: preload: true -}}
+    {%- else -%}
+      <link rel="preload" href="{{ 'earthen-story.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+      <noscript><link rel="stylesheet" href="{{ 'earthen-story.css' | asset_url }}"></noscript>
+    {%- endif -%}
+
+    <!-- Google Fonts: non-render-blocking via print media swap -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap"
+      media="print"
+      onload="this.media='all'"
+    >
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap">
+    </noscript>
+    {%- if template.name == 'collection' -%}
+      <link rel="preload" href="{{ 'collection-page.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+      <noscript><link rel="stylesheet" href="{{ 'collection-page.css' | asset_url }}"></noscript>
+      <style>
+        /* ══════════════════════════════════════════════════════════════════
+           COLLECTION PAGE — LAYOUT OVERRIDE
+           Bypasses the theme's 14-col grid on .collection-wrapper and
+           replaces it with simple block layout (same as esd-section-inner).
+           ══════════════════════════════════════════════════════════════════ */
+
+        /* 1 — Make the outer results-list element span full viewport width */
+        .product-grid-container.section {
+          display: block !important;
+          max-width: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+        }
+
+        /* 2 — Replace the theme's 14-col grid with simple block + page padding
+               (mirrors exactly how .esd-section-inner works in recipe section) */
+        .collection-wrapper {
+          display: block !important;
+          max-width: 1280px !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+          padding-left: 68px !important;
+          padding-right: 68px !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+        }
+
+        /* 3 — ResultsList and filters fill the container width */
+        #ResultsList,
+        .facets-block-wrapper {
+          display: block !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+          padding-inline-start: 0 !important;
+          padding-inline-end: 0 !important;
+        }
+
+        /* 4 — Product grid: 5 truly equal columns.
+               minmax(0,1fr) instead of 1fr prevents nowrap price-row content
+               from forcing columns wider than their fair share. */
+        .template-collection .product-grid {
+          display: grid !important;
+          grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+          gap: 20px !important;
+        }
+        /* Grid items must also allow shrinking below min-content */
+        .template-collection .product-grid__item,
+        .template-collection .product-grid__card {
+          min-width: 0 !important;
+        }
+        @media screen and (max-width: 1024px) {
+          .template-collection .product-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+          }
+        }
+        @media screen and (max-width: 900px) {
+          .collection-wrapper {
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+          }
+        }
+        @media screen and (max-width: 749px) {
+          .collection-wrapper {
+            padding-left: 16px !important;
+            padding-right: 16px !important;
+          }
+          .template-collection .product-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 12px !important;
+          }
+        }
+
+        /* ── Centre alignment for custom product cards ───────────────────────── */
+        .es-pc { width: 100% !important; box-sizing: border-box !important; }
+        .es-pc__body {
+          display: flex !important; flex-direction: column !important;
+          align-items: stretch !important; text-align: center !important;
+          width: 100% !important; box-sizing: border-box !important;
+        }
+        .es-pc__meta { text-align: center !important; width: 100% !important; }
+        .es-pc__name, .es-pc__name-wrap {
+          text-align: center !important; width: 100% !important; display: block !important;
+        }
+        .es-pc__rating {
+          display: flex !important; justify-content: center !important; width: 100% !important;
+        }
+        /* ── Price row: stacked so all price info is always visible ─────────── */
+        .es-pc__price-row {
+          display: flex !important; flex-direction: column !important;
+          align-items: stretch !important; gap: 8px !important; width: 100% !important;
+        }
+        .es-pc__prices {
+          display: flex !important; align-items: baseline !important;
+          justify-content: center !important; flex-wrap: wrap !important;
+          gap: 5px !important; overflow: visible !important; min-width: 0 !important;
+        }
+        .es-pc__form { width: 100% !important; margin: 0 !important; }
+        .es-pc__atc {
+          width: 100% !important; justify-content: center !important;
+          box-sizing: border-box !important;
+        }
+
+        /* ── 1:1 image aspect ratio ──────────────────────────────────────────── */
+        .es-pc__img {
+          height: auto !important;
+          aspect-ratio: 1 / 1 !important;
+          width: 100% !important;
+        }
+      </style>
+    {%- endif -%}
+    {%- if template.name == 'article' and template.suffix == 'recipes' -%}
+      {{ 'recipe-page.css' | asset_url | stylesheet_tag: preload: true }}
+    {%- endif -%}
+  </head>
+
+  <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }} template-{{ template.name }}">
+    {% render 'skip-to-content-link', href: '#MainContent', text: 'accessibility.skip_to_text' %}
+    <div id="header-group">
+      {% sections 'header-group' %}
+    </div>
+
+    <script
+      src="{{ 'critical.js' | asset_url }}"
+      type="module"
+      async
+    ></script>
+
+    <main
+      id="MainContent"
+      class="content-for-layout"
+      role="main"
+      data-page-transition-enabled="{{ settings.page_transition_enabled }}"
+      data-product-transition="{{ settings.transition_to_main_product }}"
+      data-template="{{ template }}"
+    >
+      {{ content_for_layout }}
+    </main>
+
+    {% sections 'footer-group' %}
+
+    {% render 'search-modal' %}
+
+    {% if settings.quick_add or settings.mobile_quick_add %}
+      {% render 'quick-add-modal' %}
+    {% endif %}
+
+    {%- if template.name == 'index' -%}
+      {% render 'es-register-popup' %}
+    {%- endif -%}
+
+    {% render 'whatsapp-button' %}
+
+{% render 'razorpay-magic-checkout' %}
+
+{% if customer %}
+<script>window.__esCustomer = { id: {{ customer.id }}, email: {{ customer.email | json }} };</script>
+{% endif %}
+<script src="{{ 'atc-tracker.js' | asset_url }}" defer></script>
+</body>
+</html>

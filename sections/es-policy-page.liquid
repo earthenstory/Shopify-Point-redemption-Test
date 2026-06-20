@@ -1,0 +1,1382 @@
+{%- comment -%}
+  sections/es-policy-page.liquid
+  Earthen Story — Reusable Policy Page (Privacy Policy, Terms, Refund, Shipping, etc.)
+  Fully schema-driven. Edit all content in Admin → Online Store → Themes → Customize.
+
+  Blocks:
+    policy_section — one block per section of the document
+{%- endcomment -%}
+
+{%- liquid
+  assign policy_blocks = section.blocks | where: 'type', 'policy_section'
+
+  assign hero_title     = section.settings.hero_title
+  assign hero_highlight = section.settings.hero_title_highlight
+  if hero_highlight != blank
+    assign highlighted     = '<em>' | append: hero_highlight | append: '</em>'
+    assign hero_title_html = hero_title | replace: hero_highlight, highlighted
+  else
+    assign hero_title_html = hero_title
+  endif
+-%}
+
+<!-- ══════════════════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════════════════ -->
+<section class="ep-hero">
+  <svg class="ep-hero__watermark" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+    <path d="M200 20 C200 20 340 80 360 200 C380 320 280 380 200 380 C120 380 20 320 40 200 C60 80 200 20 200 20Z" fill="white"/>
+    <path d="M200 20 L200 380" stroke="white" stroke-width="1.5"/>
+    <path d="M200 100 C230 120 280 150 300 200" stroke="white" stroke-width="1"/>
+    <path d="M200 140 C170 160 130 180 110 220" stroke="white" stroke-width="1"/>
+    <path d="M200 200 C240 210 280 230 310 260" stroke="white" stroke-width="1"/>
+    <path d="M200 200 C160 215 130 240 100 270" stroke="white" stroke-width="1"/>
+  </svg>
+  <div class="ep-hero__inner">
+    {%- if section.settings.hero_eyebrow != blank -%}
+      <span class="ep-hero__eyebrow">{{ section.settings.hero_eyebrow }}</span>
+    {%- endif -%}
+    <h1 class="ep-hero__title">{{ hero_title_html }}</h1>
+    <div class="ep-hero__meta">
+      {%- if section.settings.hero_last_updated != blank -%}
+        <div class="ep-hero__meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          Last updated: {{ section.settings.hero_last_updated }}
+        </div>
+      {%- endif -%}
+      {%- if section.settings.hero_last_updated != blank and section.settings.hero_company != blank -%}
+        <div class="ep-hero__meta-dot"></div>
+      {%- endif -%}
+      {%- if section.settings.hero_company != blank -%}
+        <div class="ep-hero__meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          {{ section.settings.hero_company }}
+        </div>
+      {%- endif -%}
+      {%- if section.settings.hero_location != blank -%}
+        {%- if section.settings.hero_last_updated != blank or section.settings.hero_company != blank -%}
+          <div class="ep-hero__meta-dot"></div>
+        {%- endif -%}
+        <div class="ep-hero__meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          {{ section.settings.hero_location }}
+        </div>
+      {%- endif -%}
+      {%- if section.settings.hero_email != blank -%}
+        <div class="ep-hero__meta-dot"></div>
+        <div class="ep-hero__meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          {{ section.settings.hero_email }}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     PROMISE STRIP (optional)
+══════════════════════════════════════════════════════════ -->
+{%- if section.settings.promise_items != blank -%}
+  {%- assign promise_list = section.settings.promise_items | split: '|' -%}
+  <div class="ep-promise-strip">
+    <div class="ep-promise-inner">
+      {%- for item in promise_list -%}
+        {%- unless forloop.first %}<div class="ep-promise-divider"></div>{%- endunless -%}
+        <div class="ep-promise-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          {{ item | strip }}
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+{%- endif -%}
+
+<!-- ══════════════════════════════════════════════════════════
+     LAYOUT: SIDEBAR TOC + MAIN CONTENT
+══════════════════════════════════════════════════════════ -->
+<div class="ep-layout">
+
+  <!-- ── SIDEBAR TOC ─────────────────────────────────────── -->
+  <aside class="ep-toc" aria-label="Table of contents">
+    {%- if section.settings.toc_label != blank -%}
+      <span class="ep-toc__label">{{ section.settings.toc_label }}</span>
+    {%- endif -%}
+    <ul class="ep-toc__list" id="epTocList">
+      {%- for block in policy_blocks -%}
+        {%- if block.settings.anchor != blank and block.settings.toc_label != blank -%}
+          <li class="ep-toc__item{% if forloop.first %} active{% endif %}">
+            <a href="#{{ block.settings.anchor }}">{{ block.settings.toc_label }}</a>
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+
+    {%- if section.settings.toc_contact_label != blank or section.settings.toc_contact_email != blank -%}
+      <div class="ep-toc__contact">
+        {%- if section.settings.toc_contact_label != blank -%}
+          <span class="ep-toc__contact-label">{{ section.settings.toc_contact_label }}</span>
+        {%- endif -%}
+        {%- if section.settings.toc_contact_text != blank -%}
+          <p>{{ section.settings.toc_contact_text }}</p>
+        {%- endif -%}
+        {%- if section.settings.toc_contact_email != blank -%}
+          <a href="mailto:{{ section.settings.toc_contact_email }}">{{ section.settings.toc_contact_email }}</a>
+        {%- endif -%}
+        {%- if section.settings.toc_cta_label != blank -%}
+          <a href="{{ section.settings.toc_cta_url }}" class="ep-toc__contact-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            {{ section.settings.toc_cta_label }}
+          </a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </aside>
+
+  <!-- ── MAIN CONTENT ────────────────────────────────────── -->
+  <main class="ep-content">
+
+    <!-- Intro block -->
+    {%- if section.settings.intro_text != blank -%}
+      <div class="ep-intro">
+        {{ section.settings.intro_text }}
+      </div>
+    {%- endif -%}
+
+    <!-- Free Shipping Hero Card (optional) -->
+    {%- if section.settings.fsc_show -%}
+      {%- liquid
+        assign fsc_title     = section.settings.fsc_title
+        assign fsc_highlight = section.settings.fsc_title_highlight
+        if fsc_highlight != blank
+          assign fsc_em        = '<em>' | append: fsc_highlight | append: '</em>'
+          assign fsc_title_html = fsc_title | replace: fsc_highlight, fsc_em
+        else
+          assign fsc_title_html = fsc_title
+        endif
+      -%}
+      <div class="ep-fsc">
+        {%- if section.settings.fsc_icon != blank -%}
+          <div class="ep-fsc__icon" aria-hidden="true">{{ section.settings.fsc_icon }}</div>
+        {%- endif -%}
+        <div class="ep-fsc__body">
+          {%- if section.settings.fsc_eyebrow != blank -%}
+            <span class="ep-fsc__eyebrow">{{ section.settings.fsc_eyebrow }}</span>
+          {%- endif -%}
+          {%- if fsc_title != blank -%}
+            <h2 class="ep-fsc__title">{{ fsc_title_html }}</h2>
+          {%- endif -%}
+          {%- if section.settings.fsc_desc != blank -%}
+            <p class="ep-fsc__desc">{{ section.settings.fsc_desc }}</p>
+          {%- endif -%}
+        </div>
+        {%- if section.settings.fsc_amount != blank -%}
+          <div class="ep-fsc__badge">
+            <div class="ep-fsc__amount">{{ section.settings.fsc_amount }}</div>
+            {%- if section.settings.fsc_amount_label != blank -%}
+              <div class="ep-fsc__amount-label">{{ section.settings.fsc_amount_label }}</div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <!-- Policy sections from blocks -->
+    {%- for block in policy_blocks -%}
+      <section
+        class="ep-section"
+        {% if block.settings.anchor != blank %}id="{{ block.settings.anchor }}"{% endif %}
+        {{ block.shopify_attributes }}
+      >
+        <!-- Section header -->
+        <div class="ep-section__header">
+          <div class="ep-section__icon{% if block.settings.section_num != blank %} ep-section__icon--num{% endif %}">
+            {%- if block.settings.section_num != blank -%}
+              {{ block.settings.section_num }}
+            {%- else -%}
+              {%- case block.settings.icon -%}
+                {%- when 'info' -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                {%- when 'database' -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                {%- when 'activity' -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                {%- when 'share' -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                {%- when 'cookie' -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1010 10 4 4 0 01-5-5 4 4 0 01-5-5"/><path d="M8.5 8.5v.01"/><path d="M16 15.5v.01"/><path d="M12 12v.01"/><path d="M11 17v.01"/><path d="M7 14v.01"/></svg>
+                {%- when 'shield-check' -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                {%- when 'lock' -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                {%- when 'mail' -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                {%- when 'edit' -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                {%- when 'phone' -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.52 12a19.79 19.79 0 01-3.07-8.67A2 2 0 013.44 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 9.91a16 16 0 006.29 6.29l1.28-.78a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                {%- when 'shield' -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                {%- else -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              {%- endcase -%}
+            {%- endif -%}
+          </div>
+          <div>
+            {%- if block.settings.section_tag != blank -%}
+              <span class="ep-section__tag">{{ block.settings.section_tag }}</span>
+            {%- endif -%}
+            <h2 class="ep-section__title">{{ block.settings.section_title }}</h2>
+          </div>
+        </div>
+
+        <!-- Main richtext content -->
+        {%- if block.settings.content != blank -%}
+          <div class="ep-section__body">
+            {{ block.settings.content }}
+          </div>
+        {%- endif -%}
+
+        <!-- Advanced HTML content (eligibility grids, steps, timelines, etc.) -->
+        {%- if block.settings.advanced_content != blank -%}
+          <div class="ep-section__body">
+            {{ block.settings.advanced_content }}
+          </div>
+        {%- endif -%}
+
+        <!-- Optional highlight box (navy left-border callout) -->
+        {%- if block.settings.highlight_text != blank -%}
+          <div class="ep-highlight-box">
+            {{ block.settings.highlight_text }}
+          </div>
+        {%- endif -%}
+
+        <!-- Optional warning box (gold left-border callout) -->
+        {%- if block.settings.warning_text != blank -%}
+          <div class="ep-warning-box">
+            {{ block.settings.warning_text }}
+          </div>
+        {%- endif -%}
+
+        <!-- Optional success box (green left-border callout) -->
+        {%- if block.settings.success_text != blank -%}
+          <div class="ep-success-box">
+            {{ block.settings.success_text }}
+          </div>
+        {%- endif -%}
+
+        <!-- Optional info cards (up to 2) -->
+        {%- assign has_card1 = false -%}
+        {%- assign has_card2 = false -%}
+        {%- if block.settings.card1_title != blank or block.settings.card1_text != blank -%}
+          {%- assign has_card1 = true -%}
+        {%- endif -%}
+        {%- if block.settings.card2_title != blank or block.settings.card2_text != blank -%}
+          {%- assign has_card2 = true -%}
+        {%- endif -%}
+
+        {%- if has_card1 or has_card2 -%}
+          <div class="ep-info-cards">
+            {%- if has_card1 -%}
+              <div class="ep-info-card">
+                <div class="ep-info-card__icon-row">
+                  {%- case block.settings.card1_icon -%}
+                    {%- when 'users' -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                    {%- when 'shield' -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    {%- when 'email' -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>
+                    {%- when 'building' -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    {%- when 'lock' -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                    {%- else -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  {%- endcase -%}
+                  <h4>{{ block.settings.card1_title }}</h4>
+                </div>
+                <p>{{ block.settings.card1_text }}</p>
+              </div>
+            {%- endif -%}
+            {%- if has_card2 -%}
+              <div class="ep-info-card">
+                <div class="ep-info-card__icon-row">
+                  {%- case block.settings.card2_icon -%}
+                    {%- when 'users' -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                    {%- when 'shield' -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    {%- when 'email' -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>
+                    {%- when 'building' -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    {%- when 'lock' -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                    {%- else -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  {%- endcase -%}
+                  <h4>{{ block.settings.card2_title }}</h4>
+                </div>
+                <p>{{ block.settings.card2_text }}</p>
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+        <!-- Optional extra richtext after info cards -->
+        {%- if block.settings.content_after != blank -%}
+          <div class="ep-section__body">
+            {{ block.settings.content_after }}
+          </div>
+        {%- endif -%}
+
+      </section>
+    {%- endfor -%}
+
+    <!-- Bottom CTA block (optional — renders only when cta_title is set) -->
+    {%- if section.settings.cta_title != blank -%}
+      <div class="ep-contact-cta">
+        <div class="ep-contact-cta__left">
+          {%- if section.settings.cta_eyebrow != blank -%}
+            <span class="ep-contact-cta__eyebrow">{{ section.settings.cta_eyebrow }}</span>
+          {%- endif -%}
+          <h3 class="ep-contact-cta__title">{{ section.settings.cta_title }}</h3>
+          {%- if section.settings.cta_desc != blank -%}
+            <p class="ep-contact-cta__desc">{{ section.settings.cta_desc }}</p>
+          {%- endif -%}
+        </div>
+        <div class="ep-contact-cta__right">
+          {%- if section.settings.cta_primary_label != blank -%}
+            <a href="{{ section.settings.cta_primary_url }}" class="ep-contact-cta__btn ep-contact-cta__btn--primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              {{ section.settings.cta_primary_label }}
+            </a>
+          {%- endif -%}
+          {%- if section.settings.cta_secondary_label != blank -%}
+            <a href="{{ section.settings.cta_secondary_url }}" class="ep-contact-cta__btn ep-contact-cta__btn--secondary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              {{ section.settings.cta_secondary_label }}
+            </a>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+  </main>
+</div>
+
+<script>
+(function() {
+  var sections = document.querySelectorAll('.ep-section[id]');
+  var tocItems = document.querySelectorAll('#epTocList .ep-toc__item');
+  if (!sections.length || !tocItems.length) return;
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        var id = entry.target.id;
+        tocItems.forEach(function(item) {
+          item.classList.remove('active');
+          if (item.querySelector('a[href="#' + id + '"]')) {
+            item.classList.add('active');
+          }
+        });
+      }
+    });
+  }, { rootMargin: '-15% 0px -75% 0px', threshold: 0 });
+
+  sections.forEach(function(s) { observer.observe(s); });
+})();
+</script>
+
+{% stylesheet %}
+/* ── VARIABLES ─────────────────────────────────────────────── */
+.ep-hero, .ep-layout {
+  --ep-navy:        #112557;
+  --ep-navy-light:  #1A3370;
+  --ep-gold:        #B8841E;
+  --ep-gold-soft:   #FAF3E4;
+  --ep-gold-border: #DFC07A;
+  --ep-gold-mid:    #E8B84B;
+  --ep-white:       #FFFFFF;
+  --ep-text-dark:   #18181B;
+  --ep-text-mid:    #44464F;
+  --ep-text-soft:   #72747D;
+  --ep-border:      #EAE6DC;
+  --ep-border-mid:  #D8D2C4;
+  --ep-section-bg:  #FFFDF8;
+  --ep-font-body:   var(--es-font-body,   'DM Sans',    sans-serif);
+  --ep-font-heading:var(--es-font-heading,'Cormorant',  serif);
+}
+
+/* ── HERO ──────────────────────────────────────────────────── */
+.ep-hero {
+  background: var(--ep-navy);
+  padding: 52px 68px 56px;
+  position: relative; overflow: hidden;
+}
+.ep-hero::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg,
+    transparent 0%, var(--ep-gold-mid) 30%, var(--ep-gold) 50%,
+    var(--ep-gold-mid) 70%, transparent 100%);
+}
+.ep-hero__watermark {
+  position: absolute; right: -40px; top: -40px;
+  width: 380px; opacity: 0.05; pointer-events: none;
+}
+.ep-hero__inner { max-width: 1280px; margin: 0 auto; position: relative; z-index: 1; }
+.ep-hero__eyebrow {
+  display: block; margin-bottom: 14px;
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--ep-gold-mid);
+  font-family: var(--ep-font-body);
+}
+.ep-hero__title {
+  font-family: var(--ep-font-heading);
+  font-size: 48px; font-weight: 500;
+  color: var(--ep-white); line-height: 1.1; margin-bottom: 0;
+}
+.ep-hero__title em { font-style: italic; color: var(--ep-gold-mid); }
+.ep-hero__meta {
+  display: flex; align-items: center; gap: 24px;
+  flex-wrap: wrap; margin-top: 20px;
+}
+.ep-hero__meta-item {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12.5px; color: rgba(255,255,255,0.55);
+  font-family: var(--ep-font-body);
+}
+.ep-hero__meta-item svg { width: 14px; height: 14px; stroke: var(--ep-gold-mid); flex-shrink: 0; }
+.ep-hero__meta-dot {
+  width: 3px; height: 3px; border-radius: 50%;
+  background: rgba(255,255,255,0.25); flex-shrink: 0;
+}
+
+/* ── PROMISE STRIP ─────────────────────────────────────────── */
+.ep-promise-strip {
+  background: #EBF5EF; border-bottom: 1px solid #A3D4B5;
+  padding: 14px 68px;
+}
+.ep-promise-inner {
+  max-width: 1280px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  gap: 32px; flex-wrap: wrap;
+}
+.ep-promise-item {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: #1C6B3A; font-weight: 500;
+  font-family: var(--ep-font-body);
+}
+.ep-promise-item svg { width: 15px; height: 15px; stroke: #1C6B3A; flex-shrink: 0; }
+.ep-promise-divider { width: 1px; height: 16px; background: #A3D4B5; flex-shrink: 0; }
+
+/* ── LAYOUT ────────────────────────────────────────────────── */
+.ep-layout {
+  max-width: 1280px; margin: 0 auto;
+  padding: 52px 68px 80px;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 60px;
+  align-items: start;
+}
+
+/* ── SIDEBAR TOC ───────────────────────────────────────────── */
+.ep-toc { position: sticky; top: 110px; }
+.ep-toc__label {
+  display: block; margin-bottom: 14px;
+  font-size: 9.5px; font-weight: 600; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--ep-text-soft);
+  font-family: var(--ep-font-body);
+}
+.ep-toc__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.ep-toc__item a {
+  display: block;
+  font-size: 13px; color: var(--ep-text-mid); text-decoration: none;
+  padding: 7px 12px;
+  border-left: 2px solid var(--ep-border); border-radius: 0 4px 4px 0;
+  line-height: 1.4; transition: color 0.18s, border-color 0.18s, background 0.18s;
+  font-family: var(--ep-font-body);
+}
+.ep-toc__item a:hover {
+  color: var(--ep-navy); border-color: var(--ep-gold-border); background: var(--ep-gold-soft);
+}
+.ep-toc__item.active a {
+  color: var(--ep-navy); border-color: var(--ep-gold);
+  background: var(--ep-gold-soft); font-weight: 500;
+}
+
+.ep-toc__contact {
+  margin-top: 24px; background: var(--ep-navy); border-radius: 10px; padding: 18px 16px;
+}
+.ep-toc__contact-label {
+  display: block; margin-bottom: 8px;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ep-gold-mid);
+  font-family: var(--ep-font-body);
+}
+.ep-toc__contact p {
+  font-size: 12.5px; color: rgba(255,255,255,0.65); line-height: 1.6; margin-bottom: 10px;
+  font-family: var(--ep-font-body);
+}
+.ep-toc__contact a {
+  display: inline-block;
+  font-size: 12.5px; color: var(--ep-gold-mid); text-decoration: none;
+  font-weight: 500; transition: color 0.15s; font-family: var(--ep-font-body);
+}
+.ep-toc__contact a:hover { color: #C8922A; }
+.ep-toc__contact-btn {
+  display: flex !important; align-items: center; gap: 7px;
+  background: var(--ep-gold); color: var(--ep-white) !important;
+  font-size: 12.5px !important; font-weight: 600 !important;
+  padding: 9px 14px; border-radius: 6px;
+  text-decoration: none; margin-top: 14px;
+  transition: background 0.18s;
+}
+.ep-toc__contact-btn:hover { background: #C8922A !important; }
+.ep-toc__contact-btn svg { width: 13px; height: 13px; stroke: currentColor; flex-shrink: 0; }
+
+/* ── MAIN CONTENT ──────────────────────────────────────────── */
+.ep-content { min-width: 0; }
+
+/* Intro box */
+.ep-intro {
+  background: var(--ep-section-bg); border: 1.5px solid var(--ep-gold-border);
+  border-radius: 12px; padding: 28px 32px; margin-bottom: 48px;
+}
+.ep-intro p {
+  font-size: 14.5px; color: var(--ep-text-mid); line-height: 1.8; margin: 0;
+  font-family: var(--ep-font-body);
+}
+.ep-intro strong { color: var(--ep-text-dark); }
+
+/* Policy section */
+.ep-section { margin-bottom: 48px; scroll-margin-top: 120px; }
+.ep-section:last-child { margin-bottom: 0; }
+
+.ep-section__header {
+  display: flex; align-items: flex-start; gap: 16px;
+  margin-bottom: 20px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--ep-border);
+}
+.ep-section__icon {
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: 8px;
+  background: var(--ep-navy); display: flex; align-items: center; justify-content: center;
+  margin-top: 3px;
+}
+.ep-section__icon svg { width: 20px; height: 20px; stroke: var(--ep-gold-mid); fill: none; }
+.ep-section__icon--num {
+  font-family: var(--ep-font-body);
+  font-size: 14px; font-weight: 700; letter-spacing: 0.02em;
+  color: var(--ep-gold-mid);
+}
+.ep-section__num {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ep-gold-mid); margin-bottom: 3px;
+  font-family: var(--ep-font-body);
+}
+.ep-section__tag {
+  display: block;
+  font-size: 9.5px; font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ep-gold); margin-bottom: 2px;
+  font-family: var(--ep-font-body);
+}
+.ep-section__title {
+  font-family: var(--ep-font-heading);
+  font-size: 26px; font-weight: 500; color: var(--ep-text-dark); line-height: 1.2;
+  margin: 0; padding: 0;
+}
+
+/* Richtext body styling */
+.ep-section__body p {
+  font-size: 14px; color: var(--ep-text-mid); line-height: 1.85; margin-bottom: 14px;
+  font-family: var(--ep-font-body);
+}
+.ep-section__body p:last-child { margin-bottom: 0; }
+.ep-section__body a { color: var(--ep-gold); text-decoration: none; font-weight: 500; transition: color 0.15s; overflow-wrap: break-word; word-break: break-word; }
+.ep-section__body a:hover { color: #C8922A; }
+.ep-section__body strong { color: var(--ep-text-dark); font-weight: 600; }
+
+/* Richtext list → styled bullets */
+.ep-section__body ul {
+  list-style: none; margin: 16px 0; padding: 0;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.ep-section__body ul li {
+  display: block; position: relative;
+  padding-left: 18px;
+  font-size: 14px; color: var(--ep-text-mid); line-height: 1.7;
+  font-family: var(--ep-font-body);
+  overflow-wrap: break-word; word-break: break-word;
+}
+.ep-section__body ul li::before {
+  content: ''; position: absolute; left: 0; top: 10px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ep-gold);
+}
+.ep-section__body ul li strong { color: var(--ep-text-dark); }
+
+/* Highlight box (navy left-border callout) */
+.ep-highlight-box {
+  background: var(--ep-section-bg); border: 1px solid var(--ep-border);
+  border-left: 3px solid var(--ep-navy);
+  border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;
+}
+.ep-highlight-box p {
+  font-size: 13.5px; color: var(--ep-text-mid); line-height: 1.75; margin: 0;
+  font-family: var(--ep-font-body);
+}
+.ep-highlight-box strong { color: var(--ep-navy); }
+
+/* Success box (green left-border callout) */
+.ep-success-box {
+  background: #EBF5EF; border: 1px solid #A3D4B5;
+  border-left: 3px solid #1C6B3A;
+  border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;
+}
+.ep-success-box p {
+  font-size: 13.5px; color: #44464F; line-height: 1.75; margin: 0;
+  font-family: var(--ep-font-body);
+}
+.ep-success-box strong { color: #1C6B3A; }
+
+/* Warning box (gold left-border callout) */
+.ep-warning-box {
+  background: #FFF8EC; border: 1px solid #F0D080;
+  border-left: 3px solid var(--ep-gold);
+  border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;
+}
+.ep-warning-box p {
+  font-size: 13.5px; color: var(--ep-text-mid); line-height: 1.75; margin: 0;
+  font-family: var(--ep-font-body);
+}
+.ep-warning-box strong { color: #7A5A00; }
+
+/* ── ELIGIBILITY GRID (rendered from content richtext) ──────── */
+.ep-section__body .ep-elig-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0;
+}
+.ep-section__body .ep-elig-card {
+  padding: 18px 20px; border-radius: 10px; border: 1.5px solid;
+}
+.ep-section__body .ep-elig-card.ep-elig-eligible {
+  border-color: #A3D4B5; background: #EBF5EF;
+}
+.ep-section__body .ep-elig-card.ep-elig-not-eligible {
+  border-color: #F0C0C0; background: #FFF5F5;
+}
+.ep-section__body .ep-elig-header { margin-bottom: 12px; }
+.ep-section__body .ep-elig-badge {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 3px 9px; border-radius: 20px;
+  font-family: var(--ep-font-body);
+}
+.ep-section__body .ep-elig-eligible .ep-elig-badge {
+  background: #1C6B3A; color: #fff;
+}
+.ep-section__body .ep-elig-not-eligible .ep-elig-badge {
+  background: #C0392B; color: #fff;
+}
+.ep-section__body .ep-elig-card ul {
+  list-style: none; margin: 0; padding: 0; gap: 8px;
+}
+.ep-section__body .ep-elig-eligible ul li {
+  color: #1C6B3A; font-size: 13px; line-height: 1.5;
+}
+.ep-section__body .ep-elig-not-eligible ul li {
+  color: #C0392B; font-size: 13px; line-height: 1.5;
+}
+.ep-section__body .ep-elig-card ul li::before { display: none; }
+
+/* ── PROCESS STEPS (rendered from content richtext) ─────────── */
+.ep-section__body .ep-steps {
+  display: flex; flex-direction: column; gap: 0;
+  margin: 24px 0; position: relative;
+}
+.ep-section__body .ep-steps::before {
+  content: ''; position: absolute;
+  left: 15px; top: 32px; bottom: 32px;
+  width: 1.5px; background: var(--ep-border);
+}
+.ep-section__body .ep-step {
+  display: flex; gap: 18px; align-items: flex-start; position: relative;
+}
+.ep-section__body .ep-step + .ep-step { margin-top: 24px; }
+.ep-section__body .ep-step::before { display: none; }
+.ep-section__body .ep-step-num {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: var(--ep-navy); color: var(--ep-gold-mid);
+  font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1; position: relative;
+  font-family: var(--ep-font-body);
+}
+.ep-section__body .ep-step-body { padding-top: 4px; }
+.ep-section__body .ep-step-body strong {
+  display: block; font-size: 14px; color: var(--ep-text-dark); margin-bottom: 4px;
+}
+.ep-section__body .ep-step-body p {
+  font-size: 13.5px; color: var(--ep-text-mid); line-height: 1.65; margin: 0;
+}
+
+/* ── REFUND TIMELINE (rendered from content richtext) ───────── */
+.ep-section__body .ep-timeline {
+  display: flex; align-items: center; gap: 0;
+  margin: 24px 0; flex-wrap: wrap;
+}
+.ep-section__body .ep-timeline::before { display: none; }
+.ep-section__body .ep-timeline-step {
+  display: flex; flex-direction: column; align-items: center;
+  flex: 1; min-width: 100px;
+}
+.ep-section__body .ep-timeline-step::before { display: none; }
+.ep-section__body .ep-timeline-dot {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--ep-navy); color: var(--ep-gold-mid);
+  font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 8px; flex-shrink: 0;
+  font-family: var(--ep-font-body);
+}
+.ep-section__body .ep-timeline-label {
+  font-size: 12px; font-weight: 600; color: var(--ep-text-dark);
+  text-align: center; margin-bottom: 3px; font-family: var(--ep-font-body);
+}
+.ep-section__body .ep-timeline-sub {
+  font-size: 11px; color: var(--ep-text-soft); text-align: center;
+  font-family: var(--ep-font-body);
+}
+.ep-section__body .ep-timeline-line {
+  height: 2px; flex: 1; background: var(--ep-border);
+  min-width: 24px; margin-bottom: 28px; flex-shrink: 0;
+}
+
+/* Info cards */
+.ep-info-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+.ep-info-card {
+  border: 1.5px solid var(--ep-border); border-radius: 10px;
+  padding: 18px 20px; background: var(--ep-section-bg);
+}
+.ep-info-card__icon-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.ep-info-card__icon-row svg {
+  width: 18px; height: 18px; stroke: var(--ep-gold); fill: none;
+  stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
+}
+.ep-info-card h4 {
+  font-size: 13px; font-weight: 600; color: var(--ep-text-dark);
+  font-family: var(--ep-font-body);
+}
+.ep-info-card p {
+  font-size: 12.5px; color: var(--ep-text-mid); line-height: 1.65; margin: 0;
+  font-family: var(--ep-font-body);
+}
+.ep-info-card p a { color: var(--ep-gold); font-weight: 500; text-decoration: none; }
+
+/* ── FREE SHIPPING CARD ─────────────────────────────────────── */
+.ep-fsc {
+  background: var(--ep-navy); border-radius: 14px;
+  padding: 32px 36px; margin-bottom: 48px;
+  display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+}
+.ep-fsc__icon { font-size: 44px; flex-shrink: 0; line-height: 1; }
+.ep-fsc__body { flex: 1; min-width: 0; }
+.ep-fsc__eyebrow {
+  display: block; margin-bottom: 6px;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ep-gold-mid);
+  font-family: var(--ep-font-body);
+}
+.ep-fsc__title {
+  font-family: var(--ep-font-heading);
+  font-size: 28px; font-weight: 500;
+  color: var(--ep-white); line-height: 1.2; margin-bottom: 6px;
+}
+.ep-fsc__title em { font-style: italic; color: var(--ep-gold-mid); }
+.ep-fsc__desc {
+  font-size: 14px; color: rgba(255,255,255,0.62);
+  line-height: 1.6; margin: 0; font-family: var(--ep-font-body);
+}
+.ep-fsc__badge {
+  background: var(--ep-gold); color: var(--ep-white);
+  border-radius: 10px; padding: 20px 28px;
+  text-align: center; flex-shrink: 0; min-width: 150px;
+}
+.ep-fsc__amount {
+  font-family: var(--ep-font-heading);
+  font-size: 38px; font-weight: 600; line-height: 1; margin-bottom: 4px;
+}
+.ep-fsc__amount-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; opacity: 0.85;
+  font-family: var(--ep-font-body);
+}
+
+/* ── SHIPPING TABLE (inside advanced_content) ───────────────── */
+.ep-section__body .ep-shipping-table {
+  width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13.5px;
+}
+.ep-section__body .ep-shipping-table th {
+  background: var(--ep-navy); color: var(--ep-white);
+  padding: 12px 16px; text-align: left;
+  font-weight: 500; font-size: 12px; letter-spacing: 0.05em;
+  font-family: var(--ep-font-body);
+}
+.ep-section__body .ep-shipping-table th:first-child { border-radius: 8px 0 0 0; }
+.ep-section__body .ep-shipping-table th:last-child  { border-radius: 0 8px 0 0; }
+.ep-section__body .ep-shipping-table td {
+  padding: 12px 16px; color: var(--ep-text-mid);
+  border-bottom: 1px solid var(--ep-border);
+  vertical-align: top; line-height: 1.6;
+  font-family: var(--ep-font-body);
+}
+.ep-section__body .ep-shipping-table tr:last-child td { border-bottom: none; }
+.ep-section__body .ep-shipping-table tr:nth-child(even) td { background: var(--ep-section-bg); }
+.ep-section__body .ep-shipping-table td strong { color: var(--ep-text-dark); }
+.ep-section__body .ep-shipping-table td small {
+  font-size: 12px; color: var(--ep-text-soft);
+}
+.ep-section__body .ep-free-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #EBF5EF; color: #1C6B3A;
+  border: 1px solid #A3D4B5; border-radius: 20px;
+  padding: 2px 10px; font-size: 11.5px; font-weight: 600;
+  font-family: var(--ep-font-body);
+}
+
+/* ── ORDER JOURNEY GRID (inside advanced_content) ───────────── */
+.ep-section__body .ep-journey {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1px; background: var(--ep-border);
+  border: 1px solid var(--ep-border);
+  border-radius: 12px; overflow: hidden; margin: 24px 0;
+}
+.ep-section__body .ep-journey::before { display: none; }
+.ep-section__body .ep-journey-step {
+  background: var(--ep-white); padding: 20px 16px;
+  display: flex; flex-direction: column;
+  align-items: center; text-align: center; gap: 8px;
+  position: relative;
+}
+.ep-section__body .ep-journey-step::before { display: none; }
+.ep-section__body .ep-journey-step:not(:last-child)::after {
+  content: '→';
+  position: absolute; right: -10px; top: 50%; transform: translateY(-50%);
+  color: var(--ep-gold-mid); font-size: 16px; z-index: 1;
+  display: block !important;
+}
+.ep-section__body .ep-journey-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: var(--ep-navy);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.ep-section__body .ep-journey-icon svg {
+  width: 20px; height: 20px; stroke: var(--ep-gold-mid);
+  fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round;
+}
+.ep-section__body .ep-journey-title {
+  font-size: 13px; font-weight: 600; color: var(--ep-text-dark);
+  font-family: var(--ep-font-body);
+}
+.ep-section__body .ep-journey-time {
+  font-size: 11.5px; color: var(--ep-gold); font-weight: 600;
+  font-family: var(--ep-font-body);
+}
+.ep-section__body .ep-journey-desc {
+  font-size: 11.5px; color: var(--ep-text-soft);
+  line-height: 1.5; font-family: var(--ep-font-body);
+}
+
+/* Bottom CTA block */
+.ep-contact-cta {
+  background: var(--ep-navy); border-radius: 14px;
+  padding: 36px 40px; margin-top: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 32px; flex-wrap: wrap;
+}
+.ep-contact-cta__eyebrow {
+  display: block; margin-bottom: 8px;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ep-gold-mid);
+  font-family: var(--ep-font-body);
+}
+.ep-contact-cta__title {
+  font-family: var(--ep-font-heading);
+  font-size: 28px; font-weight: 500; color: var(--ep-white);
+  line-height: 1.2; margin-bottom: 8px;
+}
+.ep-contact-cta__desc {
+  font-size: 14px; color: rgba(255,255,255,0.6);
+  line-height: 1.65; margin: 0; font-family: var(--ep-font-body);
+}
+.ep-contact-cta__right {
+  display: flex; flex-direction: column; gap: 10px; min-width: 200px;
+}
+.ep-contact-cta__btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 20px; border-radius: 8px; text-decoration: none;
+  font-size: 13.5px; font-weight: 600; transition: background 0.18s, transform 0.15s;
+  font-family: var(--ep-font-body);
+}
+.ep-contact-cta__btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+.ep-contact-cta__btn--primary {
+  background: var(--ep-gold); color: var(--ep-white);
+}
+.ep-contact-cta__btn--primary:hover { background: #C8922A; transform: translateY(-1px); }
+.ep-contact-cta__btn--secondary {
+  background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.ep-contact-cta__btn--secondary:hover { background: rgba(255,255,255,0.18); }
+
+/* ── RESPONSIVE ────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .ep-hero         { padding: 40px 40px 44px; }
+  .ep-layout {
+    grid-template-columns: 1fr; gap: 40px;
+    padding: 40px 40px 60px;
+  }
+  .ep-toc          { position: static; }
+  .ep-toc__list    { flex-direction: row; flex-wrap: wrap; gap: 6px; }
+  .ep-toc__item a  {
+    border-left: none; border-bottom: 2px solid var(--ep-border);
+    border-radius: 4px 4px 0 0; padding: 6px 12px;
+  }
+  .ep-toc__item.active a { border-color: var(--ep-gold); }
+  .ep-toc__contact { max-width: 340px; }
+}
+
+@media (max-width: 1024px) {
+  .ep-promise-strip { padding-left: 40px; padding-right: 40px; }
+  .ep-section__body .ep-journey { grid-template-columns: 1fr 1fr; }
+  .ep-section__body .ep-journey-step:nth-child(4)::after { display: none !important; }
+}
+
+@media (max-width: 640px) {
+  .ep-hero          { padding: 32px 24px 36px; }
+  .ep-hero__title   { font-size: 32px; }
+  .ep-layout        { padding: 32px 24px 48px; }
+
+  /* Promise strip — 2-column grid */
+  .ep-promise-strip { padding-left: 20px; padding-right: 20px; }
+  .ep-promise-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 20px;
+    justify-items: start;
+  }
+  .ep-promise-divider { display: none; }
+  .ep-promise-item   { font-size: 12.5px; }
+
+  /* TOC — 2-column pill grid */
+  .ep-toc__list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    flex-direction: unset; flex-wrap: unset;
+  }
+  .ep-toc__item a {
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    border-left: none;
+    border: 1.5px solid var(--ep-border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12px; line-height: 1.3;
+    background: var(--ep-section-bg);
+  }
+  .ep-toc__item a:hover {
+    border-color: var(--ep-gold-border); background: var(--ep-gold-soft);
+  }
+  .ep-toc__item.active a {
+    border-color: var(--ep-gold); background: var(--ep-gold-soft); font-weight: 600;
+  }
+
+  .ep-info-cards    { grid-template-columns: 1fr; }
+  .ep-toc__contact  { max-width: 100%; }
+  .ep-contact-cta   { flex-direction: column; padding: 28px 24px; }
+  .ep-contact-cta__right { min-width: 0; width: 100%; }
+  .ep-fsc { flex-direction: column; text-align: center; padding: 28px 24px; }
+  .ep-fsc__badge { width: 100%; }
+  .ep-section__body .ep-elig-grid { grid-template-columns: 1fr; }
+  .ep-section__body .ep-journey { grid-template-columns: 1fr; }
+  .ep-section__body .ep-journey-step::after { display: none !important; }
+  .ep-section__body .ep-timeline  { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .ep-section__body .ep-timeline-line { display: none; }
+  .ep-section__body .ep-timeline-step { flex-direction: row; align-items: center; gap: 14px; }
+  .ep-section__body .ep-timeline-dot { margin-bottom: 0; }
+  .ep-section__body .ep-timeline-label,
+  .ep-section__body .ep-timeline-sub  { text-align: left; }
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "ES Policy Page",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Hero"
+    },
+    {
+      "type": "text",
+      "id": "hero_eyebrow",
+      "label": "Eyebrow text",
+      "default": "Legal & Trust"
+    },
+    {
+      "type": "text",
+      "id": "hero_title",
+      "label": "Page heading",
+      "default": "Privacy Policy"
+    },
+    {
+      "type": "text",
+      "id": "hero_title_highlight",
+      "label": "Italic highlight phrase",
+      "info": "Exact phrase within the heading to display in italic gold. Leave blank to disable.",
+      "default": "Policy"
+    },
+    {
+      "type": "text",
+      "id": "hero_last_updated",
+      "label": "Last updated date",
+      "default": "January 2025"
+    },
+    {
+      "type": "text",
+      "id": "hero_company",
+      "label": "Company tag line",
+      "default": "Earthen Story · Earthen Story Pvt. Ltd."
+    },
+    {
+      "type": "text",
+      "id": "hero_location",
+      "label": "Location meta (optional, shows map-pin icon)",
+      "info": "e.g. 'Ships pan-India'. Leave blank to hide."
+    },
+    {
+      "type": "text",
+      "id": "hero_email",
+      "label": "Email meta (optional, shows email icon)",
+      "info": "Leave blank to hide the email item in the hero."
+    },
+    {
+      "type": "header",
+      "content": "Sidebar"
+    },
+    {
+      "type": "text",
+      "id": "toc_label",
+      "label": "TOC heading",
+      "default": "On this page"
+    },
+    {
+      "type": "text",
+      "id": "toc_contact_label",
+      "label": "Contact box label",
+      "default": "Privacy questions?"
+    },
+    {
+      "type": "text",
+      "id": "toc_contact_text",
+      "label": "Contact box text",
+      "default": "Reach our team directly for any data-related requests."
+    },
+    {
+      "type": "text",
+      "id": "toc_contact_email",
+      "label": "Contact email address",
+      "default": "privacy@earthenstory.com"
+    },
+    {
+      "type": "text",
+      "id": "toc_cta_label",
+      "label": "Sidebar CTA button label",
+      "info": "Adds a gold action button at the bottom of the sidebar card. Leave blank to hide."
+    },
+    {
+      "type": "text",
+      "id": "toc_cta_url",
+      "label": "Sidebar CTA button URL",
+      "info": "Use mailto: for email links, e.g. mailto:hello@earthenstory.com"
+    },
+    {
+      "type": "header",
+      "content": "Promise Strip (optional)"
+    },
+    {
+      "type": "text",
+      "id": "promise_items",
+      "label": "Promise strip items (pipe-separated)",
+      "info": "Shows a green trust strip below the hero. Separate items with | e.g. 3-day return window|Full refund for damaged items. Leave blank to hide."
+    },
+    {
+      "type": "header",
+      "content": "Free Shipping Card (optional)"
+    },
+    {
+      "type": "checkbox",
+      "id": "fsc_show",
+      "label": "Show free shipping card",
+      "default": false,
+      "info": "Displays a navy card above the first section. Useful for shipping policy pages."
+    },
+    {
+      "type": "text",
+      "id": "fsc_icon",
+      "label": "Card emoji/icon",
+      "default": "🚚"
+    },
+    {
+      "type": "text",
+      "id": "fsc_eyebrow",
+      "label": "Card eyebrow text",
+      "default": "Always a good deal"
+    },
+    {
+      "type": "text",
+      "id": "fsc_title",
+      "label": "Card heading"
+    },
+    {
+      "type": "text",
+      "id": "fsc_title_highlight",
+      "label": "Italic gold phrase in heading",
+      "info": "Exact phrase within the heading to render in italic gold."
+    },
+    {
+      "type": "text",
+      "id": "fsc_desc",
+      "label": "Card description"
+    },
+    {
+      "type": "text",
+      "id": "fsc_amount",
+      "label": "Threshold amount (shown in gold badge)",
+      "info": "e.g. ₹799"
+    },
+    {
+      "type": "text",
+      "id": "fsc_amount_label",
+      "label": "Badge label below the amount",
+      "default": "Free Shipping Threshold"
+    },
+    {
+      "type": "header",
+      "content": "Intro Block"
+    },
+    {
+      "type": "richtext",
+      "id": "intro_text",
+      "label": "Intro paragraph",
+      "default": "<p>Earthen Story (a registered trademark of <strong>Earthen Story Pvt. Ltd.</strong>) is committed to protecting your privacy and maintaining full transparency about how your information is collected and used. This Policy applies to all past and current users of our website and will replace any prior policies.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Bottom CTA Block (optional)"
+    },
+    {
+      "type": "text",
+      "id": "cta_eyebrow",
+      "label": "CTA eyebrow text",
+      "info": "Small uppercase label above the CTA title. Leave blank to hide the entire CTA."
+    },
+    {
+      "type": "text",
+      "id": "cta_title",
+      "label": "CTA heading",
+      "info": "Leave blank to hide the bottom CTA block entirely."
+    },
+    {
+      "type": "text",
+      "id": "cta_desc",
+      "label": "CTA description"
+    },
+    {
+      "type": "text",
+      "id": "cta_primary_label",
+      "label": "Primary button label"
+    },
+    {
+      "type": "text",
+      "id": "cta_primary_url",
+      "label": "Primary button URL",
+      "info": "Use mailto: for email links, e.g. mailto:hello@earthenstory.com"
+    },
+    {
+      "type": "text",
+      "id": "cta_secondary_label",
+      "label": "Secondary button label"
+    },
+    {
+      "type": "text",
+      "id": "cta_secondary_url",
+      "label": "Secondary button URL"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "policy_section",
+      "name": "Policy Section",
+      "settings": [
+        {
+          "type": "header",
+          "content": "Section Identity"
+        },
+        {
+          "type": "text",
+          "id": "anchor",
+          "label": "Section anchor (used for #URL and TOC link)",
+          "info": "Lowercase, no spaces — e.g. 'overview', 'your-rights'",
+          "default": "section"
+        },
+        {
+          "type": "text",
+          "id": "toc_label",
+          "label": "TOC short label",
+          "default": "Section"
+        },
+        {
+          "type": "text",
+          "id": "section_num",
+          "label": "Section number",
+          "info": "Small numeric label shown above the tag and title. e.g. '01'. Leave blank to hide.",
+          "default": "01"
+        },
+        {
+          "type": "text",
+          "id": "section_tag",
+          "label": "Section tag / category eyebrow",
+          "info": "Small uppercase category label shown above the section title. e.g. 'Overview', 'Eligibility', 'Process'."
+        },
+        {
+          "type": "text",
+          "id": "section_title",
+          "label": "Section heading",
+          "default": "Section Title"
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Section icon",
+          "options": [
+            { "value": "info",         "label": "Info circle" },
+            { "value": "database",     "label": "Database" },
+            { "value": "activity",     "label": "Activity / Pulse" },
+            { "value": "share",        "label": "Share / Network" },
+            { "value": "cookie",       "label": "Cookie" },
+            { "value": "shield-check", "label": "Shield with checkmark" },
+            { "value": "lock",         "label": "Padlock" },
+            { "value": "mail",         "label": "Mail / Marketing" },
+            { "value": "edit",         "label": "Edit / Changes" },
+            { "value": "phone",        "label": "Phone / Contact" },
+            { "value": "shield",       "label": "Shield" }
+          ],
+          "default": "info"
+        },
+        {
+          "type": "header",
+          "content": "Content"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Section body (supports bold, lists, links)"
+        },
+        {
+          "type": "html",
+          "id": "advanced_content",
+          "label": "Advanced HTML block (optional)",
+          "info": "For eligibility grids, numbered steps, timelines, etc. Rendered after the main body. Accepts custom HTML with CSS classes."
+        },
+        {
+          "type": "richtext",
+          "id": "highlight_text",
+          "label": "Highlight box (optional — navy left border)",
+          "info": "Renders as a navy-accented callout box. Use for important notes or promises."
+        },
+        {
+          "type": "richtext",
+          "id": "warning_text",
+          "label": "Warning box (optional — gold left border)",
+          "info": "Renders as a warm-gold callout box. Use for disclaimers or cautions."
+        },
+        {
+          "type": "richtext",
+          "id": "success_text",
+          "label": "Success box (optional — green left border)",
+          "info": "Renders as a green callout box. Use for positive commitments or guarantees."
+        },
+        {
+          "type": "richtext",
+          "id": "content_after",
+          "label": "Extra content after info cards (optional)"
+        },
+        {
+          "type": "header",
+          "content": "Info Card 1 (optional)"
+        },
+        {
+          "type": "select",
+          "id": "card1_icon",
+          "label": "Card 1 icon",
+          "options": [
+            { "value": "users",    "label": "People / Users" },
+            { "value": "shield",   "label": "Shield" },
+            { "value": "email",    "label": "Email" },
+            { "value": "building", "label": "Building / Company" },
+            { "value": "lock",     "label": "Padlock" },
+            { "value": "info",     "label": "Info" }
+          ],
+          "default": "users"
+        },
+        {
+          "type": "text",
+          "id": "card1_title",
+          "label": "Card 1 title"
+        },
+        {
+          "type": "textarea",
+          "id": "card1_text",
+          "label": "Card 1 body text"
+        },
+        {
+          "type": "header",
+          "content": "Info Card 2 (optional)"
+        },
+        {
+          "type": "select",
+          "id": "card2_icon",
+          "label": "Card 2 icon",
+          "options": [
+            { "value": "users",    "label": "People / Users" },
+            { "value": "shield",   "label": "Shield" },
+            { "value": "email",    "label": "Email" },
+            { "value": "building", "label": "Building / Company" },
+            { "value": "lock",     "label": "Padlock" },
+            { "value": "info",     "label": "Info" }
+          ],
+          "default": "shield"
+        },
+        {
+          "type": "text",
+          "id": "card2_title",
+          "label": "Card 2 title"
+        },
+        {
+          "type": "textarea",
+          "id": "card2_text",
+          "label": "Card 2 body text"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "ES Policy Page" }
+  ]
+}
+{% endschema %}

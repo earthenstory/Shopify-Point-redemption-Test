@@ -1,0 +1,182 @@
+{
+  "sections": {
+    "homepage": {
+      "type": "homepage",
+      "blocks": {
+        "fn-ashish": {
+          "type": "founder_name",
+          "settings": {
+            "name": "Ashish"
+          }
+        },
+        "fn-shashank": {
+          "type": "founder_name",
+          "settings": {
+            "name": "Shashank"
+          }
+        },
+        "fn-shivangi": {
+          "type": "founder_name",
+          "settings": {
+            "name": "Shivangi"
+          }
+        },
+        "cat-ghee": {
+          "type": "category_tile",
+          "settings": {
+            "icon": "🫙",
+            "name": "Ghee",
+            "url": "shopify:\/\/collections\/a2-gir-cow-ghee"
+          }
+        },
+        "cat-honey": {
+          "type": "category_tile",
+          "settings": {
+            "icon": "🍯",
+            "name": "Honey",
+            "url": "shopify:\/\/collections\/organic-honey"
+          }
+        },
+        "cat-oils": {
+          "type": "category_tile",
+          "settings": {
+            "icon": "🫒",
+            "name": "Oils",
+            "url": "shopify:\/\/collections\/organic-cold-pressed-oils"
+          }
+        },
+        "cat-flours": {
+          "type": "category_tile",
+          "settings": {
+            "icon": "🌾",
+            "name": "Flours",
+            "url": "shopify:\/\/collections\/organic-flours"
+          }
+        },
+        "cat-seeds": {
+          "type": "category_tile",
+          "settings": {
+            "icon": "🌱",
+            "name": "Seeds",
+            "url": "shopify:\/\/collections\/organic-seeds"
+          }
+        },
+        "cat-dryfruits": {
+          "type": "category_tile",
+          "settings": {
+            "icon": "🌰",
+            "name": "Dry Fruits",
+            "url": "shopify:\/\/collections\/dry-fruits-nuts"
+          }
+        },
+        "cat-gulkand": {
+          "type": "category_tile",
+          "settings": {
+            "icon": "🌹",
+            "name": "Gulkand",
+            "url": "shopify:\/\/collections\/gulkand"
+          }
+        },
+        "cat-amla": {
+          "type": "category_tile",
+          "settings": {
+            "icon": "🫐",
+            "name": "Amla Candy",
+            "url": "shopify:\/\/collections\/amla-candy"
+          }
+        },
+        "cat-herbal": {
+          "type": "category_tile",
+          "settings": {
+            "icon": "🌿",
+            "name": "Herbal Powders",
+            "url": "shopify:\/\/collections\/organic-herbal-powders"
+          }
+        },
+        "bundle-starter": {
+          "type": "bundle_card",
+          "settings": {
+            "product": "bundle-clean-kitchen",
+            "cta_label": "Shop Bundle →"
+          }
+        },
+        "bundle-pantry": {
+          "type": "bundle_card",
+          "settings": {
+            "product": "bundle-daily-greens",
+            "cta_label": "Shop Bundle →"
+          }
+        },
+        "bundle-kitchen": {
+          "type": "bundle_card",
+          "settings": {
+            "product": "bundle-seeds-mix",
+            "cta_label": "Shop Bundle →"
+          }
+        },
+        "bundle-extra": {
+          "type": "bundle_card",
+          "settings": {
+            "product": "bundle-morning-ritual",
+            "cta_label": "Shop Bundle →"
+          }
+        }
+      },
+      "block_order": [
+        "fn-ashish",
+        "fn-shashank",
+        "fn-shivangi",
+        "cat-ghee",
+        "cat-honey",
+        "cat-oils",
+        "cat-flours",
+        "cat-seeds",
+        "cat-dryfruits",
+        "cat-gulkand",
+        "cat-amla",
+        "cat-herbal",
+        "bundle-starter",
+        "bundle-pantry",
+        "bundle-kitchen",
+        "bundle-extra"
+      ],
+      "settings": {
+        "hero_image": "shopify:\/\/shop_images\/healthy-breakfast.jpg",
+        "hero_title": "Food the Way\nIt Was Meant",
+        "hero_title_em": "to Be.",
+        "hero_subtitle": "Organic sourcing with transaction certificates. Pesticide-free, lab tested. Traditional processing that preserves nutrition — the way Indian food has always worked.",
+        "hero_cta_primary_label": "Explore Our Foods",
+        "hero_cta_primary_url": "",
+        "hero_cta_ghost_label": "Our Story →",
+        "hero_cta_ghost_url": "",
+        "founder_video_url": "",
+        "founder_quote_before": "We started because the food on supermarket shelves",
+        "founder_quote_strong": "isn't the food our grandparents ate.",
+        "founder_body": "India's agriculture uses some of the world's highest pesticide concentrations. Traditional processing methods — bilona churning, cold pressing, stone grinding — are being replaced by industrial shortcuts. Earthen Story sources directly from certified organic farms and processes the traditional way.",
+        "founder_cta_label": "Read Our Full Story →",
+        "founder_cta_url": "",
+        "cat_all_url": "",
+        "bs_collection": "best-seller",
+        "bs_product_limit": 6,
+        "bs_collection_url": "",
+        "bundles_all_url": "",
+        "recipes_blog": "recipes",
+        "recipes_limit": 4,
+        "discover_blog": "discover",
+        "discover_limit": 4
+      }
+    },
+    "es-email-invite": {
+      "type": "es-email-invite",
+      "settings": {
+        "email_heading": "Food Knowledge. Recipes. Updates.",
+        "email_desc": "Join our community of conscious food lovers. Seasonal recipes, ingredient guides, and traditional food knowledge — delivered to your inbox.",
+        "email_btn": "Join the Community →"
+      }
+    }
+  },
+  "order": [
+    "homepage",
+    "es-email-invite"
+  ]
+}

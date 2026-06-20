@@ -1,0 +1,79 @@
+{%- comment -%}
+  sections/product-seo-content.liquid
+  Earthen Story — Section 5: SEO Accordion
+  CSS: earthen-story.css — .esd-section-inner, .esd-seo-header,
+       .esd-seo-toggle-title, .esd-seo-expand-btn, .esd-seo-body,
+       .esd-seo-body-inner
+{%- endcomment -%}
+
+{%- liquid
+  assign seo_title = product.metafields.custom.seo_accordion_title.value
+  assign seo_body  = product.metafields.custom.seo_content
+  if seo_title == blank
+    assign seo_title = 'About ' | append: product.title
+  endif
+  assign uid = section.id
+-%}
+
+{%- if seo_body.value != blank -%}
+
+<div class="esd-section-inner">
+  <div
+    class="esd-seo-header"
+    id="EsdSeoHeader-{{ uid }}"
+    role="button"
+    aria-expanded="false"
+    aria-controls="EsdSeoBody-{{ uid }}"
+    tabindex="0"
+  >
+    <span class="esd-seo-toggle-title">{{ seo_title }}</span>
+    <span class="esd-seo-expand-btn" id="EsdSeoBtn-{{ uid }}" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      Read more
+    </span>
+  </div>
+
+  <div class="esd-seo-body" id="EsdSeoBody-{{ uid }}" role="region">
+    <div class="esd-seo-body-inner">
+      {{ seo_body | metafield_tag }}
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+  var uid    = '{{ uid }}';
+  var header = document.getElementById('EsdSeoHeader-' + uid);
+  var body   = document.getElementById('EsdSeoBody-' + uid);
+  var btn    = document.getElementById('EsdSeoBtn-' + uid);
+  if (!header || !body) return;
+  function toggle() {
+    var isOpen = body.classList.toggle('visible');
+    header.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    if (btn) {
+      btn.classList.toggle('open', isOpen);
+      var textNode = btn.lastChild;
+      if (textNode && textNode.nodeType === 3) {
+        textNode.textContent = isOpen ? ' Read less' : ' Read more';
+      }
+    }
+  }
+  header.addEventListener('click', toggle);
+  header.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+  });
+})();
+</script>
+
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "SEO Accordion",
+  "tag": "section",
+  "class": "product-seo-accordion-section",
+  "presets": [{ "name": "SEO Accordion" }],
+  "settings": []
+}
+{% endschema %}

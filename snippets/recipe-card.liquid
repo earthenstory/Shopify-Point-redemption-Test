@@ -1,0 +1,97 @@
+{% comment %}
+  SNIPPET: recipe-card.liquid
+  Renders a single recipe card used on the Recipes Landing page.
+
+  Expected variable:
+    article — a Shopify Article object from the "recipes" blog
+
+  Tag system (rcp- namespace per tagging doc):
+    Ingredient : rcp-ingredient-ghee, rcp-ingredient-honey, rcp-ingredient-atta, etc.
+    Type       : rcp-type-breakfast, rcp-type-drink, rcp-type-snack, rcp-type-dessert,
+                 rcp-type-main, rcp-type-side, rcp-type-condiment
+    Audience   : rcp-audience-kids → green "Kids" badge
+    Occasion   : rcp-occasion-festive → "Festive" badge
+
+  Metafield:
+    custom.recipe_time_tag  (Single line text) — e.g. "5 min · No-cook"
+{% endcomment %}
+
+{%- liquid
+  assign time_tag    = article.metafields.custom.recipe_time_tag
+  assign has_kids    = false
+  assign has_festive = false
+  if article.tags contains 'rcp-audience-kids'
+    assign has_kids = true
+  endif
+  if article.tags contains 'rcp-occasion-festive'
+    assign has_festive = true
+  endif
+
+  assign ingredient_label = ''
+  assign ingredient_tag_map = 'rcp-ingredient-ghee:Ghee,rcp-ingredient-honey:Honey,rcp-ingredient-atta:Atta,rcp-ingredient-khapli-atta:Khapli Atta,rcp-ingredient-dates:Dates,rcp-ingredient-coconut-oil:Coconut Oil,rcp-ingredient-groundnut-oil:Groundnut Oil,rcp-ingredient-sesame-oil:Sesame Oil,rcp-ingredient-sunflower-oil:Sunflower Oil,rcp-ingredient-black-mustard-oil:Mustard Oil,rcp-ingredient-yellow-mustard-oil:Yellow Mustard Oil,rcp-ingredient-almonds:Almonds,rcp-ingredient-cashews:Cashews,rcp-ingredient-walnuts:Walnuts,rcp-ingredient-pistachios:Pistachios,rcp-ingredient-raisins:Raisins,rcp-ingredient-prunes:Prunes,rcp-ingredient-brazil-nuts:Brazil Nuts,rcp-ingredient-seeds:Seeds,rcp-ingredient-chia-seeds:Chia Seeds,rcp-ingredient-flax-seeds:Flax Seeds,rcp-ingredient-pumpkin-seeds:Pumpkin Seeds,rcp-ingredient-sunflower-seeds:Sunflower Seeds,rcp-ingredient-basil-seeds:Basil Seeds,rcp-ingredient-ragi:Ragi,rcp-ingredient-bajra:Bajra,rcp-ingredient-jowar:Jowar,rcp-ingredient-millet:Millet,rcp-ingredient-barley:Barley,rcp-ingredient-quinoa:Quinoa,rcp-ingredient-kala-chana:Kala Chana,rcp-ingredient-amla:Amla,rcp-ingredient-amla-candy:Amla Candy,rcp-ingredient-gulkand:Gulkand,rcp-ingredient-moringa:Moringa,rcp-ingredient-ashwagandha:Ashwagandha,rcp-ingredient-shatavari:Shatavari,rcp-ingredient-mulethi:Mulethi,rcp-ingredient-triphala:Triphala,rcp-ingredient-wheatgrass:Wheatgrass' | split: ','
+  for tag_pair in ingredient_tag_map
+    assign pair = tag_pair | split: ':'
+    if article.tags contains pair[0]
+      if ingredient_label == ''
+        assign ingredient_label = pair[1]
+      else
+        assign ingredient_label = ingredient_label | append: ' · ' | append: pair[1]
+      endif
+    endif
+  endfor
+
+  assign type_label = ''
+  assign type_tag_list = 'rcp-type-breakfast:Breakfast,rcp-type-drink:Drinks,rcp-type-snack:Snacks,rcp-type-dessert:Desserts,rcp-type-main:Main Course,rcp-type-side:Sides,rcp-type-condiment:Condiments' | split: ','
+  for tp in type_tag_list
+    assign tp_parts = tp | split: ':'
+    if article.tags contains tp_parts[0] and type_label == ''
+      assign type_label = tp_parts[1]
+    endif
+  endfor
+
+  assign rc_tag_text = ingredient_label
+  if type_label != ''
+    if rc_tag_text != ''
+      assign rc_tag_text = rc_tag_text | append: ' · ' | append: type_label
+    else
+      assign rc_tag_text = type_label
+    endif
+  endif
+-%}
+
+<a href="{{ article.url }}" class="rl-recipe-card">
+  <div class="rl-rc-img rl-rc-img--{{ type_label | downcase | replace: ' ', '-' | default: 'default' }}">
+    {%- if article.image -%}
+      {{ article.image | image_url: width: 480 | image_tag:
+          loading: 'lazy',
+          alt: article.image.alt | default: article.title,
+          width: 480,
+          height: 360,
+          widths: '240, 360, 480',
+          sizes: '(min-width: 990px) 25vw, 50vw'
+      }}
+    {%- else -%}
+      <div class="rl-rc-img-placeholder">🍽️</div>
+    {%- endif -%}
+
+    {%- if time_tag != blank -%}
+      <div class="rl-rc-time">{{ time_tag }}</div>
+    {%- endif -%}
+
+    {%- if has_kids -%}
+      <div class="rl-rc-audience">Kids</div>
+    {%- elsif has_festive -%}
+      <div class="rl-rc-audience">Festive</div>
+    {%- endif -%}
+  </div>
+
+  <div class="rl-rc-body">
+    {%- if rc_tag_text != blank -%}
+      <div class="rl-rc-tag">{{ rc_tag_text }}</div>
+    {%- endif -%}
+    <div class="rl-rc-name">{{ article.title }}</div>
+    {%- if article.excerpt != blank -%}
+      <div class="rl-rc-meta">{{ article.excerpt | strip_html | truncate: 60 }}</div>
+    {%- endif -%}
+  </div>
+</a>

@@ -1,0 +1,50 @@
+{%- liquid
+  assign cert_items = product.metafields.custom.certifications.value
+  assign has_certs = false
+  if cert_items != blank and cert_items.size > 0
+    assign has_certs = true
+  endif
+-%}
+
+{%- if has_certs -%}
+<div class="es-cert-strip">
+  <div class="es-cert-strip-label">Our Certifications</div>
+  <div class="es-cert-logos-row">
+    {%- for cert in cert_items -%}
+      {%- unless forloop.first -%}
+        <div class="es-cert-divider"></div>
+      {%- endunless -%}
+      <div class="es-cert-badge">
+        {%- if cert.logo != blank -%}
+          <img
+            src="{{ cert.logo | image_url: width: 64 }}"
+            alt="{{ cert.name | escape }}"
+            width="32" height="32"
+            style="width:32px;height:32px;object-fit:contain;"
+            loading="lazy"
+          >
+        {%- else -%}
+          <!-- Fallback circular text badge if no logo uploaded -->
+          <div class="es-cert-badge-icon">{{ cert.short_label | default: cert.name | truncate: 6, '' }}</div>
+        {%- endif -%}
+        <span class="es-cert-badge-name">{{ cert.name }}</span>
+      </div>
+    {%- endfor -%}
+  </div>
+</div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Certification Strip",
+  "tag": "section",
+  "class": "product-cert-strip-section",
+  "presets": [{ "name": "Certification Strip" }],
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Reads from product metafield custom.certifications (list of Certification metaobject references). Tick which certs apply per product in the product editor. Hidden if no certifications selected."
+    }
+  ]
+}
+{% endschema %}

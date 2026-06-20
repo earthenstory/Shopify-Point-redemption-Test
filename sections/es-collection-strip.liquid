@@ -1,0 +1,164 @@
+{% comment %}
+  Earthen Story — Collection Browse Strip
+  Source: Shopify Navigation menu named 'category'
+  (Admin → Online Store → Navigation → "Collection Browse")
+
+  Per Earthen Story Master Reference (Section D — Collection Page Field Map):
+    Links    → linklists['category']   NATIVE — Shopify nav menu
+    Icon     → Liquid case statement            DEV    — hardcoded icon map per handle
+    Active   → collection.handle vs link URL   DEV    — compare to set active class
+
+  To add/remove/reorder collections in the strip:
+    Go to Admin → Online Store → Navigation → Collection Browse menu.
+    Icons are mapped by collection handle in the case statement below.
+{% endcomment %}
+
+<div class="es-collection-strip">
+  <div class="es-collection-strip-inner">
+
+    {% for link in linklists['category'].links %}
+
+      {%- comment -%} Derive handle from link URL for active detection + icon mapping {%- endcomment -%}
+      {%- assign link_handle = link.url | split: '/collections/' | last | split: '?' | first -%}
+
+      {%- assign is_active = false -%}
+      {%- if collection.handle == link_handle -%}
+        {%- assign is_active = true -%}
+      {%- endif -%}
+
+      {%- comment -%}
+        Hardcoded icon map per collection handle (DEV — per master reference).
+        Icons don't change, so they are mapped here rather than via metafields.
+        Update handles here if collection URLs change.
+      {%- endcomment -%}
+      {%- case link_handle -%}
+        {%- when 'bundles' -%}                    {%- assign coll_icon = '🎁' -%}
+        {%- when 'a2-gir-cow-ghee' -%}            {%- assign coll_icon = '🧈' -%}
+        {%- when 'organic-honey' -%}              {%- assign coll_icon = '🍯' -%}
+        {%- when 'gulkand' -%}                    {%- assign coll_icon = '🌸' -%}
+        {%- when 'organic-flours' -%}             {%- assign coll_icon = '🌾' -%}
+        {%- when 'organic-cold-pressed-oils' -%}  {%- assign coll_icon = '🫙' -%}
+        {%- when 'organic-seeds' -%}              {%- assign coll_icon = '🌱' -%}
+        {%- when 'dry-fruits-nuts' -%}            {%- assign coll_icon = '🍇' -%}
+        {%- when 'organic-herbal-powders' -%}     {%- assign coll_icon = '🌿' -%}
+        {%- when 'amla-candy' -%}                 {%- assign coll_icon = '🫐' -%}
+        {%- else -%}                              {%- assign coll_icon = '🛒' -%}
+      {%- endcase -%}
+
+      {% unless forloop.first %}
+        <div class="es-coll-sep"></div>
+      {% endunless %}
+
+      <a
+        class="es-coll-item{% if is_active %} active{% endif %}"
+        href="{{ link.url }}"
+        aria-label="{{ link.title }}"
+        {% if is_active %}aria-current="page"{% endif %}
+      >
+        <div class="es-coll-icon">{{ coll_icon }}</div>
+        <span class="es-coll-label">{{ link.title }}</span>
+      </a>
+
+    {% endfor %}
+
+  </div>
+</div>
+
+{% stylesheet %}
+  .es-collection-strip {
+    border-bottom: 1px solid var(--es-border, #EAE6DC);
+    background: var(--es-white, #FFFFFF);
+    padding: 0 68px;
+  }
+  .es-collection-strip-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    justify-content: center;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .es-collection-strip-inner::-webkit-scrollbar { display: none; }
+
+  .es-coll-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 14px 18px;
+    flex-shrink: 0;
+    cursor: pointer;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .es-coll-item:hover { border-bottom-color: var(--es-border-mid, #D8D2C4); }
+  .es-coll-item.active { border-bottom-color: var(--es-gold, #B8841E); }
+
+  .es-coll-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--es-gold-soft, #FAF3E4), #EDE5C8);
+    border: 1.5px solid var(--es-border, #EAE6DC);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    transition: all 0.15s;
+  }
+  .es-coll-item.active .es-coll-icon,
+  .es-coll-item:hover .es-coll-icon {
+    border-color: var(--es-gold-border, #DFC07A);
+    background: linear-gradient(135deg, #FAF3E4, #F0E4C0);
+  }
+  .es-coll-label {
+    font-size: 13.5px;
+    font-weight: 400;
+    color: var(--es-text-soft, #72747D);
+    white-space: nowrap;
+    transition: color 0.15s;
+    font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  }
+  .es-coll-item.active .es-coll-label {
+    color: var(--es-gold, #B8841E);
+    font-weight: 600;
+  }
+  .es-coll-item:hover .es-coll-label { color: var(--es-text-mid, #44464F); }
+
+  .es-coll-sep {
+    width: 1px;
+    height: 24px;
+    background: var(--es-border, #EAE6DC);
+    flex-shrink: 0;
+    margin: 0 4px;
+  }
+
+  @media screen and (max-width: 749px) {
+    .es-collection-strip { padding: 0 16px; }
+    .es-collection-strip-inner { justify-content: flex-start; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "ES Collection Strip",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Links are pulled from the Shopify Navigation menu named 'category'. Go to Admin → Online Store → Navigation to create or edit this menu. Icons are mapped by collection handle in the section Liquid — no settings needed here."
+    }
+  ],
+  "blocks": [],
+  "presets": [
+    {
+      "name": "ES Collection Strip"
+    }
+  ]
+}
+{% endschema %}

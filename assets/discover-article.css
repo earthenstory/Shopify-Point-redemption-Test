@@ -1,0 +1,711 @@
+/*
+  discover-article.css
+  Earthen Story — Discover Article Page
+  Matches: blog-article-mockup-v3.html exactly
+  Place at: assets/discover-article.css
+
+  Depends on the design tokens already declared in earthen-story.css:
+    --es-navy, --es-navy-light, --es-gold, --es-gold-hover, --es-gold-soft,
+    --es-gold-border, --es-gold-mid, --es-warm-white, --es-white,
+    --es-text-dark, --es-text-mid, --es-text-soft, --es-border, --es-border-mid,
+    --es-strike, --es-font-heading, --es-font-body
+
+  All classes are namespaced .da-* (discover-article) to avoid collisions.
+*/
+
+/* ── COLUMN WIDTH TOKEN ── */
+.template-article-discover {
+  --da-col: 860px;
+  -webkit-font-smoothing: antialiased;
+  font-family: var(--es-font-body);
+  background: var(--es-white);
+  color: var(--es-text-dark);
+}
+
+/* ═══════════════════════════════════════════════════════
+   BREADCRUMB
+═══════════════════════════════════════════════════════ */
+.da-breadcrumb {
+  padding: 9px 68px;
+  font-size: 11.5px;
+  color: var(--es-text-soft);
+  border-bottom: 1px solid var(--es-border);
+  background: var(--es-white);
+}
+.da-breadcrumb__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+.da-breadcrumb a {
+  color: var(--es-text-soft);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.da-breadcrumb a:hover { color: var(--es-gold); }
+.da-sep { color: var(--es-border-mid); }
+.da-breadcrumb__current {
+  color: var(--es-text-mid);
+  font-weight: 500;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ARTICLE HERO — two-column layout
+═══════════════════════════════════════════════════════ */
+.da-hero {
+  background: var(--es-warm-white);
+  border-bottom: 1px solid var(--es-border);
+}
+.da-hero__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 68px 44px;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 56px;
+  align-items: center;
+}
+
+/* Meta top row */
+.da-meta-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.da-cat-pill {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--es-gold);
+  padding: 3px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--es-gold-border);
+  background: var(--es-gold-soft);
+}
+.da-meta-dot  { color: var(--es-border-mid); font-size: 12px; }
+.da-read-time { font-size: 12px; color: var(--es-text-soft); }
+.da-pub-date  { font-size: 12px; color: var(--es-text-soft); }
+
+/* H1 title — Cormorant, 46px */
+.da-title {
+  font-family: var(--es-font-heading);
+  font-size: 46px;
+  font-weight: 500;
+  line-height: 1.08;
+  color: var(--es-text-dark);
+  margin-bottom: 14px;
+  letter-spacing: 0.005em;
+}
+/* <em> inside title = gold italic (author wraps italic portion in Shopify admin) */
+.da-title em {
+  color: var(--es-gold);
+  font-style: italic;
+}
+
+/* Abstract */
+.da-abstract {
+  font-size: 14.5px;
+  line-height: 1.75;
+  color: var(--es-text-mid);
+}
+
+/* Hero image */
+.da-hero-img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--es-border);
+  background: linear-gradient(145deg, #E8D9B8, #C8A96A);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.da-hero-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.da-hero-img__placeholder {
+  color: var(--es-text-soft);
+  opacity: 0.5;
+}
+.da-hero-img__caption {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 28px 16px 12px;
+  background: linear-gradient(transparent, rgba(17,37,87,0.5));
+  font-size: 11px;
+  color: rgba(255,255,255,0.8);
+  font-style: italic;
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ARTICLE BODY — centred 860px column
+═══════════════════════════════════════════════════════ */
+.da-body-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 44px 68px 48px;
+}
+
+/* ── Prose base ── */
+.da-prose {
+  font-size: 15.5px;
+  line-height: 1.85;
+  color: var(--es-text-mid);
+  max-width: var(--da-col);
+}
+.da-prose p {
+  margin-bottom: 16px;
+}
+.da-prose p:last-child { margin-bottom: 0; }
+
+/* Inline product links — navy with gold underline */
+.da-prose a {
+  color: var(--es-navy);
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1.5px solid var(--es-gold-border);
+  padding-bottom: 1px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.da-prose a:hover {
+  color: var(--es-gold);
+  border-color: var(--es-gold);
+}
+
+/* ── H2 section headings ── */
+.da-prose h2 {
+  font-family: var(--es-font-heading);
+  font-size: 30px;
+  font-weight: 500;
+  color: var(--es-text-dark);
+  margin: 32px 0 12px;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+}
+.da-prose h3 {
+  font-family: var(--es-font-heading);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--es-text-dark);
+  margin: 24px 0 10px;
+  line-height: 1.2;
+}
+
+/* ── Pull quote ──
+   Authors use Shopify's blockquote in the rich-text editor.
+   The .pull-quote class can also be applied via Custom HTML block.
+── */
+.da-prose blockquote,
+.da-prose .pull-quote {
+  margin: 24px 0;
+  padding: 20px 26px;
+  border-left: 4px solid var(--es-gold-border);
+  font-family: var(--es-font-heading);
+  font-size: 22px;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--es-navy);
+  line-height: 1.5;
+  background: transparent;
+}
+.da-prose blockquote p { margin-bottom: 0; }
+
+/* ── Inline images inside body ──
+   Shopify wraps body images in <figure> tags.
+   .article-image is the custom HTML pattern from the mockup.
+── */
+.da-prose figure,
+.da-prose .article-image {
+  margin: 24px 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--es-border);
+}
+.da-prose figure img,
+.da-prose .article-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.da-prose figcaption,
+.da-prose .article-image-caption {
+  padding: 8px 14px;
+  background: var(--es-warm-white);
+  font-size: 11.5px;
+  color: var(--es-text-soft);
+  font-style: italic;
+  border-top: 1px solid var(--es-border);
+}
+
+/* ── Key takeaway box ──
+   Author inserts via Custom HTML block in body. Markup pattern:
+     <div class="key-takeaway">
+       <span class="key-takeaway-label">Why This Matters</span>
+       <div class="key-takeaway-text">
+         Body text here. <strong>Bold highlight.</strong>
+       </div>
+     </div>
+── */
+.da-prose .key-takeaway {
+  margin: 24px 0;
+  padding: 18px 22px;
+  background: var(--es-navy);
+  border-radius: 10px;
+}
+.da-prose .key-takeaway-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--es-gold-mid);
+  margin-bottom: 7px;
+  display: block;
+}
+.da-prose .key-takeaway-text {
+  font-size: 14px;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.85);
+}
+.da-prose .key-takeaway-text strong { color: #ffffff; }
+
+/* ═══════════════════════════════════════════════════════
+   END SECTIONS — same 860px centred column
+   (Products · Recipes · Related Articles)
+═══════════════════════════════════════════════════════ */
+.da-end-section {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 68px;
+  border-top: 1px solid var(--es-border);
+}
+
+/* Section title */
+.da-end-title {
+  font-family: var(--es-font-heading);
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--es-text-dark);
+  margin-bottom: 16px;
+}
+
+/* Header row with title + "All X →" link */
+.da-end-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.da-end-header a {
+  font-size: 12.5px;
+  color: var(--es-gold);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+.da-end-header a:hover { color: var(--es-gold-hover); }
+
+/* ── PRODUCT CARDS (4-up grid) ── */
+.da-product-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 11px;
+}
+.da-product-card {
+  border: 1px solid var(--es-border);
+  border-radius: 10px;
+  background: var(--es-white);
+  overflow: hidden;
+  text-decoration: none;
+  display: block;
+  transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+}
+.da-product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(184,132,30,0.1);
+  border-color: var(--es-gold-border);
+}
+/* Bundle card variant */
+.da-product-card--bundle {
+  border-color: var(--es-gold-border);
+  background: linear-gradient(145deg,#FFFDF5,#FDF5E0);
+}
+.da-pc-img {
+  width: 100%;
+  aspect-ratio: 16 / 16;
+  background: linear-gradient(135deg,#F8F4ED 0%,#EDE5D4 100%);
+  position: relative;
+  overflow: hidden;
+}
+.da-pc-img--bundle {
+  background: linear-gradient(145deg,#112557,#1A3370);
+}
+.da-pc-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.da-pc-badge {
+  position: absolute;
+  top: 7px; left: 7px;
+  background: var(--es-navy);
+  color: white;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 20px;
+  z-index: 1;
+}
+.da-pc-badge--gold { background: var(--es-gold); }
+
+.da-pc-body { padding: 8px 10px 10px; }
+.da-pc-meta {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--es-gold);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.da-product-card--bundle .da-pc-meta { color: var(--es-navy); }
+
+.da-pc-name {
+  font-family: var(--es-font-heading);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--es-text-dark);
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+.da-product-card--bundle .da-pc-name { color: var(--es-navy); }
+
+.da-pc-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.da-pc-prices {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.da-pc-price {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--es-text-dark);
+}
+.da-pc-compare {
+  font-size: 11px;
+  color: var(--es-strike);
+  text-decoration: line-through;
+}
+.da-pc-atc {
+  width: 27px; height: 27px;
+  border-radius: 50%;
+  background: var(--es-navy);
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.da-pc-atc:hover { background: var(--es-navy-light); }
+
+/* ── RECIPE CARDS (3-up grid) ── */
+.da-recipe-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 11px;
+}
+.da-recipe-card {
+  border: 1px solid var(--es-border);
+  border-radius: 10px;
+  background: var(--es-white);
+  overflow: hidden;
+  text-decoration: none;
+  display: block;
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+.da-recipe-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(184,132,30,0.1);
+}
+.da-rc-img {
+  aspect-ratio: 4/3;
+  position: relative;
+  background: linear-gradient(135deg,#F8F4ED,#EDE5D4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.da-rc-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.da-rc-time {
+  position: absolute;
+  bottom: 7px; right: 8px;
+  background: rgba(17,37,87,0.8);
+  color: white;
+  font-size: 9.5px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.da-rc-body { padding: 9px 11px 11px; }
+.da-rc-tag {
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--es-gold);
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+.da-rc-name {
+  font-family: var(--es-font-heading);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--es-text-dark);
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+.da-rc-meta {
+  font-size: 11px;
+  color: var(--es-text-soft);
+}
+
+/* ── RELATED ARTICLE CARDS (3-up grid) ── */
+.da-article-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 11px;
+}
+.da-article-card {
+  border: 1px solid var(--es-border);
+  border-radius: 10px;
+  background: var(--es-white);
+  overflow: hidden;
+  text-decoration: none;
+  display: block;
+  transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+}
+.da-article-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(184,132,30,0.1);
+  border-color: var(--es-gold-border);
+}
+.da-ac-img {
+  aspect-ratio: 16/9;
+  background: linear-gradient(135deg,#F8F4ED,#EDE5D4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.da-ac-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.da-ac-body { padding: 10px 12px 13px; }
+.da-ac-cat {
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--es-gold);
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+.da-ac-title {
+  font-family: var(--es-font-heading);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--es-text-dark);
+  line-height: 1.25;
+  margin-bottom: 5px;
+}
+.da-ac-excerpt {
+  font-size: 11.5px;
+  color: var(--es-text-soft);
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+.da-ac-read {
+  font-size: 11px;
+  color: var(--es-text-soft);
+}
+
+/* ═══════════════════════════════════════════════════════
+   EMAIL SIGNUP SECTION
+═══════════════════════════════════════════════════════ */
+.da-email-section {
+  border-top: 1px solid var(--es-border);
+  padding: 36px 68px 48px;
+  background: var(--es-warm-white);
+}
+.da-email-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 40px;
+  align-items: center;
+}
+.da-email-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--es-gold);
+  margin-bottom: 7px;
+  display: block;
+}
+.da-email-left h2 {
+  font-family: var(--es-font-heading);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--es-text-dark);
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+.da-email-left p {
+  font-size: 13px;
+  color: var(--es-text-mid);
+  line-height: 1.65;
+  margin: 0;
+}
+.da-email-right {
+  background: var(--es-navy);
+  border-radius: 12px;
+  padding: 20px 22px;
+}
+.da-email-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.da-email-label {
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.5);
+}
+.da-email-input {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 8px;
+  padding: 10px 13px;
+  color: white;
+  font-size: 13px;
+  font-family: var(--es-font-body);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.da-email-input::placeholder { color: rgba(255,255,255,0.28); }
+.da-email-input:focus { border-color: rgba(255,255,255,0.4); }
+.da-email-btn {
+  background: var(--es-gold-mid);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 11px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--es-font-body);
+  transition: background 0.15s;
+}
+.da-email-btn:hover { background: var(--es-gold); }
+.da-email-fine {
+  font-size: 11px;
+  color: rgba(255,255,255,0.28);
+  text-align: center;
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════ */
+
+/* Tablet — collapse hero to single column */
+@media (max-width: 1024px) {
+  .da-hero__inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 32px 40px 36px;
+  }
+  /* Image above text on narrow screens */
+  .da-hero__right { order: -1; }
+  .da-hero-img { aspect-ratio: 16/9; border-radius: 10px; }
+  .da-title { font-size: 36px; }
+
+  .da-body-wrap { padding: 32px 40px 40px; }
+  .da-end-section { padding: 28px 40px; }
+  .da-email-section { padding: 32px 40px 44px; }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .da-breadcrumb { padding: 8px 20px; font-size: 11px; }
+
+  .da-hero__inner { padding: 24px 20px 28px; gap: 20px; }
+  .da-title { font-size: 28px; }
+  .da-abstract { font-size: 14px; }
+
+  .da-body-wrap { padding: 24px 20px 28px; }
+  .da-prose { font-size: 15px; }
+  .da-prose h2 { font-size: 24px; }
+  .da-prose blockquote,
+  .da-prose .pull-quote { font-size: 18px; padding: 16px 18px; }
+
+  .da-end-section { padding: 22px 20px; }
+  .da-end-title { font-size: 22px; }
+
+  /* Recipe/article cards — single column on mobile */
+  .da-recipe-cards,
+  .da-article-cards {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  /* Product cards — 2-up grid on mobile */
+  .da-product-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .da-email-section { padding: 28px 20px 36px; }
+  .da-email-inner {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* Small mobile — recipe/article cards 2-up */
+@media (max-width: 480px) {
+  .da-recipe-cards,
+  .da-article-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

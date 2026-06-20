@@ -1,0 +1,253 @@
+{
+  "sections": {
+    "es-shipping": {
+      "type": "es-policy-page",
+      "settings": {
+        "hero_eyebrow": "Delivery Information",
+        "hero_title": "Shipping Policy",
+        "hero_title_highlight": "Policy",
+        "hero_last_updated": "April 2026",
+        "hero_company": "",
+        "hero_location": "Ships pan-India",
+        "hero_email": "contact@earthenstory.com",
+        "promise_items": "Free shipping above ₹799|1–2 day processing|3–7 day delivery|Pan-India coverage",
+        "toc_label": "On this page",
+        "toc_contact_label": "Need help with a delivery?",
+        "toc_contact_text": "Share your order number and we'll investigate right away.",
+        "toc_contact_email": "",
+        "toc_cta_label": "Email Us",
+        "toc_cta_url": "mailto:contact@earthenstory.com",
+        "fsc_show": true,
+        "fsc_icon": "🚚",
+        "fsc_eyebrow": "Always a good deal",
+        "fsc_title": "Free shipping on orders above ₹799",
+        "fsc_title_highlight": "₹799",
+        "fsc_desc": "No promo code needed. Free standard shipping is automatically applied at checkout for qualifying orders anywhere in India.",
+        "fsc_amount": "₹799",
+        "fsc_amount_label": "Free Shipping Threshold",
+        "intro_text": "<p>We know you're excited to receive your order, and we work hard to get it to you as quickly and safely as possible. Below you'll find everything you need to know about how we process, ship, and deliver your Earthen Story products across India.<\/p><p>If you have any questions not answered here, please write to us at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a> — we're always happy to help.<\/p>",
+        "cta_eyebrow": "We're here to help",
+        "cta_title": "Question about your delivery?",
+        "cta_desc": "Share your order number and we'll track it down for you right away.",
+        "cta_primary_label": "Email Us",
+        "cta_primary_url": "mailto:contact@earthenstory.com",
+        "cta_secondary_label": "Contact Page",
+        "cta_secondary_url": "\/pages\/contact"
+      },
+      "blocks": {
+        "s01": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "shipping-charges",
+            "toc_label": "Free Shipping",
+            "section_num": "01",
+            "section_title": "Shipping Charges",
+            "icon": "activity",
+            "content": "",
+            "advanced_content": "<table class=\"ep-shipping-table\"><thead><tr><th>Order Value<\/th><th>Shipping Charge<\/th><th>Delivery Time<\/th><\/tr><\/thead><tbody><tr><td><strong>Below ₹799<\/strong><\/td><td>Standard shipping fee applies<br><small>(shown at checkout)<\/small><\/td><td>3–7 business days<\/td><\/tr><tr><td><strong>₹799 and above<\/strong><\/td><td><span class=\"ep-free-badge\">✓ FREE<\/span><\/td><td>3–7 business days<\/td><\/tr><\/tbody><\/table>",
+            "highlight_text": "<p><strong>Remote locations:<\/strong> Delivery to certain remote areas including parts of the North East, Jammu &amp; Kashmir, Andaman &amp; Nicobar, and Lakshadweep may take longer and could attract additional charges. These will always be shown clearly at checkout before you pay.<\/p>",
+            "warning_text": "",
+            "success_text": "",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s02": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "order-processing",
+            "toc_label": "Order Processing",
+            "section_num": "02",
+            "section_title": "Order Processing",
+            "icon": "activity",
+            "content": "<p>Orders are processed Monday through Saturday. Once your payment is confirmed, we begin preparing your order right away.<\/p><ul><li>Orders are typically processed and dispatched within <strong>1–2 business days<\/strong> of payment confirmation.<\/li><li>Orders placed after <strong>12:00 PM<\/strong> will be processed the following business day.<\/li><li>We do not process or dispatch orders on <strong>Sundays and public holidays<\/strong>.<\/li><li>You will receive an email confirmation with your tracking details once your order is dispatched.<\/li><\/ul>",
+            "advanced_content": "",
+            "highlight_text": "",
+            "warning_text": "<p><strong>Payment issues:<\/strong> If there is a problem with your payment that requires resolution, processing may be delayed by 1–2 additional business days. We will notify you immediately if this occurs.<\/p>",
+            "success_text": "",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s03": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "delivery-times",
+            "toc_label": "Delivery Times",
+            "section_num": "03",
+            "section_title": "Delivery Times",
+            "icon": "activity",
+            "content": "",
+            "advanced_content": "<table class=\"ep-shipping-table\"><thead><tr><th>Zone<\/th><th>Estimated Delivery<\/th><th>Notes<\/th><\/tr><\/thead><tbody><tr><td><strong>Metro cities<\/strong><br><small>Bengaluru, Delhi, Mumbai, Chennai, Hyderabad, Kolkata, Pune<\/small><\/td><td>3–5 business days<\/td><td>After dispatch<\/td><\/tr><tr><td><strong>Tier 2 &amp; Tier 3 cities<\/strong><\/td><td>4–6 business days<\/td><td>After dispatch<\/td><\/tr><tr><td><strong>Remote &amp; rural areas<\/strong><\/td><td>6–10 business days<\/td><td>May vary by pincode<\/td><\/tr><tr><td><strong>North East, J&amp;K, Islands<\/strong><\/td><td>7–12 business days<\/td><td>Extended timelines apply<\/td><\/tr><\/tbody><\/table>",
+            "highlight_text": "",
+            "warning_text": "",
+            "success_text": "",
+            "content_after": "<p>These are estimated timelines and may vary due to carrier capacity, weather conditions, or other factors outside our control.<\/p>",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s04": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "order-journey",
+            "toc_label": "Order Journey",
+            "section_num": "04",
+            "section_title": "Your Order's Journey",
+            "icon": "activity",
+            "content": "<p>Here's what happens from the moment you place your order to when it arrives at your door:<\/p>",
+            "advanced_content": "<div class=\"ep-journey\"><div class=\"ep-journey-step\"><div class=\"ep-journey-icon\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z\"\/><line x1=\"3\" y1=\"6\" x2=\"21\" y2=\"6\"\/><path d=\"M16 10a4 4 0 01-8 0\"\/><\/svg><\/div><div class=\"ep-journey-title\">Order Placed<\/div><div class=\"ep-journey-time\">Day 0<\/div><div class=\"ep-journey-desc\">Payment confirmed, order entered into our system<\/div><\/div><div class=\"ep-journey-step\"><div class=\"ep-journey-icon\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z\"\/><\/svg><\/div><div class=\"ep-journey-title\">Packed &amp; Dispatched<\/div><div class=\"ep-journey-time\">Day 1–2<\/div><div class=\"ep-journey-desc\">Your order is packed and handed to our courier partner<\/div><\/div><div class=\"ep-journey-step\"><div class=\"ep-journey-icon\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"1\" y=\"3\" width=\"15\" height=\"13\" rx=\"1\"\/><path d=\"M16 8h4l3 3v5h-7V8z\"\/><circle cx=\"5.5\" cy=\"18.5\" r=\"2.5\"\/><circle cx=\"18.5\" cy=\"18.5\" r=\"2.5\"\/><\/svg><\/div><div class=\"ep-journey-title\">In Transit<\/div><div class=\"ep-journey-time\">Day 2–7<\/div><div class=\"ep-journey-desc\">Live tracking available via your shipping confirmation email<\/div><\/div><div class=\"ep-journey-step\"><div class=\"ep-journey-icon\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z\"\/><polyline points=\"9 22 9 12 15 12 15 22\"\/><\/svg><\/div><div class=\"ep-journey-title\">Delivered<\/div><div class=\"ep-journey-time\">Day 3–7<\/div><div class=\"ep-journey-desc\">Order arrives at your doorstep — enjoy!<\/div><\/div><\/div>",
+            "highlight_text": "",
+            "warning_text": "",
+            "success_text": "",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s05": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "tracking",
+            "toc_label": "Tracking Your Order",
+            "section_num": "05",
+            "section_title": "Tracking Your Order",
+            "icon": "activity",
+            "content": "<p>Once your order is dispatched, you will receive a shipping confirmation email containing your tracking number and a link to track your shipment in real time.<\/p><ul><li>Tracking updates may take up to <strong>24 hours<\/strong> to appear after dispatch.<\/li><li>You can track your order directly through the courier partner's website using your tracking number.<\/li><li>If you have not received your tracking email within 3 business days of placing your order, please check your spam folder first, then contact us.<\/li><\/ul>",
+            "advanced_content": "",
+            "highlight_text": "",
+            "warning_text": "",
+            "success_text": "<p><strong>Tip:<\/strong> Add <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a> to your contacts to ensure our emails don't land in spam.<\/p>",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s06": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "delivery-attempts",
+            "toc_label": "Delivery Attempts",
+            "section_num": "06",
+            "section_title": "Delivery Attempts",
+            "icon": "activity",
+            "content": "<p>Our courier partner will make up to <strong>three delivery attempts<\/strong> at your address. Please ensure someone is available to receive your order.<\/p><ul><li>If the first delivery attempt is unsuccessful, the courier will try again on the next business day.<\/li><li>After three failed attempts, the package will be returned to our warehouse.<\/li><li>If your order is returned to us due to failed delivery, we will contact you to arrange re-shipment. Additional shipping charges may apply for re-dispatch.<\/li><\/ul>",
+            "advanced_content": "",
+            "highlight_text": "",
+            "warning_text": "<p><strong>Important:<\/strong> Please do not accept a package if the outer seal is broken or tampered with at the time of delivery. Contact us immediately with photos in such cases.<\/p>",
+            "success_text": "",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s07": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "damaged-in-transit",
+            "toc_label": "Damaged in Transit",
+            "section_num": "07",
+            "section_title": "Damaged in Transit",
+            "icon": "shield-check",
+            "content": "<p>We take great care in packaging your order, but occasionally damage can occur during transit. If your order arrives damaged or with missing items:<\/p><ul><li>Contact us at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a> within <strong>24–48 hours<\/strong> of delivery.<\/li><li>Share your order number, a description of the damage, and clear photos or a short video.<\/li><li>We will assess the case and arrange a replacement or full refund at no cost to you.<\/li><\/ul>",
+            "advanced_content": "",
+            "highlight_text": "",
+            "warning_text": "",
+            "success_text": "<p><strong>We recommend<\/strong> recording a short unboxing video when you receive your order. This helps us resolve transit damage claims quickly and without any delay.<\/p>",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s08": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "delays-exceptions",
+            "toc_label": "Delays & Exceptions",
+            "section_num": "08",
+            "section_title": "Delays & Exceptions",
+            "icon": "info",
+            "content": "<p>While we do our best to meet delivery timelines, certain situations can cause delays that are outside our control:<\/p><ul><li>Adverse weather conditions or natural events<\/li><li>Public holidays or regional disruptions<\/li><li>High order volumes during festive seasons<\/li><li>Carrier-side operational delays<\/li><\/ul><p>If your order is significantly delayed, we will notify you proactively and provide an updated estimated delivery date. You can also reach out to us at any time for a status update.<\/p>",
+            "advanced_content": "",
+            "highlight_text": "<p><strong>If your order hasn't arrived<\/strong> within the estimated window, please write to us at <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a> with your order number. We will investigate with our courier partner and update you within 1–2 business days.<\/p>",
+            "warning_text": "",
+            "success_text": "",
+            "content_after": "",
+            "card1_icon": "users",
+            "card1_title": "",
+            "card1_text": "",
+            "card2_icon": "shield",
+            "card2_title": "",
+            "card2_text": ""
+          }
+        },
+        "s09": {
+          "type": "policy_section",
+          "settings": {
+            "anchor": "contact",
+            "toc_label": "Contact Us",
+            "section_num": "09",
+            "section_title": "Contact Us",
+            "icon": "phone",
+            "content": "<p>For all shipping-related queries — tracking, delays, damaged orders, or anything else — please reach out to our team:<\/p><ul><li><strong>Email:<\/strong> <a href=\"mailto:contact@earthenstory.com\">contact@earthenstory.com<\/a><\/li><li><strong>Response time:<\/strong> Within 1–2 business days<\/li><li><strong>Include:<\/strong> Your order number and a description of the issue<\/li><\/ul><p>We read every message personally and aim to resolve all shipping queries as quickly as possible.<\/p>",
+            "advanced_content": "",
+            "highlight_text": "",
+            "warning_text": "",
+            "success_text": "",
+            "content_after": "",
+            "card1_icon": "email",
+            "card1_title": "Email Support",
+            "card1_text": "contact@earthenstory.com",
+            "card2_icon": "shield",
+            "card2_title": "Response Time",
+            "card2_text": "Within 1–2 business days. We read every message personally."
+          }
+        }
+      },
+      "block_order": [
+        "s01",
+        "s02",
+        "s03",
+        "s04",
+        "s05",
+        "s06",
+        "s07",
+        "s08",
+        "s09"
+      ]
+    }
+  },
+  "order": [
+    "es-shipping"
+  ]
+}

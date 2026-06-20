@@ -1,0 +1,354 @@
+/* ═══════════════════════════════════════════════════════════
+   EARTHEN STORY — Collection Page Styles
+   Matches collection-page-mockup-v2.html exactly
+   File: assets/collection-page.css
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── DESIGN TOKENS (mirrors earthen-story.css) ── */
+:root {
+  --es-navy:         #112557;
+  --es-navy-light:   #1A3370;
+  --es-gold:         #B8841E;
+  --es-gold-hover:   #C8922A;
+  --es-gold-soft:    #FAF3E4;
+  --es-gold-border:  #DFC07A;
+  --es-gold-mid:     #D4A843;
+  --es-warm-white:   #FFFDF8;
+  --es-white:        #FFFFFF;
+  --es-text-dark:    #18181B;
+  --es-text-mid:     #44464F;
+  --es-text-soft:    #72747D;
+  --es-border:       #EAE6DC;
+  --es-border-mid:   #D8D2C4;
+  --es-strike:       #B0AABA;
+  --es-green-save:   #1C6B3A;
+  --es-green-bg:     #EBF5EF;
+  --es-font-heading: 'Cormorant', Georgia, serif;
+  --es-font-body:    'DM Sans', system-ui, sans-serif;
+}
+
+/* ── GLOBAL FONT SMOOTHING ON COLLECTION PAGES ── */
+.template-collection {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: var(--es-font-body);
+  background: #FFFFFF;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PRODUCT GRID OVERRIDES
+   Override theme defaults to match mockup product card design
+   ═══════════════════════════════════════════════════════════ */
+
+/* Grid container */
+.template-collection .product-grid-container {
+  padding-top: 32px;
+  padding-bottom: 0;
+}
+
+/* ── Product grid: 5 columns, 20px gap ───────────────────────────
+   Override the theme's auto-fill variable AND grid-template-columns
+   directly so inline {% style %} blocks cannot win. ─────────────── */
+.template-collection .product-grid {
+  --product-grid-columns-desktop: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 20px !important;
+}
+
+/* Stretch the grid item → product-card → content chain so every card
+   fills its cell and flex children work with height: 100% ─────────── */
+.template-collection .product-grid__item {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.template-collection .product-grid__item product-card,
+.template-collection .product-grid__item .product-card__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+@media screen and (max-width: 1024px) {
+  .template-collection .product-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+@media screen and (max-width: 749px) {
+  .template-collection .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+}
+
+/* ── Custom card (es-pc) — centre alignment ──────────────────────
+   Defined here (not in snippet {% stylesheet %}) to guarantee loading
+   since snippet stylesheets inside custom-liquid blocks can be skipped. */
+.template-collection .es-pc__body {
+  align-items: stretch !important;
+  text-align: center !important;
+}
+.template-collection .es-pc__meta,
+.template-collection .es-pc__name,
+.template-collection .es-pc__name-wrap {
+  text-align: center !important;
+  width: 100% !important;
+}
+.template-collection .es-pc__rating {
+  justify-content: center !important;
+  width: 100% !important;
+}
+.template-collection .es-pc__price-row {
+  justify-content: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+}
+
+/* ── PRODUCT CARD ── */
+.template-collection .product-card,
+.template-collection .card-wrapper {
+  border: 1px solid var(--es-border) !important;
+  border-radius: 10px !important;
+  background: white !important;
+  overflow: hidden !important;
+  transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s !important;
+  box-shadow: none !important;
+}
+
+.template-collection .product-card:hover,
+.template-collection .card-wrapper:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 10px 28px rgba(184,132,30,0.1) !important;
+  border-color: var(--es-gold-border) !important;
+}
+
+/* Card image area */
+.template-collection .card__media,
+.template-collection .card-media {
+  height: 160px !important;
+  background: linear-gradient(135deg, #F8F4ED 0%, #EDE5D4 100%) !important;
+  border-radius: 0 !important;
+}
+
+/* Custom card image — 1:1 square */
+.template-collection .es-pc__img {
+  height: auto !important;
+  aspect-ratio: 1 / 1 !important;
+  width: 100% !important;
+}
+
+/* Card body */
+.template-collection .card__information,
+.template-collection .card-information {
+  padding: 9px 11px 11px !important;
+}
+
+/* Product title */
+.template-collection .card__heading,
+.template-collection .card-heading {
+  font-family: var(--es-font-heading) !important;
+  font-size: 17px !important;
+  font-weight: 500 !important;
+  color: var(--es-text-dark) !important;
+  line-height: 1.25 !important;
+  margin-bottom: 1px !important;
+}
+
+/* Price */
+.template-collection .price__regular .price-item,
+.template-collection .price-item--regular {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: var(--es-text-dark) !important;
+}
+
+.template-collection .price__sale .price-item--regular,
+.template-collection .price-item--regular.price-item--last {
+  font-size: 14px !important;
+  color: var(--es-strike) !important;
+  text-decoration: line-through !important;
+}
+
+/* ── SORT BAR ── */
+.template-collection .facets__header {
+  margin-bottom: 20px;
+}
+
+.template-collection .facets__sort select,
+.template-collection select.facets__sort-select {
+  padding: 7px 32px 7px 13px;
+  border-radius: 7px;
+  border: 1.5px solid var(--es-border);
+  background: white;
+  -webkit-appearance: none;
+  font-size: 14.5px;
+  color: var(--es-text-mid);
+  font-family: var(--es-font-body);
+  cursor: pointer;
+  outline: none;
+}
+
+/* ── LOAD MORE / PAGINATION ── */
+.template-collection .pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 32px 0;
+  border-top: 1px solid var(--es-border);
+  gap: 12px;
+}
+
+.template-collection .pagination__item--current {
+  color: var(--es-navy);
+  font-weight: 600;
+}
+
+/* ── PRODUCT COUNT TEXT ── */
+.template-collection .product-count {
+  font-size: 14.5px;
+  color: var(--es-text-soft);
+}
+
+/* ── COLLECTION GRID SECTION — PADDING & MAX-WIDTH ── */
+
+/* Section is full-width (like the hero and recipe sections).
+   The inner collection-wrapper is what gets constrained and centred,
+   exactly mirroring how .esd-section-inner works in the recipe section. */
+.template-collection .product-grid-container.section {
+  max-width: none !important;
+  margin-inline: 0 !important;
+  width: 100% !important;
+  padding-inline: 0 !important;
+  padding-top: 32px;
+  padding-bottom: 0;
+  box-sizing: border-box;
+}
+
+/* Inner wrapper: same max-width + padding as .esd-section-inner */
+.template-collection .collection-wrapper.grid {
+  max-width: 1280px !important;
+  margin-inline: auto !important;
+  padding-inline: 68px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  grid-template-columns: 1fr !important;
+  gap: 0 !important;
+}
+
+/* Filters and product list fill the wrapper */
+.template-collection .facets-block-wrapper {
+  grid-column: 1 / -1 !important;
+}
+.template-collection #ResultsList {
+  grid-column: 1 / -1 !important;
+  --padding-inline-start: 0px !important;
+  --padding-inline-end: 0px !important;
+}
+
+@media screen and (max-width: 900px) {
+  .template-collection .collection-wrapper.grid {
+    padding-inline: 20px !important;
+  }
+}
+@media screen and (max-width: 749px) {
+  .template-collection .collection-wrapper.grid {
+    padding-inline: 16px !important;
+  }
+}
+
+/* ── BREADCRUMB ── */
+.template-collection .breadcrumb__list {
+  font-size: 13.5px;
+  color: var(--es-text-soft);
+  padding: 9px 68px;
+}
+
+.template-collection .breadcrumb__item--active {
+  color: var(--es-text-mid);
+  font-weight: 500;
+}
+
+/* ── FILTERS HORIZONTAL ── */
+.template-collection .facets-block-wrapper--horizontal {
+  border-bottom: 1px solid var(--es-border);
+  margin-bottom: 20px;
+}
+
+/* ─── BELOW-FOLD SECTIONS separator ─── */
+.template-collection .es-collection-below-fold {
+  padding-top: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   COLLECTION.OILS TEMPLATE — ADDITIONAL OVERRIDES
+   Applied when template = collection.oils
+   ═══════════════════════════════════════════════════════════ */
+
+/* Product card — 4 cols matching mockup exactly */
+.template-collection--oils .product-grid,
+[data-template="collection.oils"] .product-grid {
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 16px !important;
+}
+
+/* Short description metafield sub-label */
+.template-collection .es-card-short-desc {
+  font-size: 13px;
+  color: var(--es-text-soft, #72747D);
+  margin-bottom: 6px;
+  font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  line-height: 1.4;
+}
+
+/* Card meta label (Cold Pressed / Certified etc) */
+.template-collection .es-card-meta {
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--es-gold, #B8841E);
+  font-weight: 600;
+  margin-bottom: 2px;
+  font-family: var(--es-font-body, 'DM Sans', sans-serif);
+}
+
+/* Card heading — Cormorant serif */
+.template-collection .card__heading a,
+.template-collection .card__heading {
+  font-family: var(--es-font-heading, 'Cormorant', serif) !important;
+  font-size: 17px !important;
+  font-weight: 500 !important;
+  color: var(--es-text-dark, #18181B) !important;
+  line-height: 1.25 !important;
+}
+
+/* Badge positioning */
+.template-collection .card__badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: var(--es-navy, #112557);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 3px 9px;
+  border-radius: 20px;
+  z-index: 2;
+  font-family: var(--es-font-body, 'DM Sans', sans-serif);
+}
+.template-collection .card__badge--sale {
+  background: var(--es-green-save, #1C6B3A);
+}
+
+/* Save % badge */
+.template-collection .es-card-save-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--es-green-save, #1C6B3A);
+  background: var(--es-green-bg, #EBF5EF);
+  padding: 2px 7px;
+  border-radius: 20px;
+  font-family: var(--es-font-body, 'DM Sans', sans-serif);
+  margin-left: 4px;
+}

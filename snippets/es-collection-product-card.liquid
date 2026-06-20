@@ -1,0 +1,569 @@
+{%- doc -%}
+  Earthen Story custom product card for collection pages.
+  @param {object} product - The Shopify product object
+{%- enddoc -%}
+
+{% liquid
+  # ── Tag badge only (no discount % on top) ──────────────────────
+  assign badge_text  = ''
+  assign badge_style = 'navy'
+
+  for tag in product.tags
+    assign t = tag | downcase | strip
+    if t == 'best-seller' or t == 'bestseller' or t == 'best seller'
+      assign badge_text  = 'Best Seller'
+      assign badge_style = 'navy'
+      break
+    endif
+    if t == 'new'
+      assign badge_text  = 'New'
+      assign badge_style = 'navy'
+      break
+    endif
+    if t == 'curated' or t == 'curated-pack'
+      assign badge_text  = 'Curated Pack'
+      assign badge_style = 'navy'
+      break
+    endif
+  endfor
+
+  # ── Certification strip — first 2 trust strip metaobject names ────
+  assign cert_label = ''
+  assign cert_count = 0
+  assign trust_raw = product.metafields.custom.trust_strip.value
+  assign trust_handles = trust_raw | split: ';'
+  for handle_raw in trust_handles
+    if cert_count < 2
+      assign t_handle = handle_raw | strip
+      assign t_item = shop.metaobjects.trust_strip[t_handle]
+      if t_item != blank
+        assign t_name = t_item.name | default: t_item.display_name
+        if cert_label == ''
+          assign cert_label = t_name
+        else
+          assign cert_label = cert_label | append: ' · ' | append: t_name
+        endif
+        assign cert_count = cert_count | plus: 1
+      endif
+    endif
+  endfor
+
+  # ── Meta label ──────────────────────────────────────────────────
+  assign meta_label = product.type
+
+  # ── Rating ──────────────────────────────────────────────────────
+  assign rating_val = product.metafields.reviews.rating.value | plus: 0
+  assign rating_cnt = product.metafields.reviews.rating_count.value
+  if rating_val == 0
+    assign rating_val = product.metafields.junip.rating_value.value | plus: 0
+    assign rating_cnt = product.metafields.junip.review_count.value
+  endif
+  assign rating_rounded = rating_val | round
+
+  # ── First available variant ─────────────────────────────────────
+  assign first_variant = product.selected_or_first_available_variant
+
+  # ── Sale — based on selected variant ────────────────────────────
+  assign has_sale = false
+  assign discount_label = ''
+  if first_variant.compare_at_price > first_variant.price
+    assign has_sale = true
+    assign discount_amt = first_variant.compare_at_price | minus: first_variant.price
+    assign discount_pct = discount_amt | times: 100.0 | divided_by: first_variant.compare_at_price | round
+    assign discount_label = discount_pct | append: '% off'
+  endif
+%}
+
+<div class="es-pc">
+
+  {%- comment -%}── IMAGE ──────────────────────────────────────────{%- endcomment -%}
+  <div class="es-pc__img">
+    {%- if product.featured_image != blank -%}
+      {{ product.featured_image | image_url: width: 600 | image_tag:
+          loading: 'lazy',
+          alt: product.featured_image.alt | default: product.title,
+          width: 600,
+          height: 600,
+          widths: '300, 450, 600',
+          sizes: '(min-width: 1025px) 20vw, (min-width: 769px) 25vw, 50vw'
+      }}
+    {%- else -%}
+      <div class="es-pc__img-fallback">{{ product.title | slice: 0, 2 | upcase }}</div>
+    {%- endif -%}
+
+    {%- unless badge_text == '' -%}
+      <span class="es-pc__badge es-pc__badge--{{ badge_style }}">{{ badge_text }}</span>
+    {%- endunless -%}
+  </div>
+
+  {%- comment -%}── CERT STRIP — below image, not overlaid ──────────{%- endcomment -%}
+  {%- unless cert_label == blank -%}
+    <div class="es-pc__cert">
+      <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+      </svg>
+      {{ cert_label }}
+    </div>
+  {%- endunless -%}
+
+  {%- comment -%}── BODY ───────────────────────────────────────────{%- endcomment -%}
+  <div class="es-pc__body">
+    {%- unless meta_label == blank -%}
+      <p class="es-pc__meta">{{ meta_label | upcase }}</p>
+    {%- endunless -%}
+
+    <div class="es-pc__name-wrap">
+      <p class="es-pc__name">{{ product.title }}</p>
+    </div>
+
+    {%- if rating_cnt != blank and rating_cnt != '0' and rating_cnt != 0 -%}
+      <div class="es-pc__rating">
+        <span class="es-pc__stars" aria-label="{{ rating_val }} out of 5 stars">
+          {%- for i in (1..5) -%}
+            {%- if i <= rating_rounded -%}★{%- else -%}☆{%- endif -%}
+          {%- endfor -%}
+        </span>
+        <span class="es-pc__rating-count">({{ rating_cnt }})</span>
+      </div>
+    {%- endif -%}
+
+    {%- comment -%}── VARIANT PILLS ────────────────────────────────{%- endcomment -%}
+    <div class="es-pc__variants">
+      {%- for variant in product.variants -%}
+        <button
+          type="button"
+          class="es-pc__vpill{% if variant.id == first_variant.id %} active{% endif %}{% unless variant.available %} unavailable{% endunless %}"
+          data-variant-id="{{ variant.id }}"
+          data-price-fmt="{{ variant.price | money }}"
+          data-compare-fmt="{% if variant.compare_at_price > variant.price %}{{ variant.compare_at_price | money }}{% endif %}"
+          data-save-pct="{% if variant.compare_at_price > variant.price %}{{ variant.compare_at_price | minus: variant.price | times: 100.0 | divided_by: variant.compare_at_price | round }}{% endif %}"
+          data-available="{{ variant.available }}"
+        >{{ variant.title }}</button>
+      {%- endfor -%}
+    </div>
+
+    <div class="es-pc__price-row">
+      <div class="es-pc__prices">
+        <span class="es-pc__price">{{ first_variant.price | money }}</span>
+        {%- if has_sale -%}
+          <span class="es-pc__compare">{{ first_variant.compare_at_price | money }}</span>
+          <span class="es-pc__save">{{ discount_label }}</span>
+        {%- else -%}
+          <span class="es-pc__compare" hidden></span>
+          <span class="es-pc__save" hidden></span>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%}── CART CONTROL — AJAX add + in-place qty selector ─{%- endcomment -%}
+      <div class="es-pc__cart"
+        data-variant-id="{{ first_variant.id }}"
+        data-qty="0">
+        <button
+          type="button"
+          class="es-pc__atc"
+          data-es-cart-action="add"
+          aria-label="Add {{ product.title | escape }} to cart"
+          {%- unless first_variant.available %} disabled{%- endunless -%}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+          {%- if first_variant.available -%}Add{%- else -%}Sold Out{%- endif -%}
+        </button>
+        <div class="es-pc__qty">
+          <button type="button" class="es-pc__qty-btn es-pc__qty-btn--dec" data-es-cart-action="decrease" aria-label="Decrease quantity">−</button>
+          <span class="es-pc__qty-num">1</span>
+          <button type="button" class="es-pc__qty-btn es-pc__qty-btn--inc" data-es-cart-action="increase" aria-label="Increase quantity">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% stylesheet %}
+/* ── Earthen Story Product Card (es-pc) ──────────────────────────── */
+.es-pc {
+  --es-navy:      #112557;
+  --es-gold:      #B8841E;
+  --es-green:     #1C6B3A;
+  --es-green-bg:  #EBF5EF;
+  --es-text-dark: #1A1C1F;
+  --es-text-soft: #7A7D89;
+  --es-border:    #E8E0D4;
+  --es-bg:        #F8F4ED;
+  --es-bg2:       #EDE5D4;
+
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--es-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  height: 100%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.es-pc:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(184, 132, 30, 0.12);
+  border-color: #C9962A;
+}
+
+/* Image — 1:1 square so all cards are uniform regardless of card width */
+.es-pc__img {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(145deg, var(--es-bg) 0%, var(--es-bg2) 100%);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.es-pc__img img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  position: absolute; inset: 0;
+}
+.es-pc__img-fallback {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 48px; font-weight: 700; letter-spacing: -0.02em;
+  color: rgba(17, 37, 87, 0.15);
+}
+
+/* Badge — tag-based only (Best Seller, New, etc.) */
+.es-pc__badge {
+  position: absolute; top: 10px; left: 10px; z-index: 2;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  line-height: 1.6; pointer-events: none;
+}
+.es-pc__badge--navy  { background: var(--es-navy);  color: #fff; }
+.es-pc__badge--green { background: var(--es-green); color: #fff; }
+
+/* Certification strip — sits between image and body, not overlaid */
+.es-pc__cert {
+  background: rgba(17, 37, 87, 0.88);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 10px; font-weight: 500; letter-spacing: 0.04em;
+  padding: 5px 10px;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  width: 100%;
+}
+
+/* Body — centre-aligned */
+.es-pc__body {
+  padding: 12px 14px 14px;
+  display: flex; flex-direction: column;
+  align-items: stretch; text-align: center;
+  flex: 1;
+}
+.es-pc__meta {
+  font-size: 9px; font-weight: 700;
+  color: var(--es-gold); letter-spacing: 0.1em;
+  text-transform: uppercase; margin: 0 0 3px;
+  line-height: 1; text-align: center; width: 100%;
+}
+
+/* Title wrapper — fixed 2-line height, clips overflow cleanly.
+   Avoids -webkit-box which ignores text-align:center in Chrome. */
+.es-pc__name-wrap {
+  height: calc(17px * 1.25 * 2); /* exactly 2 lines = 42.5px */
+  overflow: hidden;
+  margin: 0 0 6px;
+  width: 100%;
+}
+.es-pc__name {
+  font-size: 17px; font-weight: 500;
+  color: var(--es-text-dark); line-height: 1.25;
+  margin: 0; text-align: center; width: 100%;
+  font-family: var(--font-heading--family, Georgia, serif);
+  display: block;
+}
+
+/* Rating */
+.es-pc__rating {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  margin-bottom: 10px;
+}
+.es-pc__stars        { font-size: 11px; color: var(--es-gold); line-height: 1; letter-spacing: 0.5px; }
+.es-pc__rating-count { font-size: 10.5px; color: var(--es-text-soft); }
+
+/* Variant pills */
+.es-pc__variants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.es-pc__vpill {
+  padding: 3px 10px;
+  border: 1.5px solid var(--es-border);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: var(--es-text-dark);
+  line-height: 1.5;
+  white-space: nowrap;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.es-pc__vpill.active {
+  border-color: var(--es-navy);
+  background: var(--es-navy);
+  color: #fff;
+}
+.es-pc__vpill.unavailable {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+.es-pc__vpill:hover:not(.active):not(.unavailable) {
+  border-color: var(--es-navy);
+  color: var(--es-navy);
+}
+
+/* Price row — stacked layout: prices on top, ATC button full-width below.
+   Keeps all info visible even at narrow column widths (~185px inner). */
+.es-pc__price-row {
+  margin-top: auto;
+  border-top: 1px solid var(--es-border);
+  padding-top: 10px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.es-pc__prices {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  min-width: 0;
+  overflow: visible;
+}
+.es-pc__price {
+  font-size: 15px; font-weight: 600;
+  color: var(--es-text-dark); line-height: 1;
+  letter-spacing: -0.01em; white-space: nowrap;
+}
+.es-pc__compare {
+  font-size: 11px; color: #B0AABA;
+  text-decoration: line-through; line-height: 1;
+  white-space: nowrap;
+}
+.es-pc__save {
+  font-size: 10px; font-weight: 600;
+  color: var(--es-green); background: var(--es-green-bg);
+  padding: 2px 7px; border-radius: 20px;
+  white-space: nowrap; line-height: 1.5; flex-shrink: 0;
+}
+
+/* Cart control wrapper — CSS drives show/hide via data-qty attribute */
+.es-pc__cart { width: 100%; }
+
+/* qty=0 (default): show Add button, hide qty control */
+.es-pc__cart[data-qty="0"] .es-pc__atc { display: flex; }
+.es-pc__cart[data-qty="0"] .es-pc__qty { display: none; }
+
+/* qty>0: hide Add button, show qty control */
+.es-pc__cart:not([data-qty="0"]) .es-pc__atc { display: none; }
+.es-pc__cart:not([data-qty="0"]) .es-pc__qty { display: flex; }
+
+/* ATC button — fixed height so it stays same size as qty control */
+.es-pc__atc {
+  align-items: center; justify-content: center; gap: 6px;
+  width: 100%; height: 36px;
+  background: var(--es-navy); color: #fff;
+  border: none; border-radius: 7px;
+  padding: 0 10px; cursor: pointer;
+  font-size: 12px; font-weight: 600;
+  white-space: nowrap; line-height: 1;
+  transition: background 0.15s, transform 0.12s;
+  box-sizing: border-box;
+}
+.es-pc__atc:active  { transform: scale(0.97); }
+.es-pc__atc:hover:not(:disabled) { background: #1a3575; transform: scale(1.03); }
+.es-pc__atc:disabled { background: #9aa0b0; cursor: not-allowed; }
+.es-pc__atc--loading { opacity: 0.7; pointer-events: none; }
+
+/* Quantity control — same 36px height as Add button */
+.es-pc__qty {
+  align-items: stretch;
+  width: 100%; height: 36px; border-radius: 7px;
+  overflow: hidden; border: 2px solid var(--es-navy);
+  box-sizing: border-box;
+}
+.es-pc__qty-btn {
+  background: var(--es-navy); color: #fff;
+  border: none; width: 36px;
+  font-size: 18px; font-weight: 300; line-height: 1;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: background 0.15s;
+  padding: 0;
+}
+.es-pc__qty-btn:hover { background: #1a3575; }
+.es-pc__qty-btn:active { background: #0d1e4a; }
+.es-pc__qty-num {
+  flex: 1; text-align: center;
+  font-size: 14px; font-weight: 700;
+  color: var(--es-navy); background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+
+{% endstylesheet %}
+
+<script>
+(function () {
+  if (window.__esCartInit) return;
+  window.__esCartInit = true;
+
+  /* ── helpers ─────────────────────────────────────────────────── */
+
+  /* Add qty 1 of a variant */
+  async function cartAdd(variantId) {
+    const res = await fetch('/cart/add.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: [{ id: variantId, quantity: 1 }] }),
+    });
+    if (!res.ok) throw new Error('cart/add failed: ' + res.status);
+    return res.json();
+  }
+
+  /* Set a variant to an absolute quantity (0 = remove).
+     /cart/update.js accepts variant IDs directly — no line key needed. */
+  async function cartUpdate(variantId, quantity) {
+    const res = await fetch('/cart/update.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ updates: { [variantId]: quantity } }),
+    });
+    if (!res.ok) throw new Error('cart/update failed: ' + res.status);
+    return res.json();
+  }
+
+  /* Fire cart:update so cart-items-component re-renders its content */
+  function refreshCart() {
+    fetch('/cart.js')
+      .then(r => r.json())
+      .then(cart => {
+        /* Dispatch theme's native cart:update — cart-items-component listens
+           for this and calls sectionRenderer.renderSection() to refresh HTML */
+        const event = new Event('cart:update', { bubbles: true });
+        event.detail = {
+          resource: cart,
+          sourceId: null,
+          data: { itemCount: cart.item_count, sections: {} },
+        };
+        document.dispatchEvent(event);
+
+        /* Cart drawer intentionally NOT opened — user adds from collection page
+           without interruption and opens cart themselves when ready. */
+      })
+      .catch(() => {});
+  }
+
+  /* ── variant pill selection ──────────────────────────────────────── */
+  document.addEventListener('click', function (e) {
+    const pill = e.target.closest('.es-pc__vpill');
+    if (!pill || pill.classList.contains('unavailable')) return;
+
+    e.stopPropagation();
+    e.preventDefault();
+
+    const card = pill.closest('.es-pc');
+    if (!card) return;
+
+    // Update active pill
+    card.querySelectorAll('.es-pc__vpill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+
+    // Update cart control's variant ID and reset qty state
+    const cartEl = card.querySelector('.es-pc__cart');
+    if (cartEl) {
+      cartEl.dataset.variantId = pill.dataset.variantId;
+      cartEl.dataset.qty = '0';
+      const addBtn = cartEl.querySelector('.es-pc__atc');
+      if (addBtn) {
+        addBtn.disabled = pill.dataset.available !== 'true';
+        addBtn.textContent = '';
+        addBtn.insertAdjacentHTML('afterbegin', '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>');
+        addBtn.append(pill.dataset.available === 'true' ? 'Add' : 'Sold Out');
+      }
+    }
+
+    // Update price display
+    const priceEl   = card.querySelector('.es-pc__price');
+    const compareEl = card.querySelector('.es-pc__compare');
+    const saveEl    = card.querySelector('.es-pc__save');
+    if (priceEl) priceEl.textContent = pill.dataset.priceFmt;
+    if (compareEl) {
+      compareEl.textContent = pill.dataset.compareFmt || '';
+      compareEl.hidden = !pill.dataset.compareFmt;
+    }
+    if (saveEl) {
+      const pct = pill.dataset.savePct;
+      saveEl.textContent = pct ? pct + '% off' : '';
+      saveEl.hidden = !pct;
+    }
+  }, true);
+
+  /* ── delegated click listener (capture phase beats product-card-link) ── */
+  document.addEventListener('click', async function (e) {
+    const btn = e.target.closest('[data-es-cart-action]');
+    if (!btn) return;
+
+    const cartEl = btn.closest('.es-pc__cart');
+    if (!cartEl) return;
+
+    /* Stop product-card-link from navigating to the product page */
+    e.stopPropagation();
+    e.preventDefault();
+
+    const variantId = parseInt(cartEl.dataset.variantId, 10);
+    const action    = btn.dataset.esCartAction;
+    const addBtn    = cartEl.querySelector('.es-pc__atc');
+    const qtyNum    = cartEl.querySelector('.es-pc__qty-num');
+    const qty       = parseInt(cartEl.dataset.qty || '0', 10);
+
+    if (btn.disabled) return;
+    btn.disabled = true;
+
+    try {
+      if (action === 'add') {
+        addBtn.classList.add('es-pc__atc--loading');
+        await cartAdd(variantId);
+        cartEl.dataset.qty = '1';
+        qtyNum.textContent = '1';
+        refreshCart();
+
+      } else if (action === 'increase') {
+        const newQty = qty + 1;
+        await cartUpdate(variantId, newQty);
+        cartEl.dataset.qty = String(newQty);
+        qtyNum.textContent = newQty;
+        refreshCart();
+
+      } else if (action === 'decrease') {
+        const newQty = qty - 1;
+        await cartUpdate(variantId, newQty); /* 0 = removes from cart */
+        cartEl.dataset.qty = String(newQty);
+        qtyNum.textContent = newQty;
+        refreshCart();
+      }
+    } catch (err) {
+      console.error('[es-cart]', err);
+    } finally {
+      btn.disabled = false;
+      addBtn.classList.remove('es-pc__atc--loading');
+    }
+  }, true); /* capture phase — fires before product-card-link navigation handler */
+})();
+</script>

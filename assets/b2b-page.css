@@ -1,0 +1,491 @@
+/* ═══════════════════════════════════════════
+   B2B PAGE — earthenstory.com
+   Asset: b2b-page.css
+   Loaded only on page.b2b template.
+
+   NOTE: Announcement bar, header, nav, and B2B pill
+   styles all live in sections/header.liquid and
+   sections/header-announcements.liquid.
+   Do not add those here.
+═══════════════════════════════════════════ */
+
+/* ── BREADCRUMB ── */
+.b2b-breadcrumb {
+  padding: 9px 68px;
+  font-size: 11.5px;
+  color: var(--color-text-soft, #72747D);
+  border-bottom: 1px solid var(--color-border, #EAE6DC);
+  background: var(--color-white, #FFFFFF);
+}
+.b2b-breadcrumb a { color: var(--color-text-soft, #72747D); text-decoration: none; }
+.b2b-breadcrumb a:hover { color: var(--color-gold, #B8841E); }
+.b2b-breadcrumb span { color: var(--color-text-mid, #44464F); font-weight: 500; }
+
+/* ── SHARED ── */
+.b2b-section-inner { max-width: 1080px; margin: 0 auto; }
+.b2b-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-gold, #B8841E);
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* ══════════════════════════════════════
+   1. HERO
+══════════════════════════════════════ */
+.b2b-hero {
+  background: #112557;
+  padding: 56px 68px 52px;
+  position: relative;
+  overflow: hidden;
+}
+.b2b-hero::before {
+  content: '';
+  position: absolute; right: 0; top: 0; bottom: 0; width: 50%;
+  background: radial-gradient(ellipse 80% 100% at 90% 50%, rgba(184,132,30,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.b2b-hero-inner {
+  max-width: 1080px; margin: 0 auto;
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 60px;
+  align-items: center;
+}
+.b2b-hero-eyebrow {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: #D4A843;
+  display: block; margin-bottom: 14px;
+}
+.b2b-hero-title {
+  font-family: 'Cormorant', serif;
+  font-size: 46px; font-weight: 500;
+  color: white; line-height: 1.1;
+  margin-bottom: 16px;
+}
+.b2b-hero-title em { font-style: italic; color: #D4A843; }
+.b2b-hero-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.75;
+  margin-bottom: 28px;
+  max-width: 460px;
+}
+.b2b-hero-ctas { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* Buttons */
+.b2b-btn-gold {
+  background: #D4A843; color: white;
+  border: none; border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 13.5px; font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  text-decoration: none; display: inline-block;
+  transition: background 0.15s;
+}
+.b2b-btn-gold:hover { background: #C8922A; }
+
+.b2b-btn-ghost {
+  background: transparent;
+  color: rgba(255,255,255,0.7);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 8px; padding: 12px 24px;
+  font-size: 13.5px; font-weight: 400;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  text-decoration: none; display: inline-block;
+  transition: border-color 0.15s, color 0.15s;
+}
+.b2b-btn-ghost:hover { border-color: rgba(255,255,255,0.5); color: white; }
+
+/* Hero right — audience tags */
+.b2b-audience-label {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 12px;
+}
+.b2b-audience-tags { display: flex; flex-direction: column; gap: 8px; }
+.b2b-audience-tag {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(212,168,67,0.15);
+  border-radius: 10px; padding: 12px 16px;
+}
+.b2b-at-icon { font-size: 18px; flex-shrink: 0; }
+.b2b-at-name { font-size: 13px; font-weight: 600; color: white; }
+.b2b-at-desc { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 1px; }
+
+/* ══════════════════════════════════════
+   2. MISSION
+══════════════════════════════════════ */
+.b2b-mission {
+  padding: 52px 68px;
+  border-bottom: 1px solid #EAE6DC;
+  background: #FFFDF8;
+}
+.b2b-mission-inner {
+  max-width: 1080px; margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px; align-items: start;
+}
+.b2b-mission-title {
+  font-family: 'Cormorant', serif;
+  font-size: 32px; font-weight: 500;
+  color: #18181B;
+  margin-bottom: 16px; line-height: 1.2;
+}
+.b2b-mission-body {
+  font-size: 14px; color: #44464F;
+  line-height: 1.8; margin-bottom: 20px;
+}
+.b2b-mission-link {
+  font-size: 13px; font-weight: 600;
+  color: #112557; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.b2b-mission-link:hover { color: #B8841E; }
+
+.b2b-mission-right { display: flex; flex-direction: column; gap: 14px; }
+.b2b-problem-card {
+  background: white;
+  border: 1px solid #EAE6DC;
+  border-radius: 12px; padding: 18px 20px;
+}
+.b2b-problem-card.highlight {
+  border-color: #DFC07A;
+  background: #FAF3E4;
+}
+.b2b-pc-icon { font-size: 20px; margin-bottom: 8px; }
+.b2b-pc-title { font-size: 13.5px; font-weight: 600; color: #18181B; margin-bottom: 5px; }
+.b2b-pc-body { font-size: 12.5px; color: #44464F; line-height: 1.6; }
+
+/* ══════════════════════════════════════
+   3. WHAT WE SUPPLY
+══════════════════════════════════════ */
+.b2b-supply {
+  padding: 52px 68px;
+  border-bottom: 1px solid #EAE6DC;
+}
+.b2b-supply-inner { max-width: 1080px; margin: 0 auto; }
+.b2b-supply-title {
+  font-family: 'Cormorant', serif;
+  font-size: 28px; font-weight: 500; color: #18181B;
+}
+.b2b-supply-sub { font-size: 13px; color: #72747D; margin-top: 4px; margin-bottom: 22px; }
+
+.b2b-cat-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 10px;
+}
+.b2b-cat-tile {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 7px;
+  padding: 14px 6px 12px;
+  border: 1px solid #EAE6DC;
+  border-radius: 10px; background: white;
+  cursor: pointer; text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.b2b-cat-tile:hover {
+  border-color: #DFC07A;
+  box-shadow: 0 3px 12px rgba(184,132,30,0.09);
+  transform: translateY(-2px);
+}
+.b2b-cat-icon {
+  width: 38px; height: 38px; border-radius: 9px;
+  background: #FAF3E4; border: 1px solid #DFC07A;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.b2b-cat-name {
+  font-size: 10.5px; font-weight: 500;
+  color: #18181B; text-align: center; line-height: 1.3;
+}
+.b2b-supply-browse { margin-top: 14px; font-size: 12.5px; color: #72747D; }
+.b2b-supply-browse a { color: #112557; font-weight: 600; text-decoration: none; }
+.b2b-supply-browse a:hover { color: #B8841E; }
+
+/* ══════════════════════════════════════
+   4. WHY SOURCE FROM US
+══════════════════════════════════════ */
+.b2b-trust {
+  padding: 52px 68px;
+  background: #FFFDF8;
+  border-bottom: 1px solid #EAE6DC;
+}
+.b2b-trust-inner { max-width: 1080px; margin: 0 auto; }
+.b2b-trust-title {
+  font-family: 'Cormorant', serif;
+  font-size: 28px; font-weight: 500; color: #18181B;
+  margin-bottom: 22px;
+}
+.b2b-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+.b2b-trust-card {
+  background: white;
+  border: 1px solid #EAE6DC;
+  border-radius: 12px; padding: 22px;
+  display: flex; gap: 16px;
+  align-items: flex-start;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.b2b-trust-card:hover {
+  border-color: #DFC07A;
+  box-shadow: 0 4px 16px rgba(184,132,30,0.08);
+}
+.b2b-tc-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: #FAF3E4; border: 1px solid #DFC07A;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.b2b-tc-title { font-size: 14px; font-weight: 600; color: #18181B; margin-bottom: 5px; }
+.b2b-tc-desc { font-size: 12.5px; color: #44464F; line-height: 1.65; }
+.b2b-tc-link {
+  font-size: 12px; font-weight: 600; color: #112557;
+  text-decoration: none; display: inline-block; margin-top: 6px;
+}
+.b2b-tc-link:hover { color: #B8841E; }
+
+/* ══════════════════════════════════════
+   5. INQUIRY FORM
+══════════════════════════════════════ */
+.b2b-form-section {
+  padding: 52px 68px;
+  border-bottom: 1px solid #EAE6DC;
+}
+.b2b-form-inner {
+  max-width: 1080px; margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 520px;
+  gap: 64px; align-items: start;
+}
+.b2b-form-title {
+  font-family: 'Cormorant', serif;
+  font-size: 32px; font-weight: 500; color: #18181B;
+  margin-bottom: 12px; line-height: 1.2;
+}
+.b2b-form-desc {
+  font-size: 14px; color: #44464F;
+  line-height: 1.75; margin-bottom: 24px;
+}
+.b2b-form-contact-block {
+  background: #FAF3E4;
+  border: 1px solid #DFC07A;
+  border-radius: 12px; padding: 18px 20px;
+}
+.b2b-fcb-label {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: #B8841E; margin-bottom: 8px; display: block;
+}
+.b2b-fcb-email {
+  font-size: 14px; font-weight: 600; color: #112557;
+  text-decoration: none; display: flex; align-items: center; gap: 8px;
+}
+.b2b-fcb-email:hover { color: #B8841E; }
+.b2b-fcb-email svg {
+  width: 15px; height: 15px;
+  stroke: currentColor; stroke-width: 1.8;
+  fill: none; stroke-linecap: round;
+}
+.b2b-fcb-note { font-size: 11.5px; color: #72747D; margin-top: 6px; }
+
+/* Form panel */
+.b2b-form-panel {
+  background: white;
+  border: 1px solid #EAE6DC;
+  border-radius: 14px; padding: 28px;
+}
+.b2b-form-panel h3 {
+  font-family: 'Cormorant', serif;
+  font-size: 20px; font-weight: 500; color: #18181B;
+  margin-bottom: 20px;
+}
+.b2b-form-row { margin-bottom: 14px; }
+.b2b-form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-bottom: 14px;
+}
+.b2b-form-label {
+  font-size: 11.5px; font-weight: 600; color: #44464F;
+  display: block; margin-bottom: 5px; letter-spacing: 0.02em;
+}
+.b2b-form-label .req { color: #B8841E; }
+.b2b-form-input {
+  width: 100%;
+  border: 1px solid #EAE6DC; border-radius: 8px;
+  padding: 9px 13px; font-size: 13px; color: #18181B;
+  font-family: 'DM Sans', sans-serif; outline: none;
+  background: #FFFDF8; transition: border-color 0.15s;
+}
+.b2b-form-input:focus { border-color: #DFC07A; background: white; }
+.b2b-form-input::placeholder { color: #72747D; }
+.b2b-form-select {
+  width: 100%;
+  border: 1px solid #EAE6DC; border-radius: 8px;
+  padding: 9px 13px; font-size: 13px; color: #18181B;
+  font-family: 'DM Sans', sans-serif; outline: none;
+  background: #FFFDF8; appearance: none; cursor: pointer;
+  transition: border-color 0.15s;
+}
+.b2b-form-select:focus { border-color: #DFC07A; }
+
+/* Checkbox group */
+.b2b-checkbox-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px; margin-top: 5px;
+}
+.b2b-checkbox-item {
+  display: flex; align-items: center; gap: 7px; cursor: pointer;
+}
+.b2b-checkbox-item input[type="checkbox"] {
+  width: 14px; height: 14px;
+  accent-color: #112557; cursor: pointer; flex-shrink: 0;
+}
+.b2b-checkbox-item span { font-size: 12.5px; color: #44464F; }
+
+.b2b-form-submit {
+  width: 100%; background: #112557; color: white;
+  border: none; border-radius: 8px; padding: 13px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  margin-top: 6px; transition: background 0.15s;
+}
+.b2b-form-submit:hover { background: #1A3370; }
+.b2b-form-note {
+  font-size: 11px; color: #72747D;
+  text-align: center; margin-top: 8px;
+}
+
+/* Google Form placeholder (dev only — remove when Google Form is live) */
+.b2b-google-form-placeholder {
+  background: #FFFDF8;
+  border: 1.5px dashed #D8D2C4;
+  border-radius: 12px; padding: 32px 24px; text-align: center;
+  margin-top: 18px;
+}
+.b2b-gfp-icon { font-size: 28px; margin-bottom: 10px; }
+.b2b-gfp-title { font-size: 13.5px; font-weight: 600; color: #18181B; margin-bottom: 6px; }
+.b2b-gfp-desc { font-size: 12px; color: #72747D; line-height: 1.6; }
+.b2b-gfp-code {
+  background: #112557; color: rgba(255,255,255,0.7);
+  font-family: monospace; font-size: 11px;
+  border-radius: 6px; padding: 8px 12px;
+  margin-top: 12px; text-align: left; line-height: 1.8;
+}
+
+/* Form success message */
+.b2b-form-success {
+  color: #1C6B3A;
+  background: #EBF5EF;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+/* ═══════════════════════════════════════════
+   MOBILE — max-width: 749px
+═══════════════════════════════════════════ */
+@media screen and (max-width: 749px) {
+
+  /* Breadcrumb */
+  .b2b-breadcrumb {
+    padding: 8px 20px;
+  }
+
+  /* ── 1. Hero ── */
+  .b2b-hero {
+    padding: 36px 20px 32px;
+  }
+  .b2b-hero-inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .b2b-hero-title {
+    font-size: 34px;
+  }
+  .b2b-hero-sub {
+    font-size: 13.5px;
+    max-width: 100%;
+    margin-bottom: 22px;
+  }
+  .b2b-hero-ctas {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .b2b-btn-gold,
+  .b2b-btn-ghost {
+    width: 100%;
+    text-align: center;
+    padding: 13px 20px;
+  }
+  .b2b-audience-tags {
+    gap: 8px;
+  }
+
+  /* ── 2. Mission ── */
+  .b2b-mission {
+    padding: 36px 20px;
+  }
+  .b2b-mission-inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .b2b-mission-title {
+    font-size: 26px;
+  }
+
+  /* ── 3. What We Supply ── */
+  .b2b-supply {
+    padding: 36px 20px;
+  }
+  .b2b-cat-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  /* ── 4. Why Source From Us ── */
+  .b2b-trust {
+    padding: 36px 20px;
+  }
+  .b2b-trust-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── 5. Inquiry Form ── */
+  .b2b-form-section {
+    padding: 36px 20px;
+  }
+  .b2b-form-inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .b2b-form-title {
+    font-size: 26px;
+  }
+  .b2b-form-row-2 {
+    grid-template-columns: 1fr;
+  }
+  .b2b-form-panel {
+    padding: 20px 16px;
+  }
+  .b2b-checkbox-group {
+    grid-template-columns: 1fr 1fr;
+  }
+}

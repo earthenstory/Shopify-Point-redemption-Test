@@ -1,0 +1,532 @@
+{%- comment -%}
+  sections/main-recipe-article.liquid
+  Earthen Story — Recipe Article Template (Phase 7)
+
+  Metafields used (Article):
+    NATIVE:
+      article.title               → Recipe title (H1)
+      article.excerpt             → Recipe intro / abstract
+      article.image               → Hero image
+      article.content             → Ingredients, Steps, Benefits (rich text body)
+      article.blog.title          → Category breadcrumb (e.g. "Ghee Recipes")
+      article.tags                → Category labels on Related Reading rows
+
+    METAFIELD:
+      custom.recipe_time_tag      → Meta row badge e.g. "5 min · No-cook"
+      custom.recipe_products_used → Product ref list (up to 3) — "Shop This Recipe"
+      custom.recipe_related_recipes  → Blog post ref list (up to 4) — "More Recipes"
+      custom.recipe_related_articles → Blog post ref list (up to 3) — "Related Reading"
+
+  CSS: assets/earthen-story.css — .rp-* classes (recipe page namespace)
+       Shared: .esd-section-inner, .esd-card, .esd-article-grid, etc.
+{%- endcomment -%}
+
+{%- liquid
+  assign time_tag         = article.metafields.custom.recipe_time_tag.value
+  assign servings         = article.metafields.custom.recipe_servings.value
+  assign difficulty       = article.metafields.custom.recipe_difficulty.value
+  assign img2_url         = article.metafields.custom.recipe_image_2_url.value
+  assign img2_alt         = article.metafields.custom.recipe_image_2_alt.value
+  assign img3_url         = article.metafields.custom.recipe_image_3_url.value
+  assign img3_alt         = article.metafields.custom.recipe_image_3_alt.value
+-%}
+
+<!-- ══════════════════════════════════════
+     BREADCRUMB
+══════════════════════════════════════ -->
+<div class="rp-breadcrumb">
+  <div class="rp-breadcrumb__inner">
+    <a href="{{ routes.root_url }}">Home</a>
+    <span class="rp-breadcrumb__sep">/</span>
+    <a href="{{ blog.url }}">Recipes</a>
+    {%- if article.blog.title != blank -%}
+      <span class="rp-breadcrumb__sep">/</span>
+      <a href="{{ blog.url }}/tagged/{{ article.blog.title | handle }}">{{ article.blog.title }}</a>
+    {%- endif -%}
+    <span class="rp-breadcrumb__sep">/</span>
+    <span class="rp-breadcrumb__current">{{ article.title | escape }}</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     RECIPE HERO
+══════════════════════════════════════ -->
+<section class="rp-hero">
+  <div class="rp-hero__inner">
+
+    <!-- LEFT: title + intro + meta row -->
+    <div class="rp-hero__left">
+      <h1 class="rp-title">{{ article.title }}</h1>
+
+      {%- if article.excerpt != blank -%}
+        <p class="rp-intro">{{ article.excerpt | strip_html }}</p>
+      {%- endif -%}
+
+      <!-- Meta row: 3 separate metafields -->
+      {%- if time_tag != blank or servings != blank or difficulty != blank -%}
+        <div class="rp-meta-row">
+          {%- if time_tag != blank -%}
+            <div class="rp-meta-cell">
+              <span class="rp-mc-label">Prep Time</span>
+              <span class="rp-mc-value">{{ time_tag }}</span>
+            </div>
+          {%- endif -%}
+          {%- if servings != blank -%}
+            <div class="rp-meta-cell">
+              <span class="rp-mc-label">Servings</span>
+              <span class="rp-mc-value">{{ servings }}</span>
+            </div>
+          {%- endif -%}
+          {%- if difficulty != blank -%}
+            <div class="rp-meta-cell">
+              <span class="rp-mc-label">Difficulty</span>
+              <span class="rp-mc-value">{{ difficulty }}</span>
+            </div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    <!-- RIGHT: hero image carousel (custom.recipe_images metafield or fallback to featured image) -->
+    {%- assign carousel_images = article.metafields.custom.recipe_images.value -%}
+    <!-- RIGHT: hero image carousel
+         Slide 1 = article.image (featured image)
+         Slide 2 = custom.recipe_image_2_url + custom.recipe_image_2_alt
+         Slide 3 = custom.recipe_image_3_url + custom.recipe_image_3_alt
+    -->
+    <div class="rp-hero__right">
+      <div class="rp-hero-img rp-hero-carousel">
+
+        {%- assign has_slide2 = false -%}
+        {%- assign has_slide3 = false -%}
+        {%- if img2_url != blank -%}{%- assign has_slide2 = true -%}{%- endif -%}
+        {%- if img3_url != blank -%}{%- assign has_slide3 = true -%}{%- endif -%}
+
+        {%- if article.image -%}
+          <div class="rp-carousel__track">
+
+            <!-- Slide 1: featured image -->
+            <div class="rp-carousel__slide active">
+              <img
+                src="{{ article.image | image_url: width: 800 }}"
+                alt="{{ article.image.alt | default: article.title | escape }}"
+                width="800"
+                loading="eager"
+              >
+            </div>
+
+            <!-- Slide 2: Google Drive / external URL -->
+            {%- if has_slide2 -%}
+              <div class="rp-carousel__slide">
+                <img
+                  src="{{ img2_url }}"
+                  alt="{{ img2_alt | default: article.title | escape }}"
+                  width="800"
+                  loading="lazy"
+                >
+              </div>
+            {%- endif -%}
+
+            <!-- Slide 3: Google Drive / external URL -->
+            {%- if has_slide3 -%}
+              <div class="rp-carousel__slide">
+                <img
+                  src="{{ img3_url }}"
+                  alt="{{ img3_alt | default: article.title | escape }}"
+                  width="800"
+                  loading="lazy"
+                >
+              </div>
+            {%- endif -%}
+
+          </div>
+
+          <!-- Prev / Next arrows (only show if more than 1 slide) -->
+          {%- if has_slide2 or has_slide3 -%}
+            <button class="rp-carousel__arrow rp-carousel__arrow--prev" aria-label="Previous image">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button class="rp-carousel__arrow rp-carousel__arrow--next" aria-label="Next image">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <!-- Dot indicators -->
+            <div class="rp-carousel__dots">
+              <button class="rp-carousel__dot active" aria-label="Image 1"></button>
+              {%- if has_slide2 -%}<button class="rp-carousel__dot" aria-label="Image 2"></button>{%- endif -%}
+              {%- if has_slide3 -%}<button class="rp-carousel__dot" aria-label="Image 3"></button>{%- endif -%}
+            </div>
+          {%- endif -%}
+
+        {%- else -%}
+          <div class="rp-hero-img__placeholder">
+            <svg viewBox="0 0 80 80" width="64" opacity="0.35"><circle cx="40" cy="30" r="14" fill="none" stroke="currentColor" stroke-width="3"/><path d="M14 66 C14 50 66 50 66 66" fill="none" stroke="currentColor" stroke-width="3"/></svg>
+          </div>
+        {%- endif -%}
+
+        {%- if article.blog.title != blank -%}
+          <div class="rp-hero-img__tag">Made with <em>{{ article.blog.title }}</em></div>
+        {%- endif -%}
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     BODY WRAP: Main column + Sidebar
+══════════════════════════════════════ -->
+<div class="rp-body-wrap">
+
+  <!-- MAIN COLUMN: article content (ingredients, steps, benefits authored in body) -->
+  <div class="rp-main-col">
+
+    <!-- Rich-text body (ingredients + steps + benefits authored in blog post body) -->
+    <div class="rp-article-body">
+      {{ article.content }}
+    </div>
+
+    {%- assign products_used_raw = article.metafields.custom.recipe_products_used.value -%}
+    {%- if products_used_raw != blank -%}
+      {%- assign products_used = products_used_raw | split: ';' -%}
+      <hr class="rp-divider">
+
+      <div class="rp-recipe-section rp-products-section">
+        <span class="rp-section-label">Shop This Recipe</span>
+        <h2 class="rp-sub-title">Products Used</h2>
+        <div class="rp-product-cards">
+
+          {%- assign p_count = 0 -%}
+          {%- for handle_raw in products_used -%}
+            {%- if p_count >= 3 -%}{%- break -%}{%- endif -%}
+            {%- assign p_handle = handle_raw | strip -%}
+            {%- if p_handle == blank -%}{%- continue -%}{%- endif -%}
+            {%- assign product_obj = all_products[p_handle] -%}
+
+            {%- if product_obj != blank -%}
+              {%- assign p_count = p_count | plus: 1 -%}
+              {%- assign first_variant = product_obj.selected_or_first_available_variant | default: product_obj.variants.first -%}
+
+              <a href="{{ product_obj.url }}" class="rp-product-card">
+                <div class="rp-pc-img">
+                  {%- if product_obj.featured_image -%}
+                    <img
+                      src="{{ product_obj.featured_image | image_url: width: 400 }}"
+                      alt="{{ product_obj.featured_image.alt | default: product_obj.title | escape }}"
+                      width="400"
+                      loading="lazy"
+                    >
+                  {%- endif -%}
+                  {%- if product_obj.tags contains 'Best Seller' -%}
+                    <span class="rp-pc-badge">Best Seller</span>
+                  {%- endif -%}
+                </div>
+
+                <div class="rp-pc-body">
+                  {%- if product_obj.metafields.custom.tagline != blank -%}
+                    <div class="rp-pc-meta">{{ product_obj.metafields.custom.tagline.value }}</div>
+                  {%- endif -%}
+
+                  <div class="rp-pc-name">{{ product_obj.title }}</div>
+                  <div class="rp-pc-price-row">
+                    <div class="rp-pc-prices">
+                      <span class="rp-pc-price">{{ first_variant.price | money }}</span>
+                      {%- if first_variant.compare_at_price > first_variant.price -%}
+                        <span class="rp-pc-compare">{{ first_variant.compare_at_price | money }}</span>
+                      {%- endif -%}
+                    </div>
+                    <button class="rp-pc-atc" aria-label="Add {{ product_obj.title | escape }} to cart">+</button>
+                  </div>
+                </div>
+              </a>
+            {%- endif -%}
+          {%- endfor -%}
+
+        </div>
+      </div>
+    {%- endif -%}
+
+  </div><!-- /rp-main-col -->
+
+  <!-- SIDEBAR -->
+  <aside class="rp-sidebar">
+    <div class="rp-sb-card">
+      <a href="/collections/all-products" class="rp-sb-cta">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        Shop All Ingredients
+      </a>
+      <div class="rp-sb-actions">
+        <button class="rp-sb-action" onclick="rpPrint()" aria-label="Print recipe">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print Recipe
+        </button>
+
+        <!-- Share button + dropdown -->
+        <div class="rp-share-wrap" id="rp-share-wrap">
+          <button class="rp-sb-action rp-sb-share" onclick="rpToggleShare()" aria-label="Share recipe">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Share Recipe
+          </button>
+          <div class="rp-share-menu" id="rp-share-menu" style="display:none;">
+
+            <a class="rp-share-opt rp-share-whatsapp" id="rp-wa-link" href="#" target="_blank" rel="noopener noreferrer" onclick="rpCloseShare()">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.995 0C5.372 0 0 5.373 0 12c0 2.117.554 4.103 1.523 5.826L.057 23.998l6.304-1.654A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.622 0 11.995 0zm.005 21.818a9.817 9.817 0 01-5.001-1.371l-.359-.214-3.722.976.994-3.632-.234-.374A9.808 9.808 0 012.18 12c0-5.418 4.407-9.818 9.82-9.818 5.416 0 9.818 4.4 9.818 9.818 0 5.417-4.402 9.818-9.818 9.818z"/></svg>
+              WhatsApp
+            </a>
+
+            <a class="rp-share-opt rp-share-twitter" id="rp-tw-link" href="#" target="_blank" rel="noopener noreferrer" onclick="rpCloseShare()">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              X (Twitter)
+            </a>
+
+            <a class="rp-share-opt rp-share-facebook" id="rp-fb-link" href="#" target="_blank" rel="noopener noreferrer" onclick="rpCloseShare()">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              Facebook
+            </a>
+
+            <button class="rp-share-opt rp-share-copy" onclick="rpCopyLink()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span id="rp-copy-label">Copy Link</span>
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </aside>
+
+</div><!-- /rp-body-wrap -->
+
+{%- comment -%} ══════════════════════════════════════
+  MORE RECIPES & RELATED READING
+  Handled by es-recipes and es-discover sections in article.recipes.json.
+  Metafields: custom.recipe_related_recipes, custom.recipe_related_articles
+══════════════════════════════════════ {%- endcomment -%}
+
+<!-- ══════════════════════════════════════
+     RECIPE SCHEMA (JSON-LD)
+══════════════════════════════════════ -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Recipe",
+  "name": {{ article.title | json }},
+  "description": {{ article.excerpt | strip_html | json }},
+  "image": {%- if article.image -%}{{ article.image | image_url: width: 1200 | json }}{%- else -%}null{%- endif -%},
+  "author": {
+    "@type": "Organization",
+    "name": "Earthen Story"
+  },
+  "datePublished": "{{ article.published_at | date: '%Y-%m-%d' }}",
+  "prepTime": {{ time_tag | json }}
+}
+</script>
+
+<!-- ══════════════════════════════════════
+     SCRIPTS: Ingredient splitter + Carousel + Sticky sidebar
+══════════════════════════════════════ -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  /* ── 1. Classify lists by heading context ──────────────────
+     Detects h2 OR h3 headings (Shopify RTE uses h3 by default).
+     ul after "Ingredients" heading → rp-list--ingredients
+     ul after any other heading     → rp-list--benefits
+     Quantities already have <strong> in the HTML — preserve them.
+  ──────────────────────────────────────────────────────────── */
+  var body = document.querySelector('.rp-article-body');
+  if (body) {
+    var nodes       = Array.from(body.querySelectorAll('h2, h3, ul'));
+    var lastHeading = '';
+
+    nodes.forEach(function (el) {
+      if (el.tagName === 'H2' || el.tagName === 'H3') {
+        lastHeading = el.textContent.trim().toLowerCase();
+        return;
+      }
+
+      if (el.tagName === 'UL') {
+        if (el.closest('li')) return; /* skip nested uls */
+
+        if (lastHeading === 'ingredients') {
+          el.classList.add('rp-list--ingredients');
+          /* Quantities are already wrapped in <strong> by the editor.
+             Nothing to split — CSS handles the visual layout. */
+        } else {
+          el.classList.add('rp-list--benefits');
+        }
+      }
+    });
+  }
+
+  /* ── 2. Hero carousel ──────────────────────────────────── */
+  var track = document.querySelector('.rp-carousel__track');
+  if (track) {
+    var slides = track.querySelectorAll('.rp-carousel__slide');
+    if (slides.length > 1) {
+      var dots    = document.querySelectorAll('.rp-carousel__dot');
+      var btnPrev = document.querySelector('.rp-carousel__arrow--prev');
+      var btnNext = document.querySelector('.rp-carousel__arrow--next');
+      var current = 0;
+      var timer;
+
+      function goTo(n) {
+        slides[current].classList.remove('active');
+        if (dots[current]) dots[current].classList.remove('active');
+        current = (n + slides.length) % slides.length;
+        slides[current].classList.add('active');
+        if (dots[current]) dots[current].classList.add('active');
+      }
+      function resetTimer() {
+        clearInterval(timer);
+        timer = setInterval(function () { goTo(current + 1); }, 3000);
+      }
+
+      resetTimer();
+      dots.forEach(function (dot, i) {
+        dot.addEventListener('click', function () { goTo(i); resetTimer(); });
+      });
+      if (btnPrev) btnPrev.addEventListener('click', function () { goTo(current - 1); resetTimer(); });
+      if (btnNext) btnNext.addEventListener('click', function () { goTo(current + 1); resetTimer(); });
+      track.addEventListener('mouseenter', function () { clearInterval(timer); });
+      track.addEventListener('mouseleave', function () { resetTimer(); });
+    }
+  }
+
+  /* ── 3. Sidebar scrolls naturally — no sticky/fixed needed ── */
+
+});
+</script>
+
+<!-- ══════════════════════════════════════
+     PRINT — recipe-only clean print view
+══════════════════════════════════════ -->
+<script>
+function rpPrint() {
+  var hero  = document.querySelector('.rp-hero');
+  var main  = document.querySelector('.rp-main-col');
+  var title = document.querySelector('.rp-title');
+  var heroHTML = hero ? hero.outerHTML : '';
+  var mainHTML = main ? main.outerHTML : '';
+  var win = window.open('', '_blank', 'width=820,height=1000');
+  win.document.write('<!DOCTYPE html><html><head>');
+  win.document.write('<meta charset="UTF-8">');
+  win.document.write('<title>' + (title ? title.textContent.trim() : 'Recipe') + '<\/title>');
+  win.document.write('<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">');
+  win.document.write('<style>');
+  win.document.write('*{box-sizing:border-box;margin:0;padding:0}');
+  win.document.write('body{font-family:"DM Sans",sans-serif;color:#18181B;padding:32px 40px;max-width:720px;margin:0 auto}');
+  win.document.write('.rp-hero{background:#FFFDF8;border:1px solid #EAE6DC;border-radius:10px;padding:20px;margin-bottom:24px}');
+  win.document.write('.rp-hero__inner{display:block}');
+  win.document.write('.rp-hero__right{display:none}');
+  win.document.write('.rp-title{font-family:"Cormorant",serif;font-size:28px;font-weight:500;margin-bottom:8px;line-height:1.2}');
+  win.document.write('.rp-intro{font-size:13px;line-height:1.7;color:#44464F;margin-bottom:12px}');
+  win.document.write('.rp-meta-row{display:flex;border:1px solid #EAE6DC;border-radius:8px;overflow:hidden;max-width:400px}');
+  win.document.write('.rp-meta-cell{flex:1;padding:7px 10px;text-align:center;border-right:1px solid #EAE6DC}');
+  win.document.write('.rp-meta-cell:last-child{border-right:none}');
+  win.document.write('.rp-mc-label{font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:#72747D;display:block}');
+  win.document.write('.rp-mc-value{font-size:12px;font-weight:600;color:#112557}');
+  win.document.write('.rp-article-body h2,.rp-article-body h3{font-family:"Cormorant",serif;font-size:20px;font-weight:500;margin:18px 0 8px;color:#18181B}');
+  win.document.write('.rp-article-body p{font-size:13px;line-height:1.7;color:#44464F;margin-bottom:10px}');
+  win.document.write('ul.rp-list--ingredients{list-style:none!important;border:1px solid #EAE6DC;border-radius:8px;overflow:hidden;margin-bottom:14px;padding:0}');
+  win.document.write('ul.rp-list--ingredients li{display:flex;align-items:center;gap:10px;padding:7px 14px;border-bottom:1px solid #EAE6DC;font-size:13px;color:#44464F}');
+  win.document.write('ul.rp-list--ingredients li:last-child{border-bottom:none}');
+  win.document.write('ul.rp-list--ingredients li strong{color:#112557;font-weight:600;min-width:52px;flex-shrink:0}');
+  win.document.write('ul.rp-list--ingredients li a.rp-ing-shop{font-size:10px;color:#B8841E;border:1px solid #DFC07A;background:#FAF3E4;padding:2px 7px;border-radius:20px;text-decoration:none;margin-left:auto;white-space:nowrap}');
+  win.document.write('ul.rp-list--benefits{list-style:disc;padding-left:18px;margin-bottom:14px}');
+  win.document.write('ul.rp-list--benefits li{font-size:13px;line-height:1.65;color:#44464F;margin-bottom:5px}');
+  win.document.write('ul.rp-list--benefits li strong{color:#18181B;font-weight:600}');
+  win.document.write('ul.rp-list--benefits li a{color:#112557;text-decoration:underline}');
+  win.document.write('ol{padding-left:18px;margin-bottom:14px}');
+  win.document.write('ol li{font-size:13px;line-height:1.65;color:#44464F;margin-bottom:5px}');
+  win.document.write('.rp-divider,.rp-section-label,.rp-products-section,.rp-sb-card,.rp-carousel__arrow,.rp-carousel__dots,.rp-hero-img__tag{display:none}');
+  win.document.write('.rp-carousel__slide{display:none}.rp-carousel__slide.active{display:block}');
+  win.document.write('@media print{@page{margin:1cm}}');
+  win.document.write('<\/style><\/head><body>');
+  win.document.write(heroHTML);
+  win.document.write('<div class="rp-main-col">' + mainHTML + '<\/div>');
+  win.document.write('<\/body><\/html>');
+  win.document.close();
+  var printed = false;
+  win.onload = function() {
+    if (!printed) { printed = true; win.print(); }
+  };
+  setTimeout(function() {
+    if (!printed && win && !win.closed) { printed = true; win.print(); }
+  }, 1200);
+}
+</script>
+
+<!-- ══════════════════════════════════════
+     SHARE — WhatsApp, Twitter, Facebook, Copy Link
+══════════════════════════════════════ -->
+<script>
+/* Set real hrefs on share links as soon as DOM is ready.
+   This makes them genuine anchor clicks — bypasses all CSP restrictions. */
+document.addEventListener('DOMContentLoaded', function() {
+  var url   = encodeURIComponent(window.location.href);
+  var title = encodeURIComponent(document.title);
+
+  var wa = document.getElementById('rp-wa-link');
+  var tw = document.getElementById('rp-tw-link');
+  var fb = document.getElementById('rp-fb-link');
+
+  if (wa) wa.href = 'https://wa.me/?text=' + title + '%20' + url;
+  if (tw) tw.href = 'https://twitter.com/intent/tweet?text=' + title + '&url=' + url;
+  if (fb) fb.href = 'https://www.facebook.com/sharer/sharer.php?u=' + url;
+});
+
+function rpCloseShare() {
+  document.getElementById('rp-share-menu').style.display = 'none';
+}
+function rpToggleShare() {
+  var menu = document.getElementById('rp-share-menu');
+  var isOpen = menu.style.display !== 'none';
+  menu.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    setTimeout(function() {
+      document.addEventListener('click', function handler(e) {
+        if (!document.getElementById('rp-share-wrap').contains(e.target)) {
+          menu.style.display = 'none';
+          document.removeEventListener('click', handler);
+        }
+      });
+    }, 0);
+  }
+}
+function rpCopyLink() {
+  rpCloseShare();
+  var url   = window.location.href;
+  var label = document.getElementById('rp-copy-label');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(function() {
+      label.textContent = 'Copied!';
+      setTimeout(function() { label.textContent = 'Copy Link'; }, 2000);
+    }).catch(function() { rpFallbackCopy(url, label); });
+  } else {
+    rpFallbackCopy(url, label);
+  }
+}
+function rpFallbackCopy(text, label) {
+  var el = document.createElement('textarea');
+  el.value = text;
+  el.style.position = 'fixed';
+  el.style.opacity = '0';
+  document.body.appendChild(el);
+  el.select();
+  document.execCommand('copy');
+  document.body.removeChild(el);
+  label.textContent = 'Copied!';
+  setTimeout(function() { label.textContent = 'Copy Link'; }, 2000);
+}
+</script>
+
+{% schema %}
+{
+  "name": "Recipe Article",
+  "tag": "article",
+  "class": "template-article-recipe",
+  "settings": []
+}
+{% endschema %}

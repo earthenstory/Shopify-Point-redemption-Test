@@ -1,0 +1,78 @@
+{%- liquid
+  assign bundle_product = product.metafields.custom.better_together.value
+  assign fbt_product    = product.metafields.custom.frequently_bought.value
+  assign bundle_save    = product.metafields.custom.bundle_save_amount.value
+  assign has_any = false
+  if bundle_product != nil or fbt_product != nil
+    assign has_any = true
+  endif
+-%}
+
+{%- if has_any -%}
+<div class="es-crosssell-grid">
+
+  <!-- BETTER TOGETHER (bundle suggestion) -->
+  {%- if bundle_product != nil -%}
+  <a href="{{ bundle_product.url }}" class="es-crosssell-card">
+    <div class="es-cs-img">
+      {%- if bundle_product.featured_image -%}
+        <img
+          src="{{ bundle_product.featured_image | image_url: width: 80 }}"
+          alt="{{ bundle_product.title | escape }}"
+          width="80" loading="lazy"
+        >
+      {%- endif -%}
+    </div>
+    <div class="es-cs-body">
+      <div class="es-cs-label">Better Together</div>
+      <div class="es-cs-name">{{ bundle_product.title }}</div>
+      <div class="es-cs-sub">
+        {%- if bundle_save != blank -%}
+          Bundle · Save {{ bundle_save }}
+        {%- else -%}
+          Bundle · View pack
+        {%- endif -%}
+      </div>
+    </div>
+    <span class="es-cs-add" aria-hidden="true">→</span>
+  </a>
+  {%- else -%}
+  <div></div>
+  {%- endif -%}
+
+  <!-- FREQUENTLY BOUGHT -->
+  {%- if fbt_product != nil -%}
+  <div class="es-crosssell-card">
+    <div class="es-cs-img">
+      {%- if fbt_product.featured_image -%}
+        <img
+          src="{{ fbt_product.featured_image | image_url: width: 80 }}"
+          alt="{{ fbt_product.title | escape }}"
+          width="80" loading="lazy"
+        >
+      {%- endif -%}
+    </div>
+    <div class="es-cs-body">
+      <div class="es-cs-label">Frequently Bought</div>
+      <div class="es-cs-name">{{ fbt_product.title }}</div>
+      <div class="es-cs-sub">{{ fbt_product.price | money }} · Add to order</div>
+    </div>
+    {%- form 'product', fbt_product -%}
+      <input type="hidden" name="id" value="{{ fbt_product.variants.first.id }}">
+      <button type="submit" class="es-cs-add" title="Add {{ fbt_product.title | escape }} to cart">+</button>
+    {%- endform -%}
+  </div>
+  {%- endif -%}
+
+</div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Cross-sell Cards",
+  "tag": "section",
+  "class": "product-crosssell-section",
+  "presets": [{ "name": "Cross-sell Cards" }],
+  "settings": []
+}
+{% endschema %}

@@ -1,0 +1,79 @@
+{
+  "type": "footer",
+  "name": "Footer",
+  "sections": {
+    "es-footer": {
+      "type": "es-footer",
+      "blocks": {
+        "cert_1": {
+          "type": "cert_badge",
+          "settings": {
+            "label": "Certified Organic"
+          }
+        },
+        "cert_2": {
+          "type": "cert_badge",
+          "settings": {
+            "label": "Lab Tested"
+          }
+        },
+        "trust_1": {
+          "type": "trust_item",
+          "settings": {
+            "label": "Free shipping over ₹999",
+            "icon": "shipping"
+          }
+        },
+        "trust_2": {
+          "type": "trust_item",
+          "settings": {
+            "label": "100% Organic & Authentic",
+            "icon": "shield"
+          }
+        },
+        "trust_3": {
+          "type": "trust_item",
+          "settings": {
+            "label": "Direct from farms",
+            "icon": "farm"
+          }
+        },
+        "trust_4": {
+          "type": "trust_item",
+          "settings": {
+            "label": "Pan-India delivery",
+            "icon": "delivery"
+          }
+        }
+      },
+      "block_order": [
+        "cert_1",
+        "cert_2",
+        "trust_1",
+        "trust_2",
+        "trust_3",
+        "trust_4"
+      ],
+      "settings": {
+        "brand_name": "Earthen Story",
+        "tagline": "Farm-to-table, honestly told.",
+        "brand_desc": "We partner with small organic farms across India to bring you ingredients as nature intended — pure, traceable, and deeply nourishing.",
+        "instagram_url": "https:\/\/www.instagram.com\/earthen_story\/",
+        "facebook_url": "https:\/\/www.facebook.com\/earthenstory\/",
+        "youtube_url": "",
+        "pinterest_url": "",
+        "shop_heading": "Shop",
+        "shop_menu": "category",
+        "learn_heading": "Learn",
+        "learn_menu": "learn",
+        "company_heading": "Company",
+        "company_menu": "footer",
+        "copyright": "© 2026 Earthen Story. All rights reserved. Made with care in India.",
+        "legal_menu": ""
+      }
+    }
+  },
+  "order": [
+    "es-footer"
+  ]
+}

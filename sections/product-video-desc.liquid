@@ -1,0 +1,78 @@
+{%- liquid
+  assign product_video = product.media | where: 'media_type', 'video' | first
+  assign has_video = false
+  if product_video != nil
+    assign has_video = true
+  endif
+
+  assign benefits_raw = product.metafields.custom.benefits.value
+  assign has_benefits = false
+  if benefits_raw != blank
+    assign has_benefits = true
+    assign benefit_lines = benefits_raw | newline_to_br | split: '<br />'
+  endif
+-%}
+
+<div class="es-video-desc-grid{% unless has_video %} es-video-desc-grid--no-video{% endunless %}">
+
+  {%- if has_video -%}
+  <div class="es-video-placeholder">
+    {%- if product_video.sources.first.url != blank -%}
+      <!-- Native Shopify video (MP4 uploaded to media) -->
+      <video
+        controls
+        playsinline
+        muted
+        preload="none"
+        style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:10px;"
+        poster="{{ product_video.preview_image | image_url: width: 800 }}"
+      >
+        {%- for source in product_video.sources -%}
+          <source src="{{ source.url }}" type="{{ source.mime_type }}">
+        {%- endfor -%}
+      </video>
+    {%- elsif product_video.external_id != blank -%}
+      <!-- YouTube video added to media -->
+      <iframe
+        src="https://www.youtube.com/embed/{{ product_video.external_id }}?rel=0"
+        title="{{ product.title | escape }} — Video"
+        allow="autoplay; encrypted-media; picture-in-picture"
+        allowfullscreen
+        loading="lazy"
+        style="position:absolute;inset:0;width:100%;height:100%;border:none;border-radius:10px;"
+      ></iframe>
+    {%- endif -%}
+  </div>
+  {%- endif -%}
+
+  <div class="es-desc-col">
+    {%- if has_benefits -%}
+      <p class="es-body-text">{{ product.description | strip_html | truncate: 260 }}</p>
+      <ul class="es-benefits-list">
+        {%- for line in benefit_lines -%}
+          {%- assign line_clean = line | strip -%}
+          {%- if line_clean != blank -%}
+            <li>{{ line_clean }}</li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
+    {%- else -%}
+      <div class="es-body-text rte">{{ product.description }}</div>
+    {%- endif -%}
+  </div>
+
+</div>
+
+<style>
+  .es-video-desc-grid--no-video { grid-template-columns: 1fr !important; }
+</style>
+
+{% schema %}
+{
+  "name": "Video + Description",
+  "tag": "section",
+  "class": "product-video-desc-section",
+  "presets": [{ "name": "Video + Description" }],
+  "settings": []
+}
+{% endschema %}

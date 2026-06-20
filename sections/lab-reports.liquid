@@ -1,0 +1,212 @@
+{% comment %}
+  Section: lab-reports
+  Place in: sections/lab-reports.liquid
+
+  All reports are managed as BLOCKS in the theme editor.
+  To add a new report: click "Add block → Report" in the editor,
+  choose the product category, fill in the details, and save.
+{% endcomment %}
+
+{{ 'lab-reports.css' | asset_url | stylesheet_tag }}
+
+{% capture svg_pdf %}
+  <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+{% endcapture %}
+{% capture svg_download %}
+  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+{% endcapture %}
+{% capture svg_chevron %}
+  <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+{% endcapture %}
+
+{%- liquid
+  assign categories  = 'honey,ghee,seeds,oils,herbal-powders,gulkand,flour' | split: ','
+  assign cat_labels  = 'Honey,Ghee,Seeds,Oils,Herbal Powders,Gulkand,Flour' | split: ','
+  assign cat_icons   = '🍯,🫙,🌱,🫒,🌿,🌹,🌾' | split: ','
+  assign cat_ids     = 'acc-honey,acc-ghee,acc-seeds,acc-oils,acc-herbal,acc-gulkand,acc-flour' | split: ','
+
+  assign total_reports  = 0
+  assign active_cats    = 0
+  for cat_key in categories
+    assign cnt = 0
+    for block in section.blocks
+      if block.type == 'report' and block.settings.category == cat_key
+        assign cnt = cnt | plus: 1
+      endif
+    endfor
+    if cnt > 0
+      assign active_cats   = active_cats | plus: 1
+      assign total_reports = total_reports | plus: cnt
+    endif
+  endfor
+-%}
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="page-header-inner">
+    <span class="page-eyebrow">{{ section.settings.page_eyebrow | default: 'Transparency' }}</span>
+    <h1 class="page-title">{{ section.settings.page_title | default: 'Lab Test Reports' }}</h1>
+    <p class="page-intro">{{ section.settings.page_intro | default: 'Every product we sell is independently tested by NABL-accredited third-party laboratories before it reaches you. We test for pesticide residues, heavy metals, adulteration, and product-specific parameters. All reports are from real batches and available for public download - no selective publishing.' }}</p>
+    <div class="trust-strip">
+      <div class="trust-item"><div class="trust-dot">🔬</div> NABL-accredited labs</div>
+      <div class="trust-item"><div class="trust-dot">📋</div> Third-party tested</div>
+      <div class="trust-item"><div class="trust-dot">✓</div> 250+ pesticide residues checked</div>
+      <div class="trust-item"><div class="trust-dot">📂</div> All batches published</div>
+    </div>
+  </div>
+</div>
+
+<!-- REPORTS ACCORDION -->
+<section class="reports-section">
+  <div class="reports-inner">
+
+    <div class="reports-summary">
+      <strong>{{ active_cats }} {{ active_cats | pluralize: 'category', 'categories' }} &nbsp;·&nbsp; {{ total_reports }} {{ total_reports | pluralize: 'report', 'reports' }}</strong>
+      {%- if section.settings.updated_text != blank %} &nbsp;·&nbsp; {{ section.settings.updated_text }}{%- endif -%}
+    </div>
+
+    <div class="accordion">
+
+      {%- assign opened_count = 0 -%}
+      {%- for i in (0..6) -%}
+        {%- assign cat_key   = categories[i] -%}
+        {%- assign cat_label = cat_labels[i] -%}
+        {%- assign cat_icon  = cat_icons[i] -%}
+        {%- assign cat_id    = cat_ids[i] -%}
+
+        {%- assign cat_count = 0 -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'report' and block.settings.category == cat_key -%}
+            {%- assign cat_count = cat_count | plus: 1 -%}
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- if cat_count > 0 -%}
+          <div class="acc-item{% if opened_count == 0 %} open{% endif %}" id="{{ cat_id }}">
+            <div class="acc-header" onclick="labReportToggle('{{ cat_id }}')">
+              <div class="acc-icon">{{ cat_icon }}</div>
+              <span class="acc-name">{{ cat_label }}</span>
+              <span class="acc-count">{{ cat_count }} report{% if cat_count != 1 %}s{% endif %}</span>
+              <div class="acc-chevron">{{ svg_chevron }}</div>
+            </div>
+            <div class="acc-body">
+              {%- for block in section.blocks -%}
+                {%- if block.type == 'report' and block.settings.category == cat_key -%}
+                  <a class="report-row" href="{{ block.settings.report_url }}" target="_blank" rel="noopener" {{ block.shopify_attributes }}>
+                    <div class="pdf-icon">{{ svg_pdf }}</div>
+                    <span class="report-name">{{ block.settings.report_name }}</span>
+                    <span class="report-type">{{ block.settings.report_type }}</span>
+                    <span class="report-date">{{ block.settings.report_date }}</span>
+                    <div class="report-dl">{{ svg_download }}</div>
+                  </a>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </div>
+          {%- assign opened_count = opened_count | plus: 1 -%}
+        {%- endif -%}
+
+      {%- endfor -%}
+
+      {%- if total_reports == 0 -%}
+        <p style="padding: 2rem; color: #72747D; text-align: center;">No lab reports added yet. Click "Add block" in the theme editor to add your first report.</p>
+      {%- endif -%}
+
+    </div>
+  </div>
+</section>
+
+<script>
+  function labReportToggle(id) {
+    document.getElementById(id).classList.toggle('open');
+  }
+</script>
+
+{% schema %}
+{
+  "name": "Lab Reports",
+  "tag": "div",
+  "class": "lab-reports-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "page_eyebrow",
+      "label": "Eyebrow text",
+      "default": "Transparency"
+    },
+    {
+      "type": "text",
+      "id": "page_title",
+      "label": "Page title",
+      "default": "Lab Test Reports"
+    },
+    {
+      "type": "textarea",
+      "id": "page_intro",
+      "label": "Intro paragraph",
+      "default": "Every product we sell is independently tested by NABL-accredited third-party laboratories before it reaches you. We test for pesticide residues, heavy metals, adulteration, and product-specific parameters. All reports are from real batches and available for public download - no selective publishing."
+    },
+    {
+      "type": "text",
+      "id": "updated_text",
+      "label": "\"Last updated\" text (optional)",
+      "placeholder": "Updated March 2026",
+      "info": "Shown next to the report count summary. Leave blank to hide."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "report",
+      "name": "Report",
+      "settings": [
+        {
+          "type": "select",
+          "id": "category",
+          "label": "Product category",
+          "options": [
+            { "value": "honey",          "label": "Honey 🍯" },
+            { "value": "ghee",           "label": "Ghee 🫙" },
+            { "value": "seeds",          "label": "Seeds 🌱" },
+            { "value": "oils",           "label": "Oils 🫒" },
+            { "value": "herbal-powders", "label": "Herbal Powders 🌿" },
+            { "value": "gulkand",        "label": "Gulkand 🌹" },
+            { "value": "flour",          "label": "Flour 🌾" }
+          ],
+          "default": "honey"
+        },
+        {
+          "type": "text",
+          "id": "report_name",
+          "label": "Report name",
+          "placeholder": "Honey Pesticide Report"
+        },
+        {
+          "type": "text",
+          "id": "report_type",
+          "label": "Report type",
+          "placeholder": "Pesticide",
+          "info": "e.g. Pesticide, NMR, Melamine, Physical, Sugar Test, Heavy Metals"
+        },
+        {
+          "type": "text",
+          "id": "report_date",
+          "label": "Date",
+          "placeholder": "Dec 2025",
+          "info": "Displayed as-is — e.g. Dec 2025, Mar 2026"
+        },
+        {
+          "type": "url",
+          "id": "report_url",
+          "label": "PDF link",
+          "info": "Upload the PDF to Shopify Files, copy the URL, paste here"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Lab Reports"
+    }
+  ]
+}
+{% endschema %}

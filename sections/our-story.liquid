@@ -1,0 +1,617 @@
+{{ 'our-story.css' | asset_url | stylesheet_tag }}
+
+<!-- ══════════════════════════════════════
+     1. OPENING
+══════════════════════════════════════ -->
+<section class="opening">
+  <div class="opening-inner">
+    <div class="opening-quote">"{{ section.settings.opening_quote | remove: '<p>' | remove: '</p>' }}"</div>
+    <p class="opening-body">{{ section.settings.opening_body }}</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     2. TWO PROBLEMS
+══════════════════════════════════════ -->
+{%- assign problem_cards = section.blocks | where: "type", "problem_card" -%}
+{%- if problem_cards.size > 0 -%}
+<section class="page-section alt">
+  <div class="section-inner">
+    <h2 class="section-heading">{{ section.settings.problems_heading }}</h2>
+    <div class="problems-grid">
+
+      {%- for block in problem_cards -%}
+        {%- assign problem_num = forloop.index -%}
+        {%- assign solution_anchor = '#solution-' | append: problem_num -%}
+        {%- assign _raw_prob_yt = block.settings.video_id -%}
+        {%- if _raw_prob_yt contains 'youtu.be/' -%}
+          {%- assign _prob_vid = _raw_prob_yt | split: 'youtu.be/' | last | split: '?' | first -%}
+        {%- elsif _raw_prob_yt contains 'v=' -%}
+          {%- assign _prob_vid = _raw_prob_yt | split: 'v=' | last | split: '&' | first -%}
+        {%- else -%}
+          {%- assign _prob_vid = _raw_prob_yt -%}
+        {%- endif -%}
+        <div class="problem-card" {{ block.shopify_attributes }}>
+          <div class="problem-header">
+            <span class="problem-num">Problem 0{{ problem_num }}</span>
+            <span class="problem-icon">{{ block.settings.icon }}</span>
+            <div class="problem-title">{{ block.settings.title }}</div>
+          </div>
+          <div class="problem-body">{{ block.settings.body }}</div>
+          {%- if _prob_vid != blank -%}
+            <div class="problem-yt problem-yt--video">
+              <iframe
+                src="https://www.youtube.com/embed/{{ _prob_vid }}?rel=0&modestbranding=1"
+                title="{{ block.settings.video_label }}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                loading="lazy">
+              </iframe>
+            </div>
+          {%- endif -%}
+          <a href="{{ solution_anchor }}" class="problem-jump">How we address this ↓</a>
+        </div>
+      {%- endfor -%}
+
+    </div>
+  </div>
+</section>
+{%- endif -%}
+
+<!-- ══════════════════════════════════════
+     3. WHO WE ARE — FOUNDERS
+══════════════════════════════════════ -->
+<section class="page-section">
+  <div class="section-inner">
+    <h2 class="section-heading">{{ section.settings.founders_heading }}</h2>
+    <div class="founders-grid">
+
+      {% for block in section.blocks %}
+        {% if block.type == 'founder' %}
+          {%- assign _raw_yt = block.settings.youtube_video_id -%}
+          {%- if _raw_yt contains 'youtu.be/' -%}
+            {%- assign _founder_vid = _raw_yt | split: 'youtu.be/' | last | split: '?' | first -%}
+          {%- elsif _raw_yt contains 'v=' -%}
+            {%- assign _founder_vid = _raw_yt | split: 'v=' | last | split: '&' | first -%}
+          {%- else -%}
+            {%- assign _founder_vid = _raw_yt -%}
+          {%- endif -%}
+          <div class="founder-card" {{ block.shopify_attributes }}>
+            {% if _founder_vid != blank %}
+              <div class="founder-thumb-wrap has-video">
+                <iframe
+                  src="https://www.youtube.com/embed/{{ _founder_vid }}?rel=0&modestbranding=1"
+                  title="{{ block.settings.name }} intro video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                  loading="lazy">
+                </iframe>
+              </div>
+            {% else %}
+              <div class="founder-thumb-wrap" style="cursor:default;">
+                <div class="founder-thumb-inner">
+                  {% if block.settings.photo != blank %}
+                    {{ block.settings.photo | image_url: width: 600 | image_tag:
+                        loading: 'lazy',
+                        alt: block.settings.name,
+                        widths: '300, 450, 600',
+                        sizes: '(min-width: 990px) 20vw, 33vw',
+                        style: 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center'
+                    }}
+                  {% endif %}
+                </div>
+                <div class="ft-name-bar">{{ block.settings.name }}</div>
+              </div>
+            {% endif %}
+            <div class="founder-info">
+              <div class="founder-name">{{ block.settings.name }}</div>
+              <div class="founder-role">{{ block.settings.role }}</div>
+              <div class="founder-creds">
+                {% if block.settings.cred1 != blank %}
+                  <div class="cred-item"><div class="cred-dot"></div>{{ block.settings.cred1 }}</div>
+                {% endif %}
+                {% if block.settings.cred2 != blank %}
+                  <div class="cred-item"><div class="cred-dot"></div>{{ block.settings.cred2 }}</div>
+                {% endif %}
+              </div>
+              <div class="founder-bio">{{ block.settings.bio }}</div>
+              <div class="founder-links">
+                {% if block.settings.linkedin_url != blank %}
+                  <a href="{{ block.settings.linkedin_url }}" class="founder-link" target="_blank" rel="noopener">LinkedIn</a>
+                {% endif %}
+                {% if block.settings.youtube_url != blank %}
+                  <a href="{{ block.settings.youtube_url }}" class="founder-link" target="_blank" rel="noopener">YouTube</a>
+                {% endif %}
+                {% if block.settings.substack_url != blank %}
+                  <a href="{{ block.settings.substack_url }}" class="founder-link" target="_blank" rel="noopener">Substack</a>
+                {% endif %}
+                {% if block.settings.instagram_url != blank %}
+                  <a href="{{ block.settings.instagram_url }}" class="founder-link" target="_blank" rel="noopener">Instagram</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     4. SOLUTION 1 — Pesticides
+══════════════════════════════════════ -->
+<section class="page-section alt" id="solution-1">
+  <div class="section-inner">
+    <div class="section-label">Addressing Problem 01</div>
+    <div class="solution-heading">{{ section.settings.solution1_heading }}</div>
+    <div class="solution-grid">
+      <div class="solution-card">
+        <div class="sc-icon">{{ section.settings.sol1_card1_icon }}</div>
+        <div class="sc-title">{{ section.settings.sol1_card1_title }}</div>
+        <div class="sc-body">{{ section.settings.sol1_card1_body }}</div>
+      </div>
+      <div class="solution-card">
+        <div class="sc-icon">{{ section.settings.sol1_card2_icon }}</div>
+        <div class="sc-title">{{ section.settings.sol1_card2_title }}</div>
+        <div class="sc-body">{{ section.settings.sol1_card2_body }}</div>
+        <a href="{{ section.settings.lab_reports_url }}" class="btn-reports">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+          View All Lab Reports
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     5. SOLUTION 2 — Processing
+══════════════════════════════════════ -->
+<section class="page-section" id="solution-2">
+  <div class="section-inner">
+    <div class="section-label">Addressing Problem 02</div>
+    <div class="solution-heading">{{ section.settings.solution2_heading }}</div>
+    <div class="methods-strip">
+
+      {% for block in section.blocks %}
+        {% if block.type == 'method' %}
+          <div class="method-row" {{ block.shopify_attributes }}>
+            <div class="method-icon-sq">{{ block.settings.icon }}</div>
+            <div class="method-text">
+              <div class="method-tag">{{ block.settings.tag }}</div>
+              <div class="method-name">{{ block.settings.name }}</div>
+              <div class="method-desc">{{ block.settings.description }}</div>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     6. FOLLOW OUR THINKING
+══════════════════════════════════════ -->
+<section class="page-section alt">
+  <div class="section-inner">
+    <h2 class="section-heading">{{ section.settings.platforms_heading }}</h2>
+    <p class="platforms-desc">{{ section.settings.platforms_desc }}</p>
+    <div class="platforms-list">
+
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'platform' and block.settings.url != blank -%}
+          <a href="{{ block.settings.url }}" class="platform-row" target="_blank" rel="noopener" {{ block.shopify_attributes }}>
+            <div class="platform-logo">{{ block.settings.logo }}</div>
+            <span class="platform-name-inline">{{ block.settings.name }}</span>
+            <span class="platform-handle">{{ block.settings.handle }}</span>
+            <span class="platform-blurb">{{ block.settings.blurb }}</span>
+            <span class="platform-arrow">→</span>
+          </a>
+        {%- endif -%}
+      {%- endfor -%}
+
+    </div>
+  </div>
+</section>
+
+<!-- LIGHTBOX -->
+<div class="lightbox-overlay" id="lightbox" onclick="closeLightboxOnBg(event)">
+  <div class="lightbox-inner" id="lightbox-inner">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <div class="lightbox-video" id="lightbox-video"></div>
+  </div>
+</div>
+
+<script>
+  function openLightbox(videoId, orientation) {
+    var inner = document.getElementById('lightbox-inner');
+    var video = document.getElementById('lightbox-video');
+    inner.className = 'lightbox-inner' + (orientation === 'landscape' ? ' landscape' : '');
+    video.innerHTML = '<iframe src="https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0" allowfullscreen allow="autoplay"></iframe>';
+    document.getElementById('lightbox').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+    document.getElementById('lightbox-video').innerHTML = '';
+    document.body.style.overflow = '';
+  }
+  function closeLightboxOnBg(e) {
+    if (e.target === document.getElementById('lightbox')) closeLightbox();
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox();
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Our Story",
+  "settings": [
+    {
+      "type": "header",
+      "content": "1. Opening Section"
+    },
+    {
+      "type": "richtext",
+      "id": "opening_quote",
+      "label": "Opening Quote",
+      "default": "<p>We started Earthen Story because we couldn't find food we <strong>actually trusted.</strong></p>"
+    },
+    {
+      "type": "textarea",
+      "id": "opening_body",
+      "label": "Opening Body Text",
+      "default": "Not food with a label that said organic — food we could verify. Where it was grown, what it was tested for, how it was processed. That standard didn't exist in a form we could rely on. So we built it, starting from two specific problems we kept running into."
+    },
+    {
+      "type": "header",
+      "content": "2. Two Problems"
+    },
+    {
+      "type": "text",
+      "id": "problems_heading",
+      "label": "Problems Section Heading",
+      "default": "Two Problems We Set Out to Solve"
+    },
+    {
+      "type": "header",
+      "content": "3. Founders Section"
+    },
+    {
+      "type": "text",
+      "id": "founders_heading",
+      "label": "Founders Section Heading",
+      "default": "Who We Are"
+    },
+    {
+      "type": "header",
+      "content": "4. Solution 1 — Pesticides"
+    },
+    {
+      "type": "text",
+      "id": "solution1_heading",
+      "label": "Solution 1 Heading",
+      "default": "How we tackle pesticides — certified sourcing and rigorous testing"
+    },
+    {
+      "type": "text",
+      "id": "sol1_card1_icon",
+      "label": "Card 1 Icon",
+      "default": "📜"
+    },
+    {
+      "type": "text",
+      "id": "sol1_card1_title",
+      "label": "Card 1 Title",
+      "default": "Certified Organic Sourcing with Transaction Certificates"
+    },
+    {
+      "type": "textarea",
+      "id": "sol1_card1_body",
+      "label": "Card 1 Body",
+      "default": "We source from farms certified under NPOP and India Organic standards. Every purchase is backed by a transaction certificate tracing the certified organic chain from the farm to us. This is documentation we can share on request — not a label claim. We apply this standard wherever certification exists and insist on paperwork to prove it."
+    },
+    {
+      "type": "text",
+      "id": "sol1_card2_icon",
+      "label": "Card 2 Icon",
+      "default": "🔬"
+    },
+    {
+      "type": "text",
+      "id": "sol1_card2_title",
+      "label": "Card 2 Title",
+      "default": "Rigorous Lab Testing — Reports Publicly Available"
+    },
+    {
+      "type": "textarea",
+      "id": "sol1_card2_body",
+      "label": "Card 2 Body",
+      "default": "We rigorously and comprehensively test for 250+ pesticides across our range, using NABL-accredited third-party laboratories. Testing is extensive and ongoing — not selective. We do not publish only the results that look good. Every report is available publicly on our site for any visitor to download."
+    },
+    {
+      "type": "url",
+      "id": "lab_reports_url",
+      "label": "Lab Reports Page URL"
+    },
+    {
+      "type": "header",
+      "content": "5. Solution 2 — Processing"
+    },
+    {
+      "type": "text",
+      "id": "solution2_heading",
+      "label": "Solution 2 Heading",
+      "default": "How we tackle ultra-processing — traditional methods, no shortcuts"
+    },
+    {
+      "type": "header",
+      "content": "6. Follow Our Thinking"
+    },
+    {
+      "type": "text",
+      "id": "platforms_heading",
+      "label": "Platforms Section Heading",
+      "default": "Follow Our Thinking"
+    },
+    {
+      "type": "textarea",
+      "id": "platforms_desc",
+      "label": "Platforms Description",
+      "default": "We write and talk about the food system, pesticide evidence, traditional processing, and what it takes to build a transparent food brand — across YouTube, LinkedIn, and Substack."
+    },
+  ],
+  "blocks": [
+    {
+      "type": "problem_card",
+      "name": "Problem Card",
+      "settings": [
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icon (emoji)",
+          "default": "🌾"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Problem title",
+          "default": "Problem title"
+        },
+        {
+          "type": "textarea",
+          "id": "body",
+          "label": "Problem body text"
+        },
+        {
+          "type": "text",
+          "id": "video_id",
+          "label": "YouTube Video URL or ID",
+          "info": "Paste the full YouTube link (e.g. https://youtu.be/dQw4w9WgXcQ or https://www.youtube.com/watch?v=dQw4w9WgXcQ) or just the video ID. Leave blank if no video."
+        },
+        {
+          "type": "text",
+          "id": "video_label",
+          "label": "Video label (caption below thumbnail)",
+          "default": "Watch on YouTube"
+        }
+      ]
+    },
+    {
+      "type": "founder",
+      "name": "Founder",
+      "settings": [
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Name",
+          "default": "Founder Name"
+        },
+        {
+          "type": "text",
+          "id": "role",
+          "label": "Role",
+          "default": "Co-Founder"
+        },
+        {
+          "type": "image_picker",
+          "id": "photo",
+          "label": "Photo (used if no YouTube video)"
+        },
+        {
+          "type": "text",
+          "id": "youtube_video_id",
+          "label": "Intro Video — YouTube URL or ID",
+          "info": "Paste the full YouTube link (e.g. https://youtu.be/dQw4w9WgXcQ or https://www.youtube.com/watch?v=dQw4w9WgXcQ) or just the video ID. Leave blank to show the photo instead."
+        },
+        {
+          "type": "text",
+          "id": "cred1",
+          "label": "Credential 1",
+          "default": "B.Tech, IIT · MBA"
+        },
+        {
+          "type": "text",
+          "id": "cred2",
+          "label": "Credential 2",
+          "default": "10+ years industry experience"
+        },
+        {
+          "type": "textarea",
+          "id": "bio",
+          "label": "Bio",
+          "default": "Short founder bio goes here."
+        },
+        {
+          "type": "url",
+          "id": "linkedin_url",
+          "label": "LinkedIn URL"
+        },
+        {
+          "type": "url",
+          "id": "youtube_url",
+          "label": "YouTube Channel URL"
+        },
+        {
+          "type": "url",
+          "id": "substack_url",
+          "label": "Substack URL"
+        },
+        {
+          "type": "url",
+          "id": "instagram_url",
+          "label": "Instagram URL"
+        }
+      ]
+    },
+    {
+      "type": "method",
+      "name": "Processing Method",
+      "settings": [
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icon (emoji)",
+          "default": "🌾"
+        },
+        {
+          "type": "text",
+          "id": "tag",
+          "label": "Product Tag (e.g. Flours)",
+          "default": "Flours"
+        },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Method Name",
+          "default": "Stone Grinding"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Method Description",
+          "default": "100% whole grain, slow-ground between stone wheels. Bran and germ remain fully intact — the nutrition roller milling strips away stays in."
+        }
+      ]
+    },
+    {
+      "type": "platform",
+      "name": "Platform",
+      "settings": [
+        {
+          "type": "text",
+          "id": "logo",
+          "label": "Logo (emoji)",
+          "default": "▶️"
+        },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Platform name",
+          "default": "YouTube"
+        },
+        {
+          "type": "text",
+          "id": "url",
+          "label": "URL",
+          "info": "Full URL — leave blank to hide this row"
+        },
+        {
+          "type": "text",
+          "id": "handle",
+          "label": "Handle / page name",
+          "default": "@earthenstory"
+        },
+        {
+          "type": "textarea",
+          "id": "blurb",
+          "label": "One-line description"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Our Story",
+      "blocks": [
+        {
+          "type": "founder",
+          "settings": {
+            "name": "Ashish Agarwal",
+            "role": "Co-Founder",
+            "cred1": "B.Tech, IIT Roorkee · MBA, IIM Calcutta",
+            "cred2": "15 years — investment banking and private equity",
+            "bio": "Systems thinker with deep capital allocation experience in healthcare and consumer businesses. Leads strategy, sourcing standards, and the brand's public thinking on food systems.",
+            "youtube_video_id": ""
+          }
+        },
+        {
+          "type": "founder",
+          "settings": {
+            "name": "Shashank Agrawal",
+            "role": "Co-Founder",
+            "cred1": "Engineering · MS, Europe",
+            "cred2": "10+ years — Amazon, US and India",
+            "bio": "Brings Amazon-scale operational rigour to procurement, testing protocols, supplier evaluation, and fulfilment. The execution backbone behind everything we have built.",
+            "youtube_video_id": ""
+          }
+        },
+        {
+          "type": "founder",
+          "settings": {
+            "name": "Shivangi Agrawal",
+            "role": "Co-Founder",
+            "cred1": "B.Com, MBA · Fashion and design",
+            "cred2": "Mother of two",
+            "bio": "Became a mother and couldn't find food she could verify as genuinely clean. Built the supply chain from scratch. Brings a consumer's instinct and a mother's standards to every product decision.",
+            "youtube_video_id": ""
+          }
+        },
+        {
+          "type": "method",
+          "settings": {
+            "icon": "🌾",
+            "tag": "Flours",
+            "name": "Stone Grinding",
+            "description": "100% whole grain, slow-ground between stone wheels. Bran and germ remain fully intact — the nutrition roller milling strips away stays in."
+          }
+        },
+        {
+          "type": "method",
+          "settings": {
+            "icon": "🫒",
+            "tag": "Oils",
+            "name": "Cold Pressing",
+            "description": "Mechanical extraction at low temperature — no heat, no solvents. Oil retains its natural flavour, colour, and nutritional profile exactly as found in the seed."
+          }
+        },
+        {
+          "type": "method",
+          "settings": {
+            "icon": "🍯",
+            "tag": "Honey",
+            "name": "Raw Extraction",
+            "description": "Unheated, unfiltered, gravity-strained. Enzymes, pollen, and natural antimicrobials survive intact — unlike commercially processed honey heated and ultra-filtered."
+          }
+        },
+        {
+          "type": "method",
+          "settings": {
+            "icon": "🫙",
+            "tag": "Ghee",
+            "name": "Bilona Churning",
+            "description": "Traditional hand-churning of cultured curd, not cream separation. Preserves butyric acid, CLA, and fat-soluble vitamins that industrial production removes."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

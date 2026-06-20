@@ -1,0 +1,43 @@
+/*
+  recipes-landing.css
+  Place in: assets/recipes-landing.css
+  Include via: {{ 'recipes-landing.css' | asset_url | stylesheet_tag }}
+  in the <head> of theme.liquid, or in the section's {% style %} block.
+
+  This file is optional â€” all critical styles are already inlined in
+  sections/recipes-landing.liquid via {%- style -%}.
+  Use this file if you want to extract styles to a dedicated asset
+  for caching / bundle management.
+
+  Design tokens mirror the HTML mockup exactly.
+*/
+
+:root {
+  --rl-navy:        #112557;
+  --rl-navy-light:  #1A3370;
+  --rl-gold:        #B8841E;
+  --rl-gold-hover:  #C8922A;
+  --rl-gold-soft:   #FAF3E4;
+  --rl-gold-border: #DFC07A;
+  --rl-gold-mid:    #D4A843;
+  --rl-warm-white:  #FFFDF8;
+  --rl-white:       #FFFFFF;
+  --rl-text-dark:   #18181B;
+  --rl-text-mid:    #44464F;
+  --rl-text-soft:   #72747D;
+  --rl-border:      #EAE6DC;
+  --rl-border-mid:  #D8D2C4;
+  --rl-green-save:  #1C6B3A;
+  --rl-green-bg:    #EBF5EF;
+  --rl-section-bg:  #FFFDF8;
+}
+
+/* Recipe card image colour variants by type */
+.rl-rc-img--drinks         { background: linear-gradient(135deg, #EDF4F8, #D4E8F0); }
+.rl-rc-img--snacks         { background: linear-gradient(135deg, #F8F2E4, #ECDEC8); }
+.rl-rc-img--desserts       { background: linear-gradient(135deg, #F8EEF4, #ECD8E8); }
+.rl-rc-img--main-course    { background: linear-gradient(135deg, #EEF5ED, #D8EADC); }
+.rl-rc-img--breakfast      { background: linear-gradient(135deg, #FDF3E0, #F5E4C0); }
+.rl-rc-img--sides          { background: linear-gradient(135deg, #F0F5F0, #DDE8DD); }
+.rl-rc-img--condiments     { background: linear-gradient(135deg, #F5F0E8, #E8DEC8); }
+.rl-rc-img--default        { background: linear-gradient(135deg, #F8F4ED, #EDE5D4); }

@@ -1,0 +1,279 @@
+{%- comment -%}
+  sections/main-discover-article.liquid
+  Earthen Story — Discover Article Page (Phase 7)
+  Matches: blog-article-mockup-v3.html exactly
+
+  ── METAFIELD STORAGE FORMAT (actual) ────────────────────
+  All three reference metafields are stored as single_line_text
+  with handles separated by "; " (semicolon + space), e.g.:
+    blog_products_used    → "wild-forest-honey; cold-pressed-mustard-oil"
+    blog_related_recipes  → "honey-mustard-dressing; ragi-dosa"
+    blog_related_articles → "how-to-spot-organic; why-ultra-processed-foods-are-a-problem"
+
+  Liquid parses each via split: '; ' then resolves objects with:
+    Products  → all_products[handle]
+    Articles  → articles['blogs/' + handle]     (discover blog handle = 'blogs')
+                articles['recipes/' + handle]    (recipes blog handle = 'recipes')
+
+  ── NATIVE FIELDS ────────────────────────────────────────
+  article.title             → H1
+  article.excerpt           → Abstract
+  article.image             → Hero image; alt = caption
+  article.content           → Body (prose / H2 / blockquote / key-takeaway / inline images)
+  article.published_at      → Date
+  article.tags              → Category pill
+  article.blog.title        → Breadcrumb
+
+  ── METAFIELDS (all single_line_text) ────────────────────
+  custom.blog_read_time         → "7 min read"
+  custom.blog_products_used     → "handle1; handle2; handle3"
+  custom.blog_related_recipes   → "handle1; handle2; handle3"
+  custom.blog_related_articles  → "handle1; handle2; handle3"
+
+  On linked objects:
+  custom.recipe_time_tag   (recipe articles) → time badge
+  custom.tagline           (products)        → sub-label
+
+  ── BLOG HANDLE ASSUMPTION ───────────────────────────────
+  Recipes blog handle  : 'recipes'   → /blogs/recipes  ✓ confirmed in theme
+  Discover blog handle : 'discover'  → /blogs/discover ✓ confirmed in theme
+{%- endcomment -%}
+
+{%- liquid
+  assign read_time         = article.metafields.custom.blog_read_time.value
+  assign products_used_raw = article.metafields.custom.blog_products_used.value
+  assign product_handles   = products_used_raw | split: ';'
+
+  assign category_label = ''
+  for tag in article.tags
+    assign tag_h = tag | handle
+    if tag_h == 'ingredient-knowledge'
+      assign category_label = 'Ingredient Knowledge'
+      break
+    elsif tag_h == 'food-system-insights'
+      assign category_label = 'Food System Insights'
+      break
+    elsif tag_h == 'traditional-food-practices'
+      assign category_label = 'Traditional Food Practices'
+      break
+    elsif tag_h == 'health-nutrition'
+      assign category_label = 'Health & Nutrition'
+      break
+    endif
+  endfor
+  if category_label == ''
+    assign category_label = article.blog.title
+  endif
+-%}
+
+{%- if article.image -%}
+  <link
+    rel="preload"
+    as="image"
+    href="{{ article.image | image_url: width: 840 }}"
+    imagesrcset="{{ article.image | image_url: width: 420 }} 420w, {{ article.image | image_url: width: 640 }} 640w, {{ article.image | image_url: width: 840 }} 840w"
+    imagesizes="(min-width: 990px) 45vw, 100vw"
+    fetchpriority="high"
+  >
+{%- endif -%}
+<link rel="preload" href="{{ 'discover-article.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript>{{ 'discover-article.css' | asset_url | stylesheet_tag }}</noscript>
+
+<!-- ══════════════════════════════════════
+     BREADCRUMB
+══════════════════════════════════════ -->
+<div class="da-breadcrumb">
+  <div class="da-breadcrumb__inner">
+    <a href="{{ routes.root_url }}">Home</a>
+    <span class="da-sep">/</span>
+    <a href="{{ blog.url }}">{{ article.blog.title | default: 'Discover' }}</a>
+    {%- if category_label != blank and category_label != article.blog.title -%}
+      <span class="da-sep">/</span>
+      <a href="{{ blog.url }}/tagged/{{ category_label | handle }}">{{ category_label }}</a>
+    {%- endif -%}
+    <span class="da-sep">/</span>
+    <span class="da-breadcrumb__current">{{ article.title | escape }}</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ARTICLE HERO — two-column
+══════════════════════════════════════ -->
+<section class="da-hero">
+  <div class="da-hero__inner">
+
+    <div class="da-hero__left">
+      <div class="da-meta-top">
+        {%- if category_label != blank -%}
+          <span class="da-cat-pill">{{ category_label }}</span>
+        {%- endif -%}
+        {%- if read_time != blank -%}
+          <span class="da-meta-dot">·</span>
+          <span class="da-read-time">{{ read_time }}</span>
+        {%- endif -%}
+        {%- if article.published_at != blank -%}
+          <span class="da-meta-dot">·</span>
+          <span class="da-pub-date">{{ article.published_at | date: '%B %Y' }}</span>
+        {%- endif -%}
+      </div>
+
+      <h1 class="da-title">{{ article.title }}</h1>
+
+      {%- if article.excerpt != blank -%}
+        <p class="da-abstract">{{ article.excerpt | strip_html }}</p>
+      {%- endif -%}
+    </div>
+
+    <div class="da-hero__right">
+      <div class="da-hero-img">
+        {%- if article.image -%}
+          {{
+            article.image
+            | image_url: width: 840
+            | image_tag:
+                loading: 'eager',
+                fetchpriority: 'high',
+                width: article.image.width,
+                height: article.image.height,
+                widths: '420, 640, 840',
+                sizes: '(min-width: 990px) 45vw, 100vw',
+                alt: article.image.alt | default: article.title
+          }}
+          {%- if article.image.alt != blank -%}
+            <div class="da-hero-img__caption">{{ article.image.alt | escape }}</div>
+          {%- endif -%}
+        {%- else -%}
+          <div class="da-hero-img__placeholder">
+            <svg viewBox="0 0 80 80" width="80" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4">
+              <rect x="8" y="16" width="64" height="48" rx="4"/>
+              <circle cx="28" cy="34" r="7"/>
+              <path d="M8 52 l20-16 12 12 14-18 18 22"/>
+            </svg>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     ARTICLE BODY
+══════════════════════════════════════ -->
+<div class="da-body-wrap">
+  <div class="da-prose rte">
+    {{ article.content }}
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PRODUCTS REFERENCED IN THIS ARTICLE
+     Handles from: custom.blog_products_used
+     Resolved via: all_products[handle]
+══════════════════════════════════════ -->
+{%- if products_used_raw != blank -%}
+<div class="da-end-section">
+  <h2 class="da-end-title">Products Referenced in This Article</h2>
+  <div class="da-product-cards">
+    {%- for handle in product_handles limit: 4 -%}
+      {%- assign handle_clean = handle | strip -%}
+      {%- assign product = all_products[handle_clean] -%}
+      {%- if product.available or product.title != blank -%}
+        {%- assign fv = product.first_available_variant | default: product.variants.first -%}
+        {%- assign is_bundle = false -%}
+        {%- if product.tags contains 'bundle' -%}{%- assign is_bundle = true -%}{%- endif -%}
+        <a href="{{ product.url }}" class="da-product-card{% if is_bundle %} da-product-card--bundle{% endif %}">
+
+          <div class="da-pc-img{% if is_bundle %} da-pc-img--bundle{% endif %}">
+            {%- if product.featured_image -%}
+              {{
+                product.featured_image
+                | image_url: width: 400
+                | image_tag: loading: 'lazy', width: 400, alt: product.featured_image.alt | default: product.title
+              }}
+            {%- endif -%}
+            {%- if product.tags contains 'best-seller' -%}
+              <span class="da-pc-badge">Best Seller</span>
+            {%- elsif product.tags contains 'new' -%}
+              <span class="da-pc-badge">New</span>
+            {%- elsif is_bundle -%}
+              <span class="da-pc-badge da-pc-badge--gold">Bundle</span>
+            {%- endif -%}
+          </div>
+
+          <div class="da-pc-body">
+            {%- if product.metafields.custom.tagline != blank -%}
+              <div class="da-pc-meta">{{ product.metafields.custom.tagline }}</div>
+            {%- endif -%}
+            <div class="da-pc-name">{{ product.title }}</div>
+            <div class="da-pc-price-row">
+              <div class="da-pc-prices">
+                <span class="da-pc-price">{{ fv.price | money }}</span>
+                {%- if fv.compare_at_price > fv.price -%}
+                  <span class="da-pc-compare">{{ fv.compare_at_price | money }}</span>
+                {%- endif -%}
+              </div>
+              <button
+                class="da-pc-atc"
+                data-variant-id="{{ fv.id }}"
+                aria-label="Add {{ product.title | escape }} to cart"
+              >+</button>
+            </div>
+          </div>
+
+        </a>
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+</div>
+{%- endif -%}
+
+{%- comment -%} ══════════════════════════════════════
+  PUT IT TO USE / RELATED ARTICLES / EMAIL SIGNUP
+  Handled by es-recipes, es-discover, and es-email-invite sections
+  in article.discover.json template.
+  Metafields: custom.blog_related_recipes, custom.blog_related_articles
+══════════════════════════════════════ {%- endcomment -%}
+
+<!-- JSON-LD -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": {{ article.title | json }},
+  "description": {{ article.excerpt | strip_html | json }},
+  "image": {{ article.image | image_url: width: 1200 | default: '' | json }},
+  "author": { "@type": "Organization", "name": "Earthen Story" },
+  "publisher": { "@type": "Organization", "name": "Earthen Story" },
+  "datePublished": "{{ article.published_at | date: '%Y-%m-%d' }}",
+  "dateModified": "{{ article.updated_at | date: '%Y-%m-%d' }}"
+}
+</script>
+
+<!-- Quick-add to cart -->
+<script>
+document.querySelectorAll('.da-pc-atc').forEach(function(btn) {
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var id = this.dataset.variantId;
+    if (!id) return;
+    fetch('/cart/add.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      body: JSON.stringify({ id: id, quantity: 1 })
+    }).then(function() {
+      document.dispatchEvent(new CustomEvent('cart:refresh'));
+    });
+  });
+});
+</script>
+
+{% schema %}
+{
+  "name": "Discover Article",
+  "tag": "article",
+  "class": "template-article-discover",
+  "settings": []
+}
+{% endschema %}
