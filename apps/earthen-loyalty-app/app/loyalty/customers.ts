@@ -58,6 +58,16 @@ export function pointsToMoney(points: number): number {
   return points * confirmedBonDefaults.currencyValuePerPoint;
 }
 
+export function getCustomerLoyaltyMessage(
+  snapshot: LoyaltyCustomerSnapshot,
+): string | null {
+  if (snapshot.hasLedgerEntries || snapshot.availablePoints > 0) {
+    return null;
+  }
+
+  return "You do not have Earthen Points yet. Create an account or place an order to start earning.";
+}
+
 function emptySnapshot(
   shopifyCustomerId: string | null,
 ): LoyaltyCustomerSnapshot {

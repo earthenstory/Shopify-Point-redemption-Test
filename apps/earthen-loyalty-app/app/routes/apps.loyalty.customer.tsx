@@ -1,7 +1,15 @@
 import type { LoaderFunctionArgs } from "react-router";
 import db from "../db.server";
-import { authenticateAppProxyRequest, jsonError, jsonResponse } from "../loyalty/app-proxy";
-import { getCustomerSnapshot, pointsToMoney } from "../loyalty/customers";
+import {
+  authenticateAppProxyRequest,
+  jsonError,
+  jsonResponse,
+} from "../loyalty/app-proxy";
+import {
+  getCustomerLoyaltyMessage,
+  getCustomerSnapshot,
+  pointsToMoney,
+} from "../loyalty/customers";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
@@ -32,9 +40,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       lifetimeEarnedPoints: snapshot.lifetimeEarnedPoints,
       lifetimeRedeemedPoints: snapshot.lifetimeRedeemedPoints,
       currency: "INR",
-      message: snapshot.hasLedgerEntries || snapshot.availablePoints > 0
-        ? null
-        : "Your imported points will appear here after migration. New order points will be added automatically.",
+      message: getCustomerLoyaltyMessage(snapshot),
     });
   } catch (error) {
     if (error instanceof Response) return error;
