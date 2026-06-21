@@ -4,11 +4,9 @@ client_id = "021d4d26601c29f21ada97ca6c70aa08"
 name = "earthen-loyalty-app"
 application_url = "https://earthen-loyalty-app-x5vmupepiq-el.a.run.app"
 embedded = true
-extension_directories = []
 
 [build]
 automatically_update_urls_on_dev = true
-include_config_on_deploy = true
 
 [webhooks]
 api_version = "2026-07"

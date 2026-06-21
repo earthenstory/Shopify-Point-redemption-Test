@@ -37,6 +37,34 @@ describe("app proxy authentication", () => {
     });
   });
 
+  it("accepts a signed anonymous Shopify app proxy request", () => {
+    process.env.SHOPIFY_API_SECRET = "test-secret";
+    const params = new URLSearchParams({
+      logged_in_customer_id: "",
+      path_prefix: "/apps/loyalty",
+      shop: "701031-e7.myshopify.com",
+      timestamp: "1782066376",
+    });
+    const signature = createHmac("sha256", "test-secret")
+      .update(
+        Array.from(params.entries())
+          .sort(([left], [right]) => left.localeCompare(right))
+          .map(([key, value]) => `${key}=${value}`)
+          .join(""),
+      )
+      .digest("hex");
+    params.set("signature", signature);
+
+    const context = authenticateAppProxyRequest(
+      new Request(`https://app.example.com/apps/loyalty/customer?${params}`),
+    );
+
+    expect(context).toEqual({
+      shop: "701031-e7.myshopify.com",
+      loggedInCustomerId: null,
+    });
+  });
+
   it("rejects unsigned app proxy requests", () => {
     process.env.SHOPIFY_API_SECRET = "test-secret";
 

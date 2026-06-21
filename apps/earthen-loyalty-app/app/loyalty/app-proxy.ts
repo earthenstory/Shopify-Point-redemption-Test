@@ -9,7 +9,7 @@ export type AppProxyContext = {
 const appProxyQuerySchema = z.object({
   shop: z.string().min(1),
   signature: z.string().min(1),
-  logged_in_customer_id: z.string().min(1).optional(),
+  logged_in_customer_id: z.string().optional(),
 });
 
 export function authenticateAppProxyRequest(request: Request): AppProxyContext {
@@ -32,7 +32,7 @@ export function authenticateAppProxyRequest(request: Request): AppProxyContext {
 
   return {
     shop: parsed.data.shop,
-    loggedInCustomerId: parsed.data.logged_in_customer_id ?? null,
+    loggedInCustomerId: parsed.data.logged_in_customer_id || null,
   };
 }
 
