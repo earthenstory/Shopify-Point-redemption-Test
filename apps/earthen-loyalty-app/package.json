@@ -14,6 +14,8 @@
     "setup": "prisma generate && prisma migrate deploy",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "test": "vitest run",
+    "migration:bon:dry-run": "node scripts/import-bon-export.mjs --dry-run",
+    "migration:bon:import": "node scripts/import-bon-export.mjs --import",
     "db:validate": "prisma validate",
     "shopify": "shopify",
     "prisma": "prisma",
