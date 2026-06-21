@@ -22,7 +22,6 @@
 
       {%- unless cart.empty? -%}
         <div class="cart-page__summary">
-          {% render 'earthen-loyalty-widget', context: 'cart' %}
           {%- content_for 'block', id: 'cart-page-summary', type: '_cart-summary' -%}
         </div>
       {%- endunless -%}
