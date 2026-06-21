@@ -36,6 +36,8 @@
     {%- endif -%}
   </div>
 
+  {% render 'earthen-loyalty-widget', context: 'cart' %}
+
   {% if settings.show_cart_note or settings.show_add_discount_code %}
     <div class="cart-actions">
       {% if settings.show_cart_note %}

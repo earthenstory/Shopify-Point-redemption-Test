@@ -1,0 +1,132 @@
+.earthen-loyalty {
+  display: block;
+  color: rgb(var(--color-foreground-rgb, 18 18 18));
+}
+
+.earthen-loyalty[hidden] {
+  display: none;
+}
+
+.earthen-loyalty__inner {
+  border: 1px solid rgba(184, 132, 30, 0.28);
+  border-radius: 8px;
+  background: #fffaf0;
+  padding: 14px;
+}
+
+.earthen-loyalty--cart .earthen-loyalty__inner {
+  margin-block: 10px;
+}
+
+.earthen-loyalty--homepage {
+  max-width: 1180px;
+  margin: 18px auto 0;
+  padding-inline: 68px;
+}
+
+.earthen-loyalty--homepage .earthen-loyalty__inner {
+  background: #fffdf8;
+}
+
+.earthen-loyalty--account .earthen-loyalty__inner {
+  margin: 0 var(--padding-xl) var(--padding-md);
+}
+
+.earthen-loyalty--product {
+  grid-column: 1 / -1;
+  max-width: min(1180px, calc(100vw - 32px));
+  margin: 16px auto 0;
+}
+
+.earthen-loyalty__header,
+.earthen-loyalty__range-row,
+.earthen-loyalty__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.earthen-loyalty__header {
+  justify-content: space-between;
+}
+
+.earthen-loyalty__label {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.earthen-loyalty__value {
+  font-weight: 700;
+  color: #1c6b3a;
+  white-space: nowrap;
+}
+
+.earthen-loyalty__message {
+  margin: 8px 0 0;
+  color: #5c5d64;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.earthen-loyalty__redeem {
+  margin-top: 12px;
+}
+
+.earthen-loyalty__range-row {
+  align-items: center;
+}
+
+.earthen-loyalty__range {
+  flex: 1;
+  min-width: 0;
+  accent-color: #1c6b3a;
+}
+
+.earthen-loyalty__selected {
+  min-width: 88px;
+  text-align: right;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.earthen-loyalty__actions {
+  margin-top: 10px;
+}
+
+.earthen-loyalty__button {
+  min-height: 38px;
+  border: 1px solid #1c6b3a;
+  border-radius: 8px;
+  background: #1c6b3a;
+  color: #fff;
+  padding: 8px 13px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.earthen-loyalty__button--secondary {
+  background: transparent;
+  color: #1c6b3a;
+}
+
+.earthen-loyalty__button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .earthen-loyalty--homepage {
+    padding-inline: 16px;
+  }
+
+  .earthen-loyalty__header,
+  .earthen-loyalty__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .earthen-loyalty__value {
+    white-space: normal;
+  }
+}

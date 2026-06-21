@@ -22,6 +22,8 @@
       {% endif %}
     </header>
 
+    {% render 'earthen-loyalty-widget', context: 'account' %}
+
     {% unless customer %}
       <div
         class="account-actions__sign-ins"

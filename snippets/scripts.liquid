@@ -120,6 +120,15 @@
   type="module"
   fetchpriority="low"
 ></script>
+<link
+  rel="stylesheet"
+  href="{{ 'earthen-loyalty.css' | asset_url }}"
+>
+<script
+  src="{{ 'earthen-loyalty.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
 {% if settings.show_add_discount_code %}
   <script
     src="{{ 'cart-discount.js' | asset_url }}"

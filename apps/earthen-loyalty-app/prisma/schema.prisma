@@ -1,0 +1,274 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CustomerStatus {
+  active
+  disabled
+  anonymized
+}
+
+enum LedgerEntryType {
+  migration_credit
+  order_earn
+  signup_bonus
+  redeem_reserve
+  redeem_consume
+  redeem_release
+  refund_reversal
+  order_cancel_reversal
+  expiry
+  manual_adjustment
+}
+
+enum RedemptionStatus {
+  pending
+  applied
+  consumed
+  partially_consumed
+  released
+  expired
+  failed
+  manual_review
+}
+
+enum WebhookEventStatus {
+  received
+  processed
+  failed
+  ignored
+}
+
+enum DiscountCleanupStatus {
+  pending
+  complete
+  failed
+}
+
+model Session {
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+model LoyaltyCustomer {
+  id                String              @id @default(cuid())
+  shopDomain        String
+  shopifyCustomerId String
+  email             String?
+  phone             String?
+  firstName         String?
+  lastName          String?
+  status            CustomerStatus      @default(active)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  wallet            Wallet?
+  ledgerEntries     LedgerEntry[]
+  pointLots         PointLot[]
+  redemptions       RedemptionSession[]
+  adminAuditLogs    AdminAuditLog[]
+
+  @@unique([shopDomain, shopifyCustomerId])
+  @@index([shopDomain, email])
+  @@index([shopDomain, phone])
+}
+
+model Wallet {
+  id                     String          @id @default(cuid())
+  customerId             String          @unique
+  customer               LoyaltyCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  availablePoints        Int             @default(0)
+  pendingPoints          Int             @default(0)
+  lifetimeEarnedPoints   Int             @default(0)
+  lifetimeRedeemedPoints Int             @default(0)
+  lifetimeExpiredPoints  Int             @default(0)
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  ledgerEntries          LedgerEntry[]
+}
+
+model LedgerEntry {
+  id                  String             @id @default(cuid())
+  customerId          String
+  customer            LoyaltyCustomer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  walletId            String
+  wallet              Wallet             @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  type                LedgerEntryType
+  pointsDelta         Int
+  moneyValue          Decimal?           @db.Decimal(12, 2)
+  currency            String             @default("INR")
+  shopifyOrderId      String?
+  shopifyRefundId     String?
+  redemptionSessionId String?
+  redemptionSession   RedemptionSession? @relation(fields: [redemptionSessionId], references: [id])
+  description         String?
+  metadata            Json?
+  createdAt           DateTime           @default(now())
+
+  @@index([customerId, createdAt])
+  @@index([shopifyOrderId])
+  @@index([redemptionSessionId])
+}
+
+model PointLot {
+  id                  String          @id @default(cuid())
+  customerId          String
+  customer            LoyaltyCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  sourceLedgerEntryId String
+  originalPoints      Int
+  remainingPoints     Int
+  expiresAt           DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  @@index([customerId, expiresAt])
+}
+
+model RedemptionSession {
+  id                    String                @id @default(cuid())
+  customerId            String
+  customer              LoyaltyCustomer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  cartToken             String?
+  checkoutToken         String?
+  shopifyOrderId        String?
+  pointsReserved        Int
+  pointsConsumed        Int                   @default(0)
+  pointsReleased        Int                   @default(0)
+  discountAmount        Decimal               @db.Decimal(12, 2)
+  actualDiscountAmount  Decimal?              @db.Decimal(12, 2)
+  currency              String                @default("INR")
+  discountCode          String                @unique
+  shopifyDiscountNodeId String?
+  status                RedemptionStatus      @default(pending)
+  expiresAt             DateTime
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  ledgerEntries         LedgerEntry[]
+  cleanupJobs           DiscountCleanupJob[]
+
+  @@index([customerId, status])
+  @@index([cartToken])
+  @@index([shopifyOrderId])
+}
+
+model RewardRule {
+  id                          String   @id @default(cuid())
+  shopDomain                  String
+  earnRatePercent             Decimal  @db.Decimal(5, 2)
+  pointsPerCurrencyUnit       Decimal  @db.Decimal(10, 4)
+  currencyValuePerPoint       Decimal  @db.Decimal(10, 4)
+  signupRewardPoints          Int      @default(250)
+  minRedeemPoints             Int      @default(10)
+  redeemIncrementPoints       Int      @default(10)
+  maxRedeemPointsPerOrder     Int?
+  maxRedeemPercentOfCart      Decimal  @db.Decimal(5, 2)
+  allowDiscountStacking       Boolean  @default(false)
+  awardOnStatus               String   @default("fulfilled")
+  pointsExpiryDays            Int?
+  returnRedeemedPointsOnRefund Boolean @default(true)
+  reverseEarnedPointsOnRefund Boolean @default(true)
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+
+  @@unique([shopDomain])
+}
+
+model BonMigrationBatch {
+  id                 String              @id @default(cuid())
+  shopDomain         String
+  sourceFileName     String?
+  rawExportUri       String?
+  sourceRowCount     Int
+  validRowCount      Int
+  invalidRowCount    Int
+  totalSourcePoints  Int
+  totalImportedPoints Int
+  status             WebhookEventStatus  @default(received)
+  createdBy          String
+  createdAt          DateTime            @default(now())
+  importedAt         DateTime?
+  rows               BonMigrationRow[]
+}
+
+model BonMigrationRow {
+  id                 String            @id @default(cuid())
+  batchId            String
+  batch              BonMigrationBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  rowIndex           Int
+  shopifyCustomerId  String?
+  email              String?
+  phone              String?
+  points             Int?
+  matchedCustomerId  String?
+  ledgerEntryId      String?
+  error              String?
+  raw                Json
+  createdAt          DateTime          @default(now())
+
+  @@index([batchId, rowIndex])
+  @@index([email])
+  @@index([phone])
+}
+
+model WebhookEvent {
+  id               String             @id @default(cuid())
+  shopifyWebhookId String             @unique
+  topic            String
+  shopDomain       String
+  resourceId       String?
+  payloadHash      String
+  status           WebhookEventStatus @default(received)
+  attemptCount     Int                @default(0)
+  lastError        String?
+  createdAt        DateTime           @default(now())
+  processedAt      DateTime?
+
+  @@index([topic, resourceId])
+}
+
+model AdminAuditLog {
+  id         String           @id @default(cuid())
+  adminUser  String
+  action     String
+  customerId String?
+  customer   LoyaltyCustomer? @relation(fields: [customerId], references: [id])
+  before     Json?
+  after      Json?
+  reason     String
+  createdAt  DateTime         @default(now())
+}
+
+model DiscountCleanupJob {
+  id                    String                @id @default(cuid())
+  redemptionSessionId   String
+  redemptionSession     RedemptionSession     @relation(fields: [redemptionSessionId], references: [id], onDelete: Cascade)
+  shopifyDiscountNodeId String?
+  discountCode          String
+  status                DiscountCleanupStatus @default(pending)
+  attemptCount          Int                   @default(0)
+  lastError             String?
+  nextAttemptAt         DateTime?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([status, nextAttemptAt])
+}

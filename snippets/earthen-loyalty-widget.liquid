@@ -1,0 +1,44 @@
+{%- liquid
+  assign context = context | default: 'inline'
+  assign section_id = section.id | default: ''
+  assign subtotal = cart.items_subtotal_price | divided_by: 100.0
+-%}
+
+<earthen-loyalty-widget
+  class="earthen-loyalty earthen-loyalty--{{ context }}"
+  data-context="{{ context }}"
+  data-section-id="{{ section_id }}"
+  data-cart-token="{{ cart.token }}"
+  data-cart-subtotal="{{ subtotal }}"
+  hidden
+>
+  <div class="earthen-loyalty__inner">
+    <div class="earthen-loyalty__header">
+      <span class="earthen-loyalty__label">Earthen Points</span>
+      <span class="earthen-loyalty__value" data-loyalty-value></span>
+    </div>
+    <p class="earthen-loyalty__message" data-loyalty-message></p>
+    <div class="earthen-loyalty__redeem" data-loyalty-redeem hidden>
+      <div class="earthen-loyalty__range-row">
+        <input
+          class="earthen-loyalty__range"
+          type="range"
+          min="0"
+          step="10"
+          value="0"
+          data-loyalty-range
+          aria-label="Points to redeem"
+        >
+        <span class="earthen-loyalty__selected" data-loyalty-selected></span>
+      </div>
+      <div class="earthen-loyalty__actions">
+        <button class="earthen-loyalty__button" type="button" data-loyalty-apply>
+          Apply points
+        </button>
+        <button class="earthen-loyalty__button earthen-loyalty__button--secondary" type="button" data-loyalty-remove hidden>
+          Remove
+        </button>
+      </div>
+    </div>
+  </div>
+</earthen-loyalty-widget>

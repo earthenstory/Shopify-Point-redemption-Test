@@ -1,0 +1,203 @@
+# Loyalty Implementation Log
+
+## 2026-06-21
+
+### Phase 1 Discovery
+
+- Created `docs/loyalty-phase-1-discovery.md`.
+- Confirmed the draft theme `Shopify-Point-redemption-Test/main`.
+- Confirmed new Shopify customer accounts are enabled.
+- Confirmed BON Loyalty app status and active earning/redeeming rules visible from admin.
+- Marked BON balance migration as a hard launch gate.
+
+### Phase 2 Scaffold Slice
+
+The official Shopify React Router template scaffold was attempted with:
+
+```sh
+shopify app init --template reactRouter --name loyalty-app --path apps --package-manager npm --no-color
+```
+
+The CLI required device authentication, so the official template scaffold is pending. A backend/database scaffold was created manually in `apps/loyalty-app` so implementation can continue without waiting on CLI auth.
+
+Implemented:
+
+- Prisma schema for:
+  - loyalty customers
+  - wallets
+  - ledger entries
+  - point lots
+  - redemption sessions
+  - reward rules
+  - webhook events
+  - admin audit logs
+  - discount cleanup jobs
+- Configurable loyalty rule calculations seeded from confirmed BON defaults.
+- BON balance migration validation helpers.
+- Tests for:
+  - confirmed BON earning rate
+  - point-to-INR redemption value
+  - redemption increments/minimum
+  - max redeemable cap calculation
+  - Shopify discount minimum-subtotal protection
+  - BON migration row validation and reconciliation totals
+
+Validation:
+
+```sh
+npm run db:validate
+npm run build
+npm test
+npm audit --omit=dev
+```
+
+Result:
+
+- Prisma schema valid.
+- TypeScript build passed.
+- 8 tests passed.
+- Production dependency audit found 0 vulnerabilities.
+
+Known remaining issue:
+
+- Full `npm audit` still reports one low-severity dev-only issue through `vitest -> vite -> esbuild`. `npm audit fix` did not update it. Production audit is clean.
+
+Blocked/pending:
+
+- Open detailed BON redemption rule settings.
+- Export BON rules and customer balances.
+- Confirm local/provisioned Postgres URL before generating database migrations.
+
+### Phase 2 Official Shopify App Scaffold
+
+Created the official React Router Shopify app at `apps/earthen-loyalty-app` after device authentication:
+
+```sh
+shopify app init --template reactRouter --flavor typescript --name earthen-loyalty-app --path apps --package-manager npm --no-color
+```
+
+The initial template generated an invalid `shopify.app.toml` because the demo custom-data definitions were rejected by the installed Shopify CLI. The demo product/metaobject configuration was removed and replaced with loyalty-specific scopes:
+
+```text
+read_customers,write_customers,read_orders,read_discounts,write_discounts
+```
+
+Merged the loyalty foundation into the official app:
+
+- Preserved the Shopify `Session` model and switched Prisma to Postgres for the planned Cloud SQL target.
+- Added loyalty customer, wallet, ledger, point lot, redemption, reward rule, webhook, audit, discount cleanup, and BON migration batch/row models.
+- Added BON-confirmed rule helpers in `app/loyalty/rules.ts`.
+- Added BON migration validation helpers in `app/loyalty/migration.ts`.
+- Added `.env.example` with Shopify and database settings.
+- Replaced the template product demo dashboard with a loyalty overview and migration gate.
+
+BON migration remains a launch blocker. Imported BON balances must create immutable `migration_credit` ledger entries, reconcile source and imported totals, preserve the raw export reference, and report unmatched customers before BON is disabled.
+
+Validation:
+
+```sh
+DATABASE_URL='postgresql://loyalty:loyalty@localhost:5432/earthen_loyalty' npm run db:validate
+npm test
+npm run typecheck
+DATABASE_URL='postgresql://loyalty:loyalty@localhost:5432/earthen_loyalty' npm run build
+DATABASE_URL='postgresql://loyalty:loyalty@localhost:5432/earthen_loyalty' shopify app build --no-color
+npm audit --omit=dev
+```
+
+Result:
+
+- Prisma schema valid.
+- 9 loyalty tests passed.
+- Typecheck passed.
+- React Router production build passed.
+- Shopify CLI app build passed.
+- Production dependency audit found 0 vulnerabilities.
+
+Known remaining issue:
+
+- Full `npm audit` reports high-severity dev-only issues through generated Shopify template codegen/lint dependencies. The production audit is clean. The available fixes are semver-major upgrades to Shopify/codegen and TypeScript ESLint packages, so this should be handled as a separate dependency upgrade pass.
+
+### Phase 3 Webhook Ledger Foundation
+
+Implemented the first webhook plumbing slice in `apps/earthen-loyalty-app`:
+
+- Added authenticated webhook routes for:
+  - `customers/create`
+  - `customers/update`
+  - `customers/delete`
+  - `orders/paid`
+  - `orders/fulfilled`
+  - `orders/cancelled`
+  - `refunds/create`
+- Added matching Shopify webhook subscriptions in `shopify.app.toml`.
+- Added `app/loyalty/webhooks.ts` to record webhook deliveries idempotently using Shopify `webhookId`.
+- Added stable SHA-256 payload hashing with object-key sorting.
+- Added resource ID extraction that prefers Shopify GraphQL IDs and falls back to REST IDs.
+- Added unit tests for webhook hash stability and resource extraction.
+
+This slice intentionally records events before changing point balances. The next slice should attach event processors that create:
+
+- `signup_bonus` ledger entries from customer creation or account activation rules.
+- `order_earn` ledger entries once an order reaches the confirmed BON award state (`fulfilled`).
+- redemption consumption/release entries from paid orders and refunds.
+
+Validation:
+
+```sh
+npm test
+DATABASE_URL='postgresql://loyalty:loyalty@localhost:5432/earthen_loyalty' npx prisma generate
+npm run typecheck
+DATABASE_URL='postgresql://loyalty:loyalty@localhost:5432/earthen_loyalty' npm run build
+DATABASE_URL='postgresql://loyalty:loyalty@localhost:5432/earthen_loyalty' shopify app build --no-color
+npm audit --omit=dev
+```
+
+Result:
+
+- 12 tests passed.
+- Prisma client generated from the loyalty schema.
+- Typecheck passed.
+- React Router production build passed.
+- Shopify CLI app build passed.
+- Production dependency audit found 0 vulnerabilities.
+
+### Phase 4 GCP Database Foundation
+
+Created the loyalty database resources in the existing Earthen Story automation project, as requested:
+
+- Project: `es-automation-2026`
+- Region: `asia-south1`
+- Cloud SQL instance: `earthen-loyalty-postgres`
+- Database: `earthen_loyalty`
+- App user: `loyalty_app`
+- Service account: `earthen-loyalty-runner@es-automation-2026.iam.gserviceaccount.com`
+- Secrets:
+  - `earthen-loyalty-database-url`
+  - `earthen-loyalty-db-password`
+
+Configuration:
+
+- PostgreSQL 16
+- Enterprise edition, `db-g1-small`
+- Zonal availability
+- Automated backups enabled
+- Point-in-time recovery enabled
+- Deletion protection enabled
+- Labels: `app=loyalty`, `store=earthen-story`, `env=prod`
+
+Applied the initial Prisma baseline migration to the live Cloud SQL database:
+
+```sh
+npx prisma migrate deploy
+```
+
+The generated Postgres migration is:
+
+```text
+apps/earthen-loyalty-app/prisma/migrations/20260621191500_init_loyalty_schema/migration.sql
+```
+
+Security note:
+
+- A temporary `/32` authorized network was used only for the local migration and was cleared afterward.
+- Cloud Run should use the Cloud SQL connection name `es-automation-2026:asia-south1:earthen-loyalty-postgres` and read `DATABASE_URL` from Secret Manager.
