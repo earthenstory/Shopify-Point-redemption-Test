@@ -86,6 +86,11 @@ class EarthenLoyaltyWidget extends HTMLElement {
     const stored = readStoredRedemption();
     if (stored?.discountCode) {
       this.refs.remove.hidden = false;
+      if (stored.pointsReserved && stored.discountAmount) {
+        this.refs.message.textContent = `${stored.pointsReserved} points applied for ${formatMoney(stored.discountAmount)} off.`;
+        this.refs.range.value = String(Math.min(Number(stored.pointsReserved), preview.maxRedeemablePoints));
+        this.updateSelected();
+      }
     }
   }
 
@@ -227,6 +232,8 @@ function writeStoredRedemption(redemption) {
     JSON.stringify({
       sessionId: redemption.sessionId,
       discountCode: redemption.discountCode,
+      pointsReserved: redemption.pointsReserved,
+      discountAmount: redemption.discountAmount,
       expiresAt: redemption.expiresAt,
     }),
   );
