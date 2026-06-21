@@ -201,3 +201,38 @@ Security note:
 
 - A temporary `/32` authorized network was used only for the local migration and was cleared afterward.
 - Cloud Run should use the Cloud SQL connection name `es-automation-2026:asia-south1:earthen-loyalty-postgres` and read `DATABASE_URL` from Secret Manager.
+
+### BON Customer Points Import
+
+Imported the BON Loyalty customer balance export:
+
+```text
+701031-e7.myshopify.com_export_customers_2026_06_21_69fb217523385f08ef7f121fc93adcea.csv
+```
+
+Dry-run reconciliation:
+
+- Source rows: 909
+- Valid rows: 909
+- Invalid rows: 0
+- Non-zero point rows: 899
+- Zero point rows: 10
+- Source points: 182,687
+- Repaired one shifted CSV row at line 684:
+  - Shopify customer ID: `8517051973728`
+  - Email: `vanshikabhasin9456@gmail.com`
+  - Points: 231
+
+Live import result:
+
+- Migration batch ID: `cmqo1tr9l00000zeiqeh5velk`
+- Batch status: `processed`
+- Imported points: 182,687
+- `migration_credit` ledger entries: 909
+- BON migration audit rows: 909
+- Point lots: 909
+- Wallets/customers created: 909
+- Wallet available points total: 182,687
+- Wallet pending points total: 0
+
+The import was run through Cloud SQL Auth Proxy on `127.0.0.1:5433`; no public authorized network was opened for the database.
