@@ -1,9 +1,6 @@
 import { createHash } from "node:crypto";
 import type { Prisma, PrismaClient } from "@prisma/client";
-import {
-  calculateOrderEarnPoints,
-  confirmedBonDefaults,
-} from "./rules";
+import { calculateOrderEarnPoints, confirmedBonDefaults } from "./rules";
 
 const LOYALTY_CODE_PREFIX = "ESPOINTS-";
 
@@ -90,7 +87,7 @@ export async function processCustomerUpsert(
     ...customerInfo,
   });
 
-  if (String(context.topic) !== "customers/create") {
+  if (!isCustomerCreateTopic(context.topic)) {
     return "processed";
   }
 
@@ -213,8 +210,7 @@ export async function processOrderPaid(
       where: { id: session.id },
       data: {
         pointsConsumed: { increment: pointsToConsume },
-        actualDiscountAmount:
-          actualDiscountAmount ?? session.discountAmount,
+        actualDiscountAmount: actualDiscountAmount ?? session.discountAmount,
         shopifyOrderId: orderId,
         status: "consumed",
       },
@@ -266,10 +262,7 @@ export async function processOrderFulfilled(
     "subtotal_price",
     "total_line_items_price",
   ]);
-  const earnedPoints = calculateOrderEarnPoints(
-    subtotal,
-    confirmedBonDefaults,
-  );
+  const earnedPoints = calculateOrderEarnPoints(subtotal, confirmedBonDefaults);
 
   if (earnedPoints <= 0) return "ignored";
 
@@ -387,6 +380,13 @@ export async function markWebhookProcessed(
       processedAt: status === "failed" ? null : new Date(),
     },
   });
+}
+
+export function isCustomerCreateTopic(
+  topic: string | number | symbol,
+): boolean {
+  const normalized = String(topic).toLowerCase().replace(/_/g, "/");
+  return normalized === "customers/create";
 }
 
 function sortObjectKeys(value: unknown): unknown {
@@ -570,17 +570,12 @@ async function reverseEarnedPointsForOrder(input: {
       },
       _sum: { pointsDelta: true },
     });
-    const alreadyReversed = Math.abs(
-      previousReversals._sum.pointsDelta ?? 0,
-    );
+    const alreadyReversed = Math.abs(previousReversals._sum.pointsDelta ?? 0);
     const remainingEarned = Math.max(
       0,
       earnedEntry.pointsDelta - alreadyReversed,
     );
-    const pointsToReverse = Math.min(
-      remainingEarned,
-      input.pointsToReverse,
-    );
+    const pointsToReverse = Math.min(remainingEarned, input.pointsToReverse);
 
     if (pointsToReverse <= 0) continue;
 

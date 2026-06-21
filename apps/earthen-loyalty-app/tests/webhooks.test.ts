@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   extractWebhookResourceId,
   hashWebhookPayload,
+  isCustomerCreateTopic,
 } from "../app/loyalty/webhooks";
 
 describe("loyalty webhook helpers", () => {
@@ -22,5 +23,11 @@ describe("loyalty webhook helpers", () => {
 
   it("falls back to numeric REST IDs", () => {
     expect(extractWebhookResourceId({ order_id: 987 })).toBe("987");
+  });
+
+  it("recognizes customer-create topics from literal and enum-style values", () => {
+    expect(isCustomerCreateTopic("customers/create")).toBe(true);
+    expect(isCustomerCreateTopic("CUSTOMERS_CREATE")).toBe(true);
+    expect(isCustomerCreateTopic("customers/update")).toBe(false);
   });
 });
