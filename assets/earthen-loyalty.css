@@ -34,8 +34,9 @@
 
 .earthen-loyalty--product {
   grid-column: 1 / -1;
+  width: 100%;
   max-width: min(1180px, calc(100vw - 32px));
-  margin: 16px auto 0;
+  margin: 16px 0 0;
 }
 
 .earthen-loyalty__header,
