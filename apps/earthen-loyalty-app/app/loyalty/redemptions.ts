@@ -10,7 +10,6 @@ import {
 } from "./rules";
 import { getLoyaltyRuntimeSettings } from "./settings";
 
-const REDEMPTION_TTL_MINUTES = 60;
 const CODE_PREFIX = "ESPOINTS";
 
 export type CartSnapshot = {

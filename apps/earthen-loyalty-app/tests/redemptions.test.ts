@@ -24,7 +24,7 @@ function settingsModels() {
         currencyValuePerPoint: 1,
         minRedeemPoints: 10,
         redeemIncrementPoints: 10,
-        maxRedeemPercentOfCart: 20,
+        maxRedeemPercentOfCart: 100,
         maxRedeemPointsPerOrder: null,
         allowDiscountStacking: false,
         discountCodeTtlMinutes: 60,
@@ -62,16 +62,16 @@ describe("redemption preview", () => {
     });
   });
 
-  it("caps redemptions to 20 percent of cart value", () => {
+  it("allows full wallet redemption up to the cart subtotal", () => {
     expect(
       previewRedemption({
         availablePoints: 900,
         cart: { subtotal: 1000 },
       }),
     ).toMatchObject({
-      maxRedeemablePoints: 200,
-      discountAmount: 200,
-      minimumSubtotal: 1000,
+      maxRedeemablePoints: 900,
+      discountAmount: 900,
+      minimumSubtotal: 900,
     });
   });
 

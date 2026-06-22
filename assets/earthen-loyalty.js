@@ -1,4 +1,4 @@
-import { DiscountUpdateEvent } from '@theme/events';
+import { DiscountUpdateEvent, ThemeEvents } from '@theme/events';
 import { morphSection } from '@theme/section-renderer';
 import { fetchConfig } from '@theme/utilities';
 
@@ -25,6 +25,11 @@ class EarthenLoyaltyWidget extends HTMLElement {
     this.refs.apply?.addEventListener('click', this.applyPoints);
     this.refs.remove?.addEventListener('click', this.removePoints);
 
+    if (this.dataset.context === 'cart') {
+      document.addEventListener(ThemeEvents.cartUpdate, this.handleCartRefresh);
+      document.addEventListener(ThemeEvents.discountUpdate, this.handleCartRefresh);
+    }
+
     this.load();
   }
 
@@ -32,11 +37,19 @@ class EarthenLoyaltyWidget extends HTMLElement {
     this.refs?.range?.removeEventListener('input', this.updateSelected);
     this.refs?.apply?.removeEventListener('click', this.applyPoints);
     this.refs?.remove?.removeEventListener('click', this.removePoints);
+    document.removeEventListener(ThemeEvents.cartUpdate, this.handleCartRefresh);
+    document.removeEventListener(ThemeEvents.discountUpdate, this.handleCartRefresh);
+    clearTimeout(this.reloadTimer);
   }
 
   async load() {
+    const requestId = (this.loadRequestId || 0) + 1;
+    this.loadRequestId = requestId;
+
     try {
       const customer = await this.request('/apps/loyalty/customer');
+      if (requestId !== this.loadRequestId || !this.isConnected) return;
+
       if (!customer.ok) return;
       if (!this.isContextEnabled(customer.widget)) {
         this.hidden = true;
@@ -46,6 +59,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
       this.applyTheme(customer.widget);
 
       this.hidden = false;
+      if (this.dataset.context === 'cart') this.resetRedeemControls();
 
       if (!customer.loggedIn) {
         this.renderMessage(customer.message || 'Sign in to see your Earthen Points and unlock cart rewards.', '');
@@ -59,45 +73,71 @@ class EarthenLoyaltyWidget extends HTMLElement {
       );
 
       if (this.dataset.context === 'cart') {
-        await this.loadCartRedemption(customer);
+        await this.loadCartRedemption(customer, requestId);
       }
     } catch (error) {
+      if (this.dataset.context === 'cart') {
+        this.hidden = false;
+        this.resetRedeemControls();
+        this.renderMessage(
+          'Your Earthen Points are refreshing. Please try again in a moment.',
+          this.refs.value?.textContent || '',
+        );
+        return;
+      }
       this.hidden = true;
     }
   }
 
-  async loadCartRedemption(customer) {
-    if (customer.availablePoints <= 0) return;
+  async loadCartRedemption(customer, requestId) {
+    const stored = readStoredRedemption();
 
-    const cart = await this.getCart();
-    const preview = await this.request('/apps/loyalty/cart-preview', {
-      method: 'POST',
-      body: {
-        cartToken: cart.token,
-        subtotal: centsToMoney(cart.items_subtotal_price),
-      },
-    });
-
-    if (!preview.ok || preview.maxRedeemablePoints <= 0) {
-      this.refs.message.textContent = 'Earn or migrate more points to redeem on this cart.';
+    if (customer.availablePoints <= 0) {
+      if (stored?.discountCode) this.renderStoredRedemption(stored, 0);
       return;
     }
 
-    this.refs.redeem.hidden = false;
-    this.refs.range.max = String(preview.maxRedeemablePoints);
-    this.refs.range.value = String(preview.maxRedeemablePoints);
-    this.refs.range.step = '10';
-    this.updateSelected();
+    try {
+      const cart = await this.getCartSnapshot();
+      if (requestId !== this.loadRequestId || !this.isConnected) return;
 
-    const stored = readStoredRedemption();
-    if (stored?.discountCode) {
-      this.refs.remove.hidden = false;
-      if (stored.pointsReserved && stored.discountAmount) {
-        this.refs.message.textContent = `${stored.pointsReserved} points applied for ${formatMoney(stored.discountAmount)} off.`;
-        this.refs.range.value = String(Math.min(Number(stored.pointsReserved), preview.maxRedeemablePoints));
-        this.updateSelected();
+      const preview = await this.request('/apps/loyalty/cart-preview', {
+        method: 'POST',
+        body: {
+          cartToken: cart.token,
+          subtotal: cart.subtotal,
+        },
+      });
+      if (requestId !== this.loadRequestId || !this.isConnected) return;
+
+      if (!preview.ok || preview.maxRedeemablePoints <= 0) {
+        this.refs.message.textContent = preview.message || 'Earn or migrate more points to redeem on this cart.';
+        return;
       }
+
+      this.refs.redeem.hidden = false;
+      this.refs.range.max = String(preview.maxRedeemablePoints);
+      this.refs.range.value = String(preview.maxRedeemablePoints);
+      this.refs.range.step = String(preview.redeemIncrementPoints || 10);
+      this.updateSelected();
+
+      if (stored?.discountCode) {
+        this.renderStoredRedemption(stored, preview.maxRedeemablePoints);
+      }
+    } catch (error) {
+      this.resetRedeemControls();
+      this.refs.message.textContent = 'Cart rewards are refreshing. Please try again in a moment.';
     }
+  }
+
+  handleCartRefresh = () => {
+    if (this.dataset.context !== 'cart') return;
+    this.scheduleLoad();
+  };
+
+  scheduleLoad() {
+    clearTimeout(this.reloadTimer);
+    this.reloadTimer = setTimeout(() => this.load(), 200);
   }
 
   updateSelected = () => {
@@ -105,17 +145,35 @@ class EarthenLoyaltyWidget extends HTMLElement {
     this.refs.selected.textContent = `${points} pts`;
   };
 
+  renderStoredRedemption(stored, maxRedeemablePoints) {
+    const pointsReserved = Number(stored.pointsReserved || 0);
+    const selectedPoints = maxRedeemablePoints > 0 ? Math.min(pointsReserved, maxRedeemablePoints) : pointsReserved;
+
+    this.refs.remove.hidden = false;
+    if (selectedPoints > 0) {
+      this.refs.redeem.hidden = false;
+      this.refs.range.step = this.refs.range.step || '10';
+      this.refs.range.max = String(Math.max(maxRedeemablePoints, selectedPoints));
+      this.refs.range.value = String(selectedPoints);
+      this.updateSelected();
+    }
+
+    if (pointsReserved && stored.discountAmount) {
+      this.refs.message.textContent = `${pointsReserved} points applied for ${formatMoney(stored.discountAmount)} off.`;
+    }
+  }
+
   applyPoints = async () => {
     const points = Number(this.refs.range?.value || 0);
     if (points <= 0) return;
 
     await this.withBusy(async () => {
-      const cart = await this.getCart();
+      const cart = await this.getCartSnapshot();
       const redemption = await this.request('/apps/loyalty/redeem', {
         method: 'POST',
         body: {
           cartToken: cart.token,
-          subtotal: centsToMoney(cart.items_subtotal_price),
+          subtotal: cart.subtotal,
           points,
         },
       });
@@ -176,6 +234,24 @@ class EarthenLoyaltyWidget extends HTMLElement {
     return response.json();
   }
 
+  async getCartSnapshot() {
+    const fallback = {
+      token: this.dataset.cartToken || null,
+      subtotal: Math.max(0, Number(this.dataset.cartSubtotal || 0)),
+    };
+
+    try {
+      const cart = await this.getCart();
+      return {
+        token: cart.token || fallback.token,
+        subtotal: centsToMoney(cart.items_subtotal_price ?? fallback.subtotal * 100),
+      };
+    } catch (error) {
+      if (fallback.token || fallback.subtotal > 0) return fallback;
+      throw error;
+    }
+  }
+
   async request(path, options = {}) {
     const fetchOptions = {
       method: options.method || 'GET',
@@ -200,6 +276,16 @@ class EarthenLoyaltyWidget extends HTMLElement {
   renderMessage(message, value) {
     this.refs.message.textContent = message;
     this.refs.value.textContent = value;
+  }
+
+  resetRedeemControls() {
+    if (this.refs.redeem) this.refs.redeem.hidden = true;
+    if (this.refs.remove) this.refs.remove.hidden = true;
+    if (this.refs.range) {
+      this.refs.range.max = '0';
+      this.refs.range.value = '0';
+    }
+    if (this.refs.selected) this.refs.selected.textContent = '';
   }
 
   isContextEnabled(widget = {}) {

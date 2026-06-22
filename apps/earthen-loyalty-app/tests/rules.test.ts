@@ -27,14 +27,14 @@ describe("loyalty rules", () => {
     expect(normalizeRedeemPoints(20, confirmedBonDefaults)).toBe(20);
   });
 
-  it("caps max redemption by available points, cart percent, and increment", () => {
+  it("allows full wallet redemption up to cart subtotal and increment", () => {
     expect(
       calculateMaxRedeemablePoints({
         availablePoints: 500,
         eligibleCartSubtotal: 1000,
         rules: confirmedBonDefaults,
       }),
-    ).toBe(200);
+    ).toBe(500);
 
     expect(
       calculateMaxRedeemablePoints({
@@ -43,11 +43,19 @@ describe("loyalty rules", () => {
         rules: confirmedBonDefaults,
       }),
     ).toBe(90);
+
+    expect(
+      calculateMaxRedeemablePoints({
+        availablePoints: 200,
+        eligibleCartSubtotal: 848,
+        rules: confirmedBonDefaults,
+      }),
+    ).toBe(200);
   });
 
   it("calculates Shopify minimum subtotal protection from redemption amount", () => {
     expect(calculateMinimumSubtotalForDiscount(200, confirmedBonDefaults)).toBe(
-      1000,
+      200,
     );
   });
 });

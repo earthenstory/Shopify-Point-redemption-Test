@@ -33,6 +33,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         discountAmount: 0,
         minimumSubtotal: 0,
         currency: settings.rules.currency,
+        redeemIncrementPoints: settings.rules.redeemIncrementPoints,
       });
     }
 
@@ -44,6 +45,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         discountAmount: 0,
         minimumSubtotal: 0,
         currency: settings.rules.currency,
+        redeemIncrementPoints: settings.rules.redeemIncrementPoints,
         message: "Earthen Points redemption is currently paused.",
       });
     }
@@ -66,6 +68,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       ok: true,
       loggedIn: true,
       migrated: snapshot.migrated,
+      redeemIncrementPoints: settings.rules.redeemIncrementPoints,
       ...preview,
     });
   } catch (error) {

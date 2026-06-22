@@ -26,7 +26,7 @@ function settingsModels() {
         currencyValuePerPoint: 1,
         minRedeemPoints: 10,
         redeemIncrementPoints: 10,
-        maxRedeemPercentOfCart: 20,
+        maxRedeemPercentOfCart: 100,
         maxRedeemPointsPerOrder: null,
         allowDiscountStacking: false,
         discountCodeTtlMinutes: 60,

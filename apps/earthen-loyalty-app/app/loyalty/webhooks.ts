@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import type { Prisma, PrismaClient } from "@prisma/client";
-import { calculateOrderEarnPoints, confirmedBonDefaults } from "./rules";
+import { calculateOrderEarnPoints } from "./rules";
 import { getLoyaltyRuntimeSettings } from "./settings";
 
 const LOYALTY_CODE_PREFIX = "ESPOINTS-";
