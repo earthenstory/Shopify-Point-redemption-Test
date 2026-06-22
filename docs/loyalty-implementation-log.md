@@ -298,3 +298,44 @@ Still genuinely pending:
 - `orders/edited` handling or documented manual adjustment process.
 - FIFO lot consumption.
 - Admin adjustment/session UI edge cases.
+
+### Production Admin Console Pass
+
+Updated `/Users/shashank/Downloads/loyalty-program-plan.md` with the production admin-console requirement and implementation status.
+
+Implemented Shopify Admin configuration sections in `apps/earthen-loyalty-app`:
+
+- Overview
+- Point Program
+- Redemption
+- Milestones
+- Customer Data
+- Migration
+- Analytics
+- Branding
+- Settings / Health
+
+Backend/runtime changes:
+
+- Added database-backed `LoyaltyProgramSettings`, `LoyaltyWidgetSettings`, and `LoyaltyMilestoneRule` models.
+- Extended `RewardRule` so earning, redemption, earn rate, spend basis, and discount-code TTL are configurable.
+- Wired redemption previews, redemption creation, customer app-proxy responses, and order/refund/cancel webhooks to runtime settings.
+- Added admin audit logging for settings changes and normalized audit payloads to JSON-safe values.
+- Updated the storefront widget to honor configured widget surfaces, copy, and colors.
+
+Validation:
+
+- `DATABASE_URL='postgresql://loyalty:loyalty@localhost:5432/earthen_loyalty' npx prisma validate`: passed.
+- `npm test`: 33 tests passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed.
+- Cloud Run deployment: passed.
+- Live signed app-proxy customer smoke test returned the configured program/widget payload and existing customer balance.
+
+Remaining launch gates:
+
+- Authenticated Shopify Admin click-through of each new embedded admin page.
+- Final real checkout test for standard payment.
+- Shop Pay, Apple Pay, and Google Pay express checkout testing or suppression while redemption is active.
+- Final BON migration export/import/reconciliation before cutover.
+- Disable old BON storefront surfaces before setting the in-house program active.

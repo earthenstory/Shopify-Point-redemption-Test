@@ -309,11 +309,15 @@ async function writeAdminAudit(
     data: {
       adminUser: input.adminUser,
       action: input.action,
-      before: input.before as Prisma.InputJsonValue,
-      after: input.after as Prisma.InputJsonValue,
+      before: toJson(input.before),
+      after: toJson(input.after),
       reason: input.reason,
     },
   });
+}
+
+function toJson(value: unknown): Prisma.InputJsonValue {
+  return JSON.parse(JSON.stringify(value ?? null)) as Prisma.InputJsonValue;
 }
 
 function earnRatePercent(input: {
