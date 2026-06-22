@@ -329,8 +329,11 @@ Validation:
 - `npm test`: 33 tests passed.
 - `npm run typecheck`: passed.
 - `npm run build`: passed.
-- Cloud Run deployment: passed.
-- Live signed app-proxy customer smoke test returned the configured program/widget payload and existing customer balance.
+- Cloud Run deployment: revision `earthen-loyalty-app-00010-nj7`, serving 100% traffic.
+- Live signed app-proxy customer smoke test returned the configured program/widget payload and the existing customer's `220` migrated points.
+- Draft storefront desktop QA passed for anonymous, existing customer with points, and zero-point customer.
+- Draft storefront cart redemption QA passed; the with-points customer selected `80` points and sent the expected Shopify cart discount update.
+- Draft storefront mobile QA passed for homepage, product page, and cart with no widget overflow.
 
 Remaining launch gates:
 
