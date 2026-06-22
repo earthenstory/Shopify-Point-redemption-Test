@@ -7,6 +7,10 @@
   display: none;
 }
 
+.earthen-loyalty [hidden] {
+  display: none !important;
+}
+
 .earthen-loyalty__inner {
   border: 1px solid rgba(184, 132, 30, 0.28);
   border-radius: 8px;
@@ -74,6 +78,10 @@
 }
 
 .earthen-loyalty__applied-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   width: 100%;
   border-radius: 8px;
   background: rgba(28, 107, 58, 0.08);
@@ -81,6 +89,23 @@
   padding: 10px 12px;
   font-size: 13px;
   font-weight: 700;
+}
+
+.earthen-loyalty__remove-icon {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(28, 107, 58, 0.24);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--loyalty-primary, #1c6b3a);
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .earthen-loyalty__range-row {

@@ -28,7 +28,7 @@
   endfor
 
   # Evaluate the boolean expression for the disclosure state
-  if manual_discount_count > 0
+  if manual_discount_count > 0 or loyalty_discount_applied
     assign disclosure_expanded = true
   else
     assign disclosure_expanded = false
@@ -47,41 +47,41 @@
     >
       {% if loyalty_discount_applied %}
         <p class="cart-discount__status">
-          Earthen Points discount is applied automatically. Use the Earthen Points card above to remove or change it.
+          Earthen Points discount is applied. Entering another discount code will replace it and return the reserved points.
         </p>
       {% else %}
         <p class="cart-discount__hint">
           Enter a discount code.
         </p>
-        <div class="cart-discount__content">
-          <form
-            on:submit="/applyDiscount"
-            onsubmit="return false;"
-            class="cart-discount__form"
-          >
-            <label
-              for="cart-discount"
-              class="visually-hidden"
-            >
-              {{- 'accessibility.discount' | t -}}
-            </label>
-            <input
-              id="cart-discount"
-              class="cart-discount__input"
-              type="text"
-              name="discount"
-              placeholder="{{ 'content.discount_code' | t }}"
-              required
-            >
-            <button
-              type="submit"
-              class="button button--primary cart-discount__button"
-            >
-              {{ 'actions.apply' | t }}
-            </button>
-          </form>
-        </div>
       {% endif %}
+      <div class="cart-discount__content">
+        <form
+          on:submit="/applyDiscount"
+          onsubmit="return false;"
+          class="cart-discount__form"
+        >
+          <label
+            for="cart-discount"
+            class="visually-hidden"
+          >
+            {{- 'accessibility.discount' | t -}}
+          </label>
+          <input
+            id="cart-discount"
+            class="cart-discount__input"
+            type="text"
+            name="discount"
+            placeholder="{{ 'content.discount_code' | t }}"
+            required
+          >
+          <button
+            type="submit"
+            class="button button--primary cart-discount__button"
+          >
+            {{ 'actions.apply' | t }}
+          </button>
+        </form>
+      </div>
       <div
         class="cart-discount__error hidden"
         role="alert"

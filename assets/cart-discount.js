@@ -4,6 +4,9 @@ import { DiscountUpdateEvent } from '@theme/events';
 import { fetchConfig } from '@theme/utilities';
 import { cartPerformance } from '@theme/performance';
 
+const LOYALTY_STORAGE_KEY = 'earthen_loyalty_redemption';
+const LOYALTY_CODE_PREFIX = 'ESPOINTS';
+
 /**
  * A custom element that applies a discount to the cart.
  *
@@ -48,7 +51,8 @@ class CartDiscount extends Component {
     const discountCode = form.querySelector('input[name="discount"]');
     if (!(discountCode instanceof HTMLInputElement) || typeof this.dataset.sectionId !== 'string') return;
 
-    const discountCodeValue = discountCode.value;
+    const discountCodeValue = discountCode.value.trim();
+    if (!discountCodeValue) return;
 
     const abortController = this.#createAbortController();
 
@@ -59,6 +63,8 @@ class CartDiscount extends Component {
       cartDiscountError.classList.add('hidden');
       cartDiscountErrorDiscountCode.classList.add('hidden');
       cartDiscountErrorShipping.classList.add('hidden');
+
+      const storedLoyaltyRedemption = readStoredLoyaltyRedemption();
 
       const config = fetchConfig('json', {
         body: JSON.stringify({
@@ -79,6 +85,7 @@ class CartDiscount extends Component {
           return discount.code === discountCodeValue && discount.applicable === false;
         })
       ) {
+        await this.#restoreStoredLoyaltyDiscount(storedLoyaltyRedemption, abortController.signal);
         discountCode.value = '';
         this.#handleDiscountError('discount_code');
         return;
@@ -102,12 +109,14 @@ class CartDiscount extends Component {
             return discount.code === discountCodeValue && discount.applicable === true;
           })
         ) {
+          await this.#restoreStoredLoyaltyDiscount(storedLoyaltyRedemption, abortController.signal);
           this.#handleDiscountError('shipping');
           discountCode.value = '';
           return;
         }
       }
 
+      await releaseStoredLoyaltyRedemption(storedLoyaltyRedemption, data.discount_codes);
       document.dispatchEvent(new DiscountUpdateEvent(data, this.id));
       morphSection(this.dataset.sectionId, newHtml);
     } catch (error) {
@@ -168,6 +177,25 @@ class CartDiscount extends Component {
     }
   };
 
+  async #restoreStoredLoyaltyDiscount(stored, signal) {
+    if (!stored?.discountCode || typeof this.dataset.sectionId !== 'string') return;
+
+    try {
+      const config = fetchConfig('json', {
+        body: JSON.stringify({
+          discount: stored.discountCode,
+          sections: [this.dataset.sectionId],
+        }),
+      });
+
+      await fetch(Theme.routes.cart_update_url, {
+        ...config,
+        signal,
+      });
+    } catch (error) {
+    }
+  }
+
   /**
    * Handles the discount error.
    *
@@ -190,12 +218,60 @@ class CartDiscount extends Component {
     const discountPills = this.querySelectorAll('.cart-discount__pill');
     for (const pill of discountPills) {
       if (pill instanceof HTMLLIElement && typeof pill.dataset.discountCode === 'string') {
-        discountCodes.push(pill.dataset.discountCode);
+        if (!isLoyaltyDiscountCode(pill.dataset.discountCode)) {
+          discountCodes.push(pill.dataset.discountCode);
+        }
       }
     }
 
     return discountCodes;
   }
+}
+
+async function releaseStoredLoyaltyRedemption(stored, cartDiscountCodes = []) {
+  if (!stored?.sessionId && !stored?.discountCode) return;
+  const storedDiscountCode = String(stored.discountCode || '').toUpperCase();
+  const loyaltyStillApplied = cartDiscountCodes.some((discount) => {
+    return String(discount?.code || '').toUpperCase() === storedDiscountCode;
+  });
+  if (loyaltyStillApplied) return;
+
+  try {
+    await fetch('/apps/loyalty/remove', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sessionId: stored.sessionId,
+        discountCode: stored.discountCode,
+      }),
+      cache: 'no-store',
+    });
+  } catch (error) {
+  } finally {
+    clearStoredLoyaltyRedemption();
+  }
+}
+
+function readStoredLoyaltyRedemption() {
+  try {
+    return JSON.parse(window.localStorage.getItem(LOYALTY_STORAGE_KEY) || 'null');
+  } catch (error) {
+    return null;
+  }
+}
+
+function clearStoredLoyaltyRedemption() {
+  try {
+    window.localStorage.removeItem(LOYALTY_STORAGE_KEY);
+  } catch (error) {
+  }
+}
+
+function isLoyaltyDiscountCode(code) {
+  return code.toUpperCase().startsWith(LOYALTY_CODE_PREFIX);
 }
 
 if (!customElements.get('cart-discount-component')) {

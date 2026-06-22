@@ -19,8 +19,16 @@
     </div>
     <p class="earthen-loyalty__message" data-loyalty-message></p>
     <div class="earthen-loyalty__redeem" data-loyalty-redeem hidden>
-      <div class="earthen-loyalty__range-row">
-        <div class="earthen-loyalty__applied-summary" data-loyalty-applied hidden></div>
+      <div class="earthen-loyalty__applied-summary" data-loyalty-applied hidden>
+        <span data-loyalty-applied-text></span>
+        <button
+          class="earthen-loyalty__remove-icon"
+          type="button"
+          data-loyalty-remove
+          aria-label="Remove Earthen Points discount"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
       <div class="earthen-loyalty__range-row" data-loyalty-range-row>
         <input
@@ -37,9 +45,6 @@
       <div class="earthen-loyalty__actions">
         <button class="earthen-loyalty__button" type="button" data-loyalty-apply>
           Apply points
-        </button>
-        <button class="earthen-loyalty__button earthen-loyalty__button--secondary" type="button" data-loyalty-remove hidden>
-          Remove
         </button>
       </div>
     </div>

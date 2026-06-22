@@ -16,6 +16,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
       message: this.querySelector('[data-loyalty-message]'),
       redeem: this.querySelector('[data-loyalty-redeem]'),
       applied: this.querySelector('[data-loyalty-applied]'),
+      appliedText: this.querySelector('[data-loyalty-applied-text]'),
       rangeRow: this.querySelector('[data-loyalty-range-row]'),
       range: this.querySelector('[data-loyalty-range]'),
       selected: this.querySelector('[data-loyalty-selected]'),
@@ -154,11 +155,13 @@ class EarthenLoyaltyWidget extends HTMLElement {
     this.refs.redeem.hidden = false;
     if (this.refs.applied) {
       this.refs.applied.hidden = false;
-      this.refs.applied.textContent = `Discount applied: ${formatMoney(discountAmount)} off`;
+      if (this.refs.appliedText) {
+        this.refs.appliedText.textContent = `Discount applied: ${formatMoney(discountAmount)} off`;
+      }
     }
     if (this.refs.rangeRow) this.refs.rangeRow.hidden = true;
     if (this.refs.apply) this.refs.apply.hidden = true;
-    this.refs.remove.hidden = false;
+    if (this.refs.remove) this.refs.remove.hidden = false;
     this.refs.value.textContent = `${formatMoney(discountAmount)} off`;
 
     if (pointsReserved && discountAmount) {
@@ -288,7 +291,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
     if (this.refs.redeem) this.refs.redeem.hidden = true;
     if (this.refs.applied) {
       this.refs.applied.hidden = true;
-      this.refs.applied.textContent = '';
+      if (this.refs.appliedText) this.refs.appliedText.textContent = '';
     }
     if (this.refs.rangeRow) this.refs.rangeRow.hidden = false;
     if (this.refs.apply) this.refs.apply.hidden = false;
@@ -312,15 +315,15 @@ class EarthenLoyaltyWidget extends HTMLElement {
   }
 
   async withBusy(callback) {
-    this.refs.apply.disabled = true;
-    this.refs.remove.disabled = true;
+    if (this.refs.apply) this.refs.apply.disabled = true;
+    if (this.refs.remove) this.refs.remove.disabled = true;
     try {
       await callback();
     } catch (error) {
       this.refs.message.textContent = error instanceof Error ? error.message : 'Loyalty action failed.';
     } finally {
-      this.refs.apply.disabled = false;
-      this.refs.remove.disabled = false;
+      if (this.refs.apply) this.refs.apply.disabled = false;
+      if (this.refs.remove) this.refs.remove.disabled = false;
     }
   }
 }
