@@ -1,0 +1,44 @@
+<earthen-loyalty-launcher class="earthen-loyalty-launcher" hidden>
+  <button
+    class="earthen-loyalty-launcher__button"
+    type="button"
+    data-loyalty-launcher-button
+    aria-expanded="false"
+    aria-controls="earthen-loyalty-launcher-panel"
+  >
+    <span class="earthen-loyalty-launcher__mark" aria-hidden="true">EP</span>
+    <span class="earthen-loyalty-launcher__label">Rewards</span>
+    <span class="earthen-loyalty-launcher__value" data-loyalty-launcher-value></span>
+  </button>
+
+  <div
+    id="earthen-loyalty-launcher-panel"
+    class="earthen-loyalty-launcher__panel"
+    data-loyalty-launcher-panel
+    hidden
+  >
+    <div class="earthen-loyalty-launcher__panel-header">
+      <div>
+        <p class="earthen-loyalty-launcher__eyebrow">Earthen Points</p>
+        <h2 class="earthen-loyalty-launcher__title">Your rewards</h2>
+      </div>
+      <button
+        class="earthen-loyalty-launcher__close"
+        type="button"
+        data-loyalty-launcher-close
+        aria-label="Close rewards"
+      >
+        &times;
+      </button>
+    </div>
+    <p class="earthen-loyalty-launcher__message" data-loyalty-launcher-message></p>
+    <div class="earthen-loyalty-launcher__actions">
+      <a class="earthen-loyalty-launcher__link" href="{{ routes.collections_url }}/all-products">
+        Shop and earn
+      </a>
+      <a class="earthen-loyalty-launcher__link earthen-loyalty-launcher__link--secondary" href="{{ routes.account_login_url }}" data-loyalty-launcher-signin>
+        Sign in
+      </a>
+    </div>
+  </div>
+</earthen-loyalty-launcher>

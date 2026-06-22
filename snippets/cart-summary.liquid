@@ -21,10 +21,21 @@
           aria-label="{{ 'content.discounts' | t }}"
         >
           {%- for discount in cart.cart_level_discount_applications -%}
+            {%- liquid
+              assign discount_prefix = discount.title | slice: 0, 8
+              assign is_loyalty_discount = false
+              if discount_prefix == 'ESPOINTS'
+                assign is_loyalty_discount = true
+              endif
+            -%}
             <li class="cart__summary-item cart__discount">
               <span class="cart__discount-label">
                 {{- 'icon-discount.svg' | inline_asset_content -}}
-                {{ discount.title | escape }}
+                {%- if is_loyalty_discount -%}
+                  Earthen Points discount applied
+                {%- else -%}
+                  {{ discount.title | escape }}
+                {%- endif -%}
               </span>
               <span class="cart__discount-value cart-secondary-typography"
                 >-{{ discount.total_allocated_amount | money -}}

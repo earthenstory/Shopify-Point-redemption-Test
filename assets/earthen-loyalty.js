@@ -15,6 +15,8 @@ class EarthenLoyaltyWidget extends HTMLElement {
       value: this.querySelector('[data-loyalty-value]'),
       message: this.querySelector('[data-loyalty-message]'),
       redeem: this.querySelector('[data-loyalty-redeem]'),
+      applied: this.querySelector('[data-loyalty-applied]'),
+      rangeRow: this.querySelector('[data-loyalty-range-row]'),
       range: this.querySelector('[data-loyalty-range]'),
       selected: this.querySelector('[data-loyalty-selected]'),
       apply: this.querySelector('[data-loyalty-apply]'),
@@ -147,20 +149,23 @@ class EarthenLoyaltyWidget extends HTMLElement {
 
   renderStoredRedemption(stored, maxRedeemablePoints) {
     const pointsReserved = Number(stored.pointsReserved || 0);
-    const selectedPoints = maxRedeemablePoints > 0 ? Math.min(pointsReserved, maxRedeemablePoints) : pointsReserved;
-
+    const discountAmount = Number(stored.discountAmount || pointsReserved || 0);
+    this.dataset.applied = 'true';
+    this.refs.redeem.hidden = false;
+    if (this.refs.applied) {
+      this.refs.applied.hidden = false;
+      this.refs.applied.textContent = `Discount applied: ${formatMoney(discountAmount)} off`;
+    }
+    if (this.refs.rangeRow) this.refs.rangeRow.hidden = true;
+    if (this.refs.apply) this.refs.apply.hidden = true;
     this.refs.remove.hidden = false;
-    if (selectedPoints > 0) {
-      this.refs.redeem.hidden = false;
-      this.refs.range.step = this.refs.range.step || '10';
-      this.refs.range.max = String(Math.max(maxRedeemablePoints, selectedPoints));
-      this.refs.range.value = String(selectedPoints);
-      this.updateSelected();
+    this.refs.value.textContent = `${formatMoney(discountAmount)} off`;
+
+    if (pointsReserved && discountAmount) {
+      this.refs.message.textContent = `${pointsReserved} points applied. This discount stays on the cart if you add more products. Remove it to change the points.`;
     }
 
-    if (pointsReserved && stored.discountAmount) {
-      this.refs.message.textContent = `${pointsReserved} points applied for ${formatMoney(stored.discountAmount)} off.`;
-    }
+    if (this.refs.selected) this.refs.selected.textContent = '';
   }
 
   applyPoints = async () => {
@@ -184,8 +189,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
 
       writeStoredRedemption(redemption);
       await this.applyDiscountCode(redemption.discountCode);
-      this.refs.remove.hidden = false;
-      this.refs.message.textContent = `${redemption.pointsReserved} points applied for ${formatMoney(redemption.discountAmount)} off.`;
+      this.renderStoredRedemption(redemption, 0);
     });
   };
 
@@ -202,6 +206,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
       }).catch(() => null);
       await this.applyDiscountCode('');
       clearStoredRedemption();
+      delete this.dataset.applied;
       this.refs.remove.hidden = true;
       await this.load();
     });
@@ -279,7 +284,14 @@ class EarthenLoyaltyWidget extends HTMLElement {
   }
 
   resetRedeemControls() {
+    delete this.dataset.applied;
     if (this.refs.redeem) this.refs.redeem.hidden = true;
+    if (this.refs.applied) {
+      this.refs.applied.hidden = true;
+      this.refs.applied.textContent = '';
+    }
+    if (this.refs.rangeRow) this.refs.rangeRow.hidden = false;
+    if (this.refs.apply) this.refs.apply.hidden = false;
     if (this.refs.remove) this.refs.remove.hidden = true;
     if (this.refs.range) {
       this.refs.range.max = '0';
@@ -348,4 +360,81 @@ function clearStoredRedemption() {
 
 if (!customElements.get('earthen-loyalty-widget')) {
   customElements.define('earthen-loyalty-widget', EarthenLoyaltyWidget);
+}
+
+class EarthenLoyaltyLauncher extends HTMLElement {
+  connectedCallback() {
+    this.refs = {
+      button: this.querySelector('[data-loyalty-launcher-button]'),
+      panel: this.querySelector('[data-loyalty-launcher-panel]'),
+      close: this.querySelector('[data-loyalty-launcher-close]'),
+      value: this.querySelector('[data-loyalty-launcher-value]'),
+      message: this.querySelector('[data-loyalty-launcher-message]'),
+      signin: this.querySelector('[data-loyalty-launcher-signin]'),
+    };
+
+    this.refs.button?.addEventListener('click', this.togglePanel);
+    this.refs.close?.addEventListener('click', this.closePanel);
+    this.load();
+  }
+
+  disconnectedCallback() {
+    this.refs?.button?.removeEventListener('click', this.togglePanel);
+    this.refs?.close?.removeEventListener('click', this.closePanel);
+  }
+
+  async load() {
+    try {
+      const customer = await this.request('/apps/loyalty/customer');
+      if (!customer.ok) return;
+
+      this.applyTheme(customer.widget);
+      this.hidden = false;
+
+      if (!customer.loggedIn) {
+        this.refs.value.textContent = 'Rewards';
+        this.refs.message.textContent = customer.message || 'Sign in to see your Earthen Points and earn rewards on every order.';
+        this.refs.signin.hidden = false;
+        return;
+      }
+
+      this.refs.value.textContent = `${customer.availablePoints || 0} pts`;
+      this.refs.message.textContent =
+        customer.message ||
+        `You have ${customer.availablePoints || 0} Earthen Points worth ${formatMoney(customer.availableValue || 0)}.`;
+      this.refs.signin.hidden = true;
+    } catch (error) {
+      this.hidden = true;
+    }
+  }
+
+  togglePanel = () => {
+    const open = this.refs.panel.hidden;
+    this.refs.panel.hidden = !open;
+    this.refs.button.setAttribute('aria-expanded', String(open));
+  };
+
+  closePanel = () => {
+    this.refs.panel.hidden = true;
+    this.refs.button.setAttribute('aria-expanded', 'false');
+  };
+
+  async request(path) {
+    const response = await fetch(path, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    if (!response.ok) throw new Error('Loyalty request failed.');
+    return response.json();
+  }
+
+  applyTheme(widget = {}) {
+    if (widget.primaryColor) this.style.setProperty('--loyalty-primary', widget.primaryColor);
+    if (widget.accentColor) this.style.setProperty('--loyalty-accent', widget.accentColor);
+    if (widget.backgroundColor) this.style.setProperty('--loyalty-background', widget.backgroundColor);
+  }
+}
+
+if (!customElements.get('earthen-loyalty-launcher')) {
+  customElements.define('earthen-loyalty-launcher', EarthenLoyaltyLauncher);
 }

@@ -15,12 +15,23 @@
   endfor
 
   assign discount_codes = discount_codes | uniq
+  assign loyalty_discount_applied = false
+  assign manual_discount_count = 0
+
+  for discount_code in discount_codes
+    assign discount_prefix = discount_code | slice: 0, 8
+    if discount_prefix == 'ESPOINTS'
+      assign loyalty_discount_applied = true
+    else
+      assign manual_discount_count = manual_discount_count | plus: 1
+    endif
+  endfor
 
   # Evaluate the boolean expression for the disclosure state
-  if discount_codes.size == 0
-    assign disclosure_expanded = false
-  else
+  if manual_discount_count > 0
     assign disclosure_expanded = true
+  else
+    assign disclosure_expanded = false
   endif
 %}
 <disclosure-custom class="cart-discount">
@@ -34,37 +45,43 @@
     <cart-discount-component
       data-section-id="{{ section_id }}"
     >
-      <p class="cart-discount__hint">
-        Get your discount code from the Rewards button, bottom-right corner.
-      </p>
-      <div class="cart-discount__content">
-        <form
-          on:submit="/applyDiscount"
-          onsubmit="return false;"
-          class="cart-discount__form"
-        >
-          <label
-            for="cart-discount"
-            class="visually-hidden"
+      {% if loyalty_discount_applied %}
+        <p class="cart-discount__status">
+          Earthen Points discount is applied automatically. Use the Earthen Points card above to remove or change it.
+        </p>
+      {% else %}
+        <p class="cart-discount__hint">
+          Enter a discount code.
+        </p>
+        <div class="cart-discount__content">
+          <form
+            on:submit="/applyDiscount"
+            onsubmit="return false;"
+            class="cart-discount__form"
           >
-            {{- 'accessibility.discount' | t -}}
-          </label>
-          <input
-            id="cart-discount"
-            class="cart-discount__input"
-            type="text"
-            name="discount"
-            placeholder="{{ 'content.discount_code' | t }}"
-            required
-          >
-          <button
-            type="submit"
-            class="button button--primary cart-discount__button"
-          >
-            {{ 'actions.apply' | t }}
-          </button>
-        </form>
-      </div>
+            <label
+              for="cart-discount"
+              class="visually-hidden"
+            >
+              {{- 'accessibility.discount' | t -}}
+            </label>
+            <input
+              id="cart-discount"
+              class="cart-discount__input"
+              type="text"
+              name="discount"
+              placeholder="{{ 'content.discount_code' | t }}"
+              required
+            >
+            <button
+              type="submit"
+              class="button button--primary cart-discount__button"
+            >
+              {{ 'actions.apply' | t }}
+            </button>
+          </form>
+        </div>
+      {% endif %}
       <div
         class="cart-discount__error hidden"
         role="alert"
@@ -88,6 +105,10 @@
       </div>
       <ul class="cart-discount__codes">
         {% for discount_code in discount_codes %}
+          {% assign discount_prefix = discount_code | slice: 0, 8 %}
+          {% if discount_prefix == 'ESPOINTS' %}
+            {% continue %}
+          {% endif %}
           <li
             class="cart-discount__pill"
             data-discount-code="{{ discount_code }}"
@@ -133,6 +154,18 @@
 
   .cart-discount__input::placeholder {
     color: rgb(var(--color-input-text-rgb) / var(--opacity-subdued-text));
+  }
+
+  .cart-discount__hint,
+  .cart-discount__status {
+    margin: 0 0 var(--padding-sm);
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text));
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .cart-discount__status {
+    color: var(--loyalty-primary, #1c6b3a);
   }
 
   .cart-discount__pill-code {

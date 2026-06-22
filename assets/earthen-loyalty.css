@@ -73,6 +73,16 @@
   margin-top: 12px;
 }
 
+.earthen-loyalty__applied-summary {
+  width: 100%;
+  border-radius: 8px;
+  background: rgba(28, 107, 58, 0.08);
+  color: var(--loyalty-primary, #1c6b3a);
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .earthen-loyalty__range-row {
   align-items: center;
 }
@@ -116,6 +126,140 @@
   cursor: not-allowed;
 }
 
+.earthen-loyalty-launcher {
+  --loyalty-primary: #1c6b3a;
+  --loyalty-accent: #b8841e;
+  --loyalty-background: #fffaf0;
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  font-family: var(--font-body--family, inherit);
+}
+
+.earthen-loyalty-launcher[hidden] {
+  display: none;
+}
+
+.earthen-loyalty-launcher__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  background: var(--loyalty-primary);
+  color: #fff;
+  box-shadow: 0 10px 28px rgba(17, 37, 87, 0.22);
+  padding: 8px 15px 8px 9px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.earthen-loyalty-launcher__mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--loyalty-primary);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+.earthen-loyalty-launcher__value {
+  color: #f4d58c;
+  white-space: nowrap;
+}
+
+.earthen-loyalty-launcher__panel {
+  width: min(330px, calc(100vw - 32px));
+  border: 1px solid rgba(184, 132, 30, 0.32);
+  border-radius: 8px;
+  background: var(--loyalty-background);
+  box-shadow: 0 18px 42px rgba(17, 37, 87, 0.18);
+  padding: 16px;
+  color: rgb(var(--color-foreground-rgb, 18 18 18));
+}
+
+.earthen-loyalty-launcher__panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.earthen-loyalty-launcher__eyebrow {
+  margin: 0 0 3px;
+  color: var(--loyalty-accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.earthen-loyalty-launcher__title {
+  margin: 0;
+  color: var(--loyalty-primary);
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.earthen-loyalty-launcher__close {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(28, 107, 58, 0.24);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--loyalty-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.earthen-loyalty-launcher__message {
+  margin: 12px 0 0;
+  color: #5c5d64;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.earthen-loyalty-launcher__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.earthen-loyalty-launcher__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  border: 1px solid var(--loyalty-primary);
+  border-radius: 8px;
+  background: var(--loyalty-primary);
+  color: #fff;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.earthen-loyalty-launcher__link--secondary {
+  background: transparent;
+  color: var(--loyalty-primary);
+}
+
 @media (max-width: 768px) {
   .earthen-loyalty--homepage {
     padding-inline: 16px;
@@ -129,5 +273,14 @@
 
   .earthen-loyalty__value {
     white-space: normal;
+  }
+
+  .earthen-loyalty-launcher {
+    right: 16px;
+    bottom: 16px;
+  }
+
+  .earthen-loyalty-launcher__label {
+    display: none;
   }
 }
