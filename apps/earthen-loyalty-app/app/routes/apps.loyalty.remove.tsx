@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { ActionFunctionArgs } from "react-router";
 import db from "../db.server";
+import { unauthenticated } from "../shopify.server";
 import {
   authenticateAppProxyRequest,
   jsonError,
@@ -23,8 +24,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       return jsonError("Sign in to manage Earthen points", 401);
     }
 
+    const { admin } = await unauthenticated.admin(context.shop);
     const result = await releaseRedemption({
       db,
+      admin,
       shopDomain: context.shop,
       shopifyCustomerId: context.loggedInCustomerId,
       sessionId: body.sessionId,

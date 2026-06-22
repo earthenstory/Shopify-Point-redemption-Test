@@ -236,3 +236,65 @@ Live import result:
 - Wallet pending points total: 0
 
 The import was run through Cloud SQL Auth Proxy on `127.0.0.1:5433`; no public authorized network was opened for the database.
+
+### Draft Theme And Loyalty QA Summary
+
+Updated `/Users/shashank/Downloads/loyalty-program-plan.md` with an `Executed Test Cases To Date` section under `Testing Plan`.
+
+Latest validation summary:
+
+- Backend `npm test`: 22 tests passed.
+- Backend `npm run typecheck`: passed.
+- Draft theme browser journeys passed for anonymous, existing customer with points, and zero-point customer.
+- Homepage, product page, cart page, and account/header loyalty widget surfaces were verified in the draft theme.
+- Cart redemption slider was tested with an existing-points customer: selected `80` points, called the redeem endpoint, and sent the generated discount code to Shopify `/cart/update`.
+- Mobile layout was checked for homepage, product page, and cart page.
+- Fixes from QA:
+  - persisted applied redemption UI across Shopify cart refresh,
+  - removed duplicate cart widget placement,
+  - added product widget to the active product section,
+  - widened the mobile product widget layout.
+
+Remaining launch checks:
+
+- Disable the old BON storefront widget/app embed.
+- Run final real customer-session checkout tests.
+- Test Apple Pay, Google Pay, and Shop Pay express checkout behavior.
+- Run final production migration reconciliation immediately before cutover.
+
+### Pending QA Completion Pass
+
+Completed an additional pending-test pass and updated `/Users/shashank/Downloads/loyalty-program-plan.md` under `Pending Test Case Completion Pass - 2026-06-22`.
+
+Backend fixes deployed:
+
+- Block duplicate active redemption sessions for the same customer/cart.
+- Deactivate the Shopify discount code via `discountCodeDeactivate` before releasing a redemption through Remove.
+- On `orders/paid`, consume only the actually allocated discount amount and release unused reserved points.
+
+Validation:
+
+- Backend `npm test`: 29 tests passed.
+- Backend `npm run typecheck`: passed.
+- Live Cloud Run revision: `earthen-loyalty-app-00008-zlw`, serving 100% traffic.
+- Live signed app-proxy replay test:
+  - first QA redemption succeeded,
+  - second same-cart redemption was rejected,
+  - Remove released the reservation.
+- Live signed app-proxy tamper test:
+  - valid signed request succeeded,
+  - modified `logged_in_customer_id` with stale signature returned `401`.
+- Live create/remove test after deactivation fix succeeded.
+- Draft theme browser journeys passed again for anonymous, with-points, and zero-point customers.
+
+Still genuinely pending:
+
+- Real paid order checkout test.
+- Promo-code stacking test.
+- Express checkout tests.
+- Customer account switch test.
+- Empty-cart automatic revalidation/release.
+- Interrupted cart apply recovery.
+- `orders/edited` handling or documented manual adjustment process.
+- FIFO lot consumption.
+- Admin adjustment/session UI edge cases.

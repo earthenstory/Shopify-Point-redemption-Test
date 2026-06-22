@@ -193,15 +193,29 @@ export async function processOrderPaid(
 
   if (!session?.customer.wallet) return "ignored";
 
-  const pointsToConsume =
+  const remainingReservedPoints =
     session.pointsReserved - session.pointsConsumed - session.pointsReleased;
-  if (pointsToConsume <= 0) return "processed";
+  if (remainingReservedPoints <= 0) return "processed";
+
+  const discountAmountUsed = Number(
+    actualDiscountAmount ?? session.discountAmount,
+  );
+  const pointsToConsume = Math.min(
+    remainingReservedPoints,
+    Math.floor(
+      discountAmountUsed / confirmedBonDefaults.currencyValuePerPoint,
+    ),
+  );
+  const pointsToRelease = remainingReservedPoints - pointsToConsume;
 
   await db.$transaction(async (tx) => {
     await tx.wallet.update({
       where: { id: session.customer.wallet!.id },
       data: {
-        pendingPoints: { decrement: pointsToConsume },
+        ...(pointsToRelease > 0
+          ? { availablePoints: { increment: pointsToRelease } }
+          : {}),
+        pendingPoints: { decrement: remainingReservedPoints },
         lifetimeRedeemedPoints: { increment: pointsToConsume },
       },
     });
@@ -210,7 +224,8 @@ export async function processOrderPaid(
       where: { id: session.id },
       data: {
         pointsConsumed: { increment: pointsToConsume },
-        actualDiscountAmount: actualDiscountAmount ?? session.discountAmount,
+        pointsReleased: { increment: pointsToRelease },
+        actualDiscountAmount: discountAmountUsed,
         shopifyOrderId: orderId,
         status: "consumed",
       },
@@ -224,7 +239,7 @@ export async function processOrderPaid(
         shopifyOrderId: orderId,
         type: "redeem_consume",
         pointsDelta: 0,
-        moneyValue: actualDiscountAmount ?? session.discountAmount,
+        moneyValue: discountAmountUsed,
         currency: session.currency,
         description: "Consumed reserved points on paid order",
         metadata: {
@@ -233,6 +248,29 @@ export async function processOrderPaid(
         },
       },
     });
+
+    if (pointsToRelease > 0) {
+      await tx.ledgerEntry.create({
+        data: {
+          customerId: session.customerId,
+          walletId: session.customer.wallet!.id,
+          redemptionSessionId: session.id,
+          shopifyOrderId: orderId,
+          type: "redeem_release",
+          pointsDelta: pointsToRelease,
+          moneyValue:
+            pointsToRelease * confirmedBonDefaults.currencyValuePerPoint,
+          currency: session.currency,
+          description:
+            "Released unused reserved points after paid order discount allocation",
+          metadata: {
+            discountCode,
+            orderSubtotal: subtotal,
+            discountAmountUsed,
+          },
+        },
+      });
+    }
   });
 
   return "processed";

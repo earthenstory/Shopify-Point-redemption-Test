@@ -75,6 +75,22 @@ export async function createRedemption(input: {
     throw new Error("Your points are still being prepared.");
   }
 
+  const activeSession = await input.db.redemptionSession.findFirst({
+    where: {
+      customerId: loyaltyCustomer.id,
+      cartToken: input.cart.token,
+      status: { in: ["pending", "applied"] },
+      expiresAt: { gt: new Date() },
+    },
+    select: { id: true },
+  });
+
+  if (activeSession) {
+    throw new Error(
+      "You already have points applied to this cart. Remove them before applying again.",
+    );
+  }
+
   const pointsToReserve = normalizeRedeemPoints(
     Math.min(
       input.requestedPoints,
@@ -194,6 +210,7 @@ export async function createRedemption(input: {
 
 export async function releaseRedemption(input: {
   db: PrismaClient;
+  admin?: AdminApiContext;
   shopDomain: string;
   shopifyCustomerId: string;
   sessionId?: string | null;
@@ -222,6 +239,13 @@ export async function releaseRedemption(input: {
   const pointsToRelease = session.pointsReserved - session.pointsConsumed;
   if (pointsToRelease <= 0) {
     return { released: false };
+  }
+
+  if (input.admin && session.shopifyDiscountNodeId) {
+    await deactivateShopifyDiscountCode({
+      admin: input.admin,
+      discountNodeId: session.shopifyDiscountNodeId,
+    });
   }
 
   await input.db.$transaction(async (tx) => {
@@ -256,6 +280,50 @@ export async function releaseRedemption(input: {
   });
 
   return { released: true };
+}
+
+async function deactivateShopifyDiscountCode(input: {
+  admin: AdminApiContext;
+  discountNodeId: string;
+}): Promise<void> {
+  const response = await input.admin.graphql(
+    `#graphql
+    mutation LoyaltyDiscountCodeDeactivate($id: ID!) {
+      discountCodeDeactivate(id: $id) {
+        codeDiscountNode {
+          id
+        }
+        userErrors {
+          field
+          code
+          message
+        }
+      }
+    }`,
+    {
+      variables: {
+        id: input.discountNodeId,
+      },
+    },
+  );
+
+  const json = (await response.json()) as {
+    data?: {
+      discountCodeDeactivate?: {
+        codeDiscountNode?: { id?: string };
+        userErrors?: Array<{ message: string }>;
+      };
+    };
+    errors?: Array<{ message: string }>;
+  };
+  const result = json.data?.discountCodeDeactivate;
+  const errors = result?.userErrors ?? json.errors;
+
+  if (errors?.length) {
+    throw new Error(
+      errors.map((error: { message: string }) => error.message).join("; "),
+    );
+  }
 }
 
 async function createShopifyDiscountCode(input: {

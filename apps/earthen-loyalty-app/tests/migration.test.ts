@@ -28,6 +28,21 @@ describe("BON balance migration validation", () => {
     expect(result.totalPoints).toBe(300);
   });
 
+  it("accepts zero-balance migrated customers and includes them in valid rows", () => {
+    const result = validateBonBalanceRows([
+      { shopifyCustomerId: "123", email: "zero@example.com", points: 0 },
+      { shopifyCustomerId: "456", email: "points@example.com", points: 75 },
+    ]);
+
+    expect(result.invalidRows).toHaveLength(0);
+    expect(result.validRows).toHaveLength(2);
+    expect(result.validRows[0]).toMatchObject({
+      shopifyCustomerId: "123",
+      points: 0,
+    });
+    expect(result.totalPoints).toBe(75);
+  });
+
   it("rejects negative or fractional point balances", () => {
     const result = validateBonBalanceRows([
       { email: "a@example.com", points: -1 },
