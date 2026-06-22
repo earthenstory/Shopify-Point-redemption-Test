@@ -3,11 +3,15 @@ import { morphSection } from '@theme/section-renderer';
 import { fetchConfig } from '@theme/utilities';
 
 const STORAGE_KEY = 'earthen_loyalty_redemption';
+const CUSTOMER_CACHE_TTL_MS = 30000;
 const CURRENCY_FORMATTER = new Intl.NumberFormat('en-IN', {
   style: 'currency',
   currency: 'INR',
   maximumFractionDigits: 0,
 });
+
+let customerCache = null;
+let customerRequest = null;
 
 class EarthenLoyaltyWidget extends HTMLElement {
   connectedCallback() {
@@ -48,9 +52,19 @@ class EarthenLoyaltyWidget extends HTMLElement {
   async load() {
     const requestId = (this.loadRequestId || 0) + 1;
     this.loadRequestId = requestId;
+    const storedRedemption = this.dataset.context === 'cart' ? getActiveStoredRedemption() : null;
 
     try {
-      const customer = await this.request('/apps/loyalty/customer');
+      if (storedRedemption?.discountCode) {
+        this.hidden = false;
+        const cachedCustomer = getCachedCustomer();
+        if (cachedCustomer?.widget) this.applyTheme(cachedCustomer.widget);
+        this.resetRedeemControls();
+        this.renderStoredRedemption(storedRedemption, 0);
+        return;
+      }
+
+      const customer = await fetchCustomerSnapshot();
       if (requestId !== this.loadRequestId || !this.isConnected) return;
 
       if (!customer.ok) return;
@@ -93,7 +107,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
   }
 
   async loadCartRedemption(customer, requestId) {
-    const stored = readStoredRedemption();
+    const stored = getActiveStoredRedemption();
 
     if (customer.availablePoints <= 0) {
       if (stored?.discountCode) this.renderStoredRedemption(stored, 0);
@@ -190,6 +204,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
         throw new Error(redemption.error || 'Could not apply points.');
       }
 
+      clearCustomerCache();
       writeStoredRedemption(redemption);
       await this.applyDiscountCode(redemption.discountCode);
       this.renderStoredRedemption(redemption, 0);
@@ -209,6 +224,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
       }).catch(() => null);
       await this.applyDiscountCode('');
       clearStoredRedemption();
+      clearCustomerCache();
       delete this.dataset.applied;
       this.refs.remove.hidden = true;
       await this.load();
@@ -247,6 +263,10 @@ class EarthenLoyaltyWidget extends HTMLElement {
       token: this.dataset.cartToken || null,
       subtotal: Math.max(0, Number(this.dataset.cartSubtotal || 0)),
     };
+
+    if (fallback.token || fallback.subtotal > 0) {
+      return fallback;
+    }
 
     try {
       const cart = await this.getCart();
@@ -344,6 +364,18 @@ function readStoredRedemption() {
   }
 }
 
+function getActiveStoredRedemption() {
+  const stored = readStoredRedemption();
+  if (!stored?.discountCode) return null;
+
+  if (stored.expiresAt && Date.parse(stored.expiresAt) <= Date.now()) {
+    clearStoredRedemption();
+    return null;
+  }
+
+  return stored;
+}
+
 function writeStoredRedemption(redemption) {
   window.localStorage.setItem(
     STORAGE_KEY,
@@ -360,6 +392,47 @@ function writeStoredRedemption(redemption) {
 function clearStoredRedemption() {
   window.localStorage.removeItem(STORAGE_KEY);
 }
+
+function getCachedCustomer() {
+  if (!customerCache) return null;
+  if (Date.now() - customerCache.createdAt > CUSTOMER_CACHE_TTL_MS) return null;
+  return customerCache.data;
+}
+
+async function fetchCustomerSnapshot() {
+  const cachedCustomer = getCachedCustomer();
+  if (cachedCustomer) return cachedCustomer;
+  if (customerRequest) return customerRequest;
+
+  customerRequest = fetch('/apps/loyalty/customer', {
+    headers: { Accept: 'application/json' },
+    cache: 'no-store',
+  })
+    .then(async (response) => {
+      if (!response.ok) throw new Error('Loyalty request failed.');
+      const data = await response.json();
+      customerCache = {
+        createdAt: Date.now(),
+        data,
+      };
+      return data;
+    })
+    .finally(() => {
+      customerRequest = null;
+    });
+
+  return customerRequest;
+}
+
+function clearCustomerCache() {
+  customerCache = null;
+  customerRequest = null;
+}
+
+window.EarthenLoyalty = {
+  ...(window.EarthenLoyalty || {}),
+  clearCustomerCache,
+};
 
 if (!customElements.get('earthen-loyalty-widget')) {
   customElements.define('earthen-loyalty-widget', EarthenLoyaltyWidget);
@@ -388,7 +461,7 @@ class EarthenLoyaltyLauncher extends HTMLElement {
 
   async load() {
     try {
-      const customer = await this.request('/apps/loyalty/customer');
+      const customer = await fetchCustomerSnapshot();
       if (!customer.ok) return;
 
       this.applyTheme(customer.widget);

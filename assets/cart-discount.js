@@ -266,6 +266,7 @@ function readStoredLoyaltyRedemption() {
 function clearStoredLoyaltyRedemption() {
   try {
     window.localStorage.removeItem(LOYALTY_STORAGE_KEY);
+    window.EarthenLoyalty?.clearCustomerCache?.();
   } catch (error) {
   }
 }
