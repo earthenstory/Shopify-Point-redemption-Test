@@ -11,19 +11,32 @@ import {
 } from "react-router";
 import { useState } from "react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
+import {
+  EmptyState,
+  formatDate,
+  formatDateTime,
+  formatNumber,
+  formatSigned,
+  MetricCard,
+  MetricGrid,
+  shortId,
+  StatusBadge,
+} from "../components/loyalty-admin-ui";
 import db from "../db.server";
 import { releaseRedemption } from "../loyalty/redemptions";
 import { formNumber } from "../loyalty/settings";
 import { authenticate, unauthenticated } from "../shopify.server";
 
-const PAGE_SIZE = 25;
+const DEFAULT_PAGE_SIZE = 25;
+const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const url = new URL(request.url);
   const query = url.searchParams.get("q")?.trim() ?? "";
+  const pageSize = parsePageSize(url.searchParams.get("limit"));
   const requestedPage = Number(url.searchParams.get("page") ?? "1");
-  const page = Number.isFinite(requestedPage)
+  const rawPage = Number.isFinite(requestedPage)
     ? Math.max(1, Math.floor(requestedPage))
     : 1;
   const selectedCustomerId = url.searchParams.get("customerId");
@@ -42,8 +55,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       : {}),
   };
 
-  const [customers, totalCustomers, walletTotals, selectedCustomer] =
-    await Promise.all([
+  const totalCustomers = await db.loyaltyCustomer.count({ where });
+  const totalPages = Math.max(1, Math.ceil(totalCustomers / pageSize));
+  const page = Math.min(rawPage, totalPages);
+
+  const [customers, walletTotals, selectedCustomer] = await Promise.all([
       db.loyaltyCustomer.findMany({
         where,
         include: {
@@ -56,10 +72,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           },
         },
         orderBy: [{ createdAt: "desc" }, { email: "asc" }],
-        skip: (page - 1) * PAGE_SIZE,
-        take: PAGE_SIZE,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
       }),
-      db.loyaltyCustomer.count({ where }),
       db.wallet.aggregate({
         where: { customer: { shopDomain: session.shop } },
         _sum: {
@@ -90,13 +105,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     ]);
 
   const hasPreviousPage = page > 1;
-  const hasNextPage = page * PAGE_SIZE < totalCustomers;
+  const hasNextPage = page < totalPages;
 
   return {
     query,
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
     totalCustomers,
+    totalPages,
     hasPreviousPage,
     hasNextPage,
     totals: {
@@ -290,52 +306,43 @@ export default function CustomersPage() {
       </s-section>
 
       <s-section heading="Program totals">
-        <div
-          style={{
-            display: "grid",
-            gap: 12,
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          }}
-        >
-          <Metric label="Customers" value={formatNumber(data.totals.walletCount)} />
-          <Metric
+        <MetricGrid>
+          <MetricCard
+            label="Customers"
+            value={formatNumber(data.totals.walletCount)}
+            detail={`${formatNumber(data.totalCustomers)} visible in this view`}
+            tone="info"
+          />
+          <MetricCard
             label="Available points"
             value={formatNumber(data.totals.availablePoints)}
+            detail="Ready to redeem"
+            tone="success"
           />
-          <Metric
+          <MetricCard
             label="Pending points"
             value={formatNumber(data.totals.pendingPoints)}
+            detail="Reserved in active carts"
+            tone={data.totals.pendingPoints > 0 ? "warning" : "neutral"}
           />
-          <Metric
+          <MetricCard
             label="Lifetime redeemed"
             value={formatNumber(data.totals.lifetimeRedeemedPoints)}
+            detail="Consumed through orders"
           />
-        </div>
+        </MetricGrid>
       </s-section>
 
       <s-section heading="Customers">
-        <s-stack direction="inline" gap="base" justifyContent="space-between">
-          <s-paragraph>
-            Displaying {data.customers.length} of {data.totalCustomers} customers
-            {data.query ? ` matching "${data.query}"` : ""}.
-          </s-paragraph>
-          <s-button-group>
-            <s-button
-              href={pageHref(data.page - 1, data.query)}
-              disabled={!data.hasPreviousPage}
-              variant="secondary"
-            >
-              Previous
-            </s-button>
-            <s-button
-              href={pageHref(data.page + 1, data.query)}
-              disabled={!data.hasNextPage}
-              variant="secondary"
-            >
-              Next
-            </s-button>
-          </s-button-group>
-        </s-stack>
+        <CustomerPagination
+          hasNextPage={data.hasNextPage}
+          hasPreviousPage={data.hasPreviousPage}
+          page={data.page}
+          pageSize={data.pageSize}
+          query={data.query}
+          totalCustomers={data.totalCustomers}
+          totalPages={data.totalPages}
+        />
 
         {data.customers.length > 0 ? (
           <s-table variant="auto">
@@ -355,9 +362,9 @@ export default function CustomersPage() {
                     <CustomerIdentity customer={customer} />
                   </s-table-cell>
                   <s-table-cell>
-                    <s-badge tone={customer.status === "active" ? "success" : "warning"}>
+                    <StatusBadge tone={customer.status === "active" ? "success" : "warning"}>
                       {customer.status === "active" ? "Included" : customer.status}
-                    </s-badge>
+                    </StatusBadge>
                   </s-table-cell>
                   <s-table-cell>{formatNumber(customer.availablePoints)}</s-table-cell>
                   <s-table-cell>{formatNumber(customer.pendingPoints)}</s-table-cell>
@@ -367,7 +374,12 @@ export default function CustomersPage() {
                   <s-table-cell>{formatDate(customer.createdAt)}</s-table-cell>
                   <s-table-cell>
                     <s-button
-                      href={customerHref(customer.id, data.page, data.query)}
+                      href={customerHref(
+                        customer.id,
+                        data.page,
+                        data.query,
+                        data.pageSize,
+                      )}
                       variant="secondary"
                     >
                       View
@@ -378,43 +390,55 @@ export default function CustomersPage() {
             </s-table-body>
           </s-table>
         ) : (
-          <s-paragraph>No loyalty customers matched this view.</s-paragraph>
+          <EmptyState
+            heading="No customers found"
+            message="Change the search term or clear filters to return to the full loyalty customer list."
+          />
         )}
+        <CustomerPagination
+          hasNextPage={data.hasNextPage}
+          hasPreviousPage={data.hasPreviousPage}
+          page={data.page}
+          pageSize={data.pageSize}
+          query={data.query}
+          totalCustomers={data.totalCustomers}
+          totalPages={data.totalPages}
+        />
       </s-section>
 
       {data.selectedCustomer ? (
         <>
           <s-section heading="Selected customer">
-            <div
-              style={{
-                display: "grid",
-                gap: 12,
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-              }}
-            >
-              <Metric
+            <MetricGrid>
+              <MetricCard
                 label="Available"
                 value={formatNumber(
                   data.selectedCustomer.wallet?.availablePoints ?? 0,
                 )}
+                tone="success"
               />
-              <Metric
+              <MetricCard
                 label="Pending"
                 value={formatNumber(data.selectedCustomer.wallet?.pendingPoints ?? 0)}
+                tone={
+                  (data.selectedCustomer.wallet?.pendingPoints ?? 0) > 0
+                    ? "warning"
+                    : "neutral"
+                }
               />
-              <Metric
+              <MetricCard
                 label="Lifetime earned"
                 value={formatNumber(
                   data.selectedCustomer.wallet?.lifetimeEarnedPoints ?? 0,
                 )}
               />
-              <Metric
+              <MetricCard
                 label="Lifetime redeemed"
                 value={formatNumber(
                   data.selectedCustomer.wallet?.lifetimeRedeemedPoints ?? 0,
                 )}
               />
-            </div>
+            </MetricGrid>
             <s-unordered-list>
               <s-list-item>
                 Customer: <CustomerName customer={data.selectedCustomer} />
@@ -544,18 +568,125 @@ export default function CustomersPage() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function CustomerPagination({
+  hasNextPage,
+  hasPreviousPage,
+  page,
+  pageSize,
+  query,
+  totalCustomers,
+  totalPages,
+}: {
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  page: number;
+  pageSize: number;
+  query: string;
+  totalCustomers: number;
+  totalPages: number;
+}) {
+  const pages = visiblePageNumbers(page, totalPages);
+
   return (
     <div
       style={{
-        border: "1px solid #e3e3e3",
-        borderRadius: 8,
-        padding: 12,
-        background: "#fff",
+        alignItems: "center",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 12,
+        justifyContent: "space-between",
+        margin: "12px 0",
       }}
     >
-      <s-text color="subdued">{label}</s-text>
-      <div style={{ fontSize: 22, fontWeight: 650, marginTop: 4 }}>{value}</div>
+      <s-text color="subdued">
+        Page {page} of {totalPages} · {formatNumber(totalCustomers)} customers
+      </s-text>
+
+      <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: 8 }}>
+        <s-button
+          href={pageHref(1, query, pageSize)}
+          disabled={!hasPreviousPage}
+          variant="secondary"
+        >
+          First
+        </s-button>
+        <s-button
+          href={pageHref(page - 1, query, pageSize)}
+          disabled={!hasPreviousPage}
+          variant="secondary"
+        >
+          Previous
+        </s-button>
+        {pages.map((item, index) =>
+          item === "ellipsis" ? (
+            <span key={`ellipsis-${index}`} style={{ padding: "0 4px" }}>
+              ...
+            </span>
+          ) : (
+            <s-button
+              key={item}
+              href={pageHref(item, query, pageSize)}
+              variant={item === page ? "primary" : "secondary"}
+            >
+              {item}
+            </s-button>
+          ),
+        )}
+        <s-button
+          href={pageHref(page + 1, query, pageSize)}
+          disabled={!hasNextPage}
+          variant="secondary"
+        >
+          Next
+        </s-button>
+        <s-button
+          href={pageHref(totalPages, query, pageSize)}
+          disabled={!hasNextPage}
+          variant="secondary"
+        >
+          Last
+        </s-button>
+      </div>
+
+      <div style={{ alignItems: "end", display: "flex", flexWrap: "wrap", gap: 8 }}>
+        <Form method="get">
+          {query ? <input type="hidden" name="q" value={query} /> : null}
+          <input type="hidden" name="page" value="1" />
+          <s-stack direction="inline" gap="small" alignItems="end">
+            <div style={{ width: 116 }}>
+              <s-select name="limit" label="Rows" value={String(pageSize)}>
+                {PAGE_SIZE_OPTIONS.map((option) => (
+                  <s-option key={option} value={String(option)}>
+                    {option}
+                  </s-option>
+                ))}
+              </s-select>
+            </div>
+            <s-button type="submit" variant="secondary">
+              Apply
+            </s-button>
+          </s-stack>
+        </Form>
+
+        <Form method="get">
+          {query ? <input type="hidden" name="q" value={query} /> : null}
+          <input type="hidden" name="limit" value={String(pageSize)} />
+          <s-stack direction="inline" gap="small" alignItems="end">
+            <div style={{ width: 116 }}>
+              <s-number-field
+                label="Go to"
+                max={totalPages}
+                min={1}
+                name="page"
+                value={String(page)}
+              ></s-number-field>
+            </div>
+            <s-button type="submit" variant="secondary">
+              Go
+            </s-button>
+          </s-stack>
+        </Form>
+      </div>
     </div>
   );
 }
@@ -602,51 +733,52 @@ function CustomerName({
   return <>{fullName || customer.email || customer.phone || customer.shopifyCustomerId}</>;
 }
 
-function pageHref(page: number, query: string) {
+function parsePageSize(value: string | null) {
+  const parsed = Number(value);
+  return PAGE_SIZE_OPTIONS.includes(parsed as (typeof PAGE_SIZE_OPTIONS)[number])
+    ? parsed
+    : DEFAULT_PAGE_SIZE;
+}
+
+function pageHref(page: number, query: string, pageSize: number) {
   const params = new URLSearchParams();
   if (query) params.set("q", query);
   params.set("page", String(Math.max(1, page)));
+  params.set("limit", String(pageSize));
   return `/app/customers?${params.toString()}`;
 }
 
-function customerHref(customerId: string, page: number, query: string) {
+function customerHref(
+  customerId: string,
+  page: number,
+  query: string,
+  pageSize: number,
+) {
   const params = new URLSearchParams();
   if (query) params.set("q", query);
   params.set("page", String(page));
+  params.set("limit", String(pageSize));
   params.set("customerId", customerId);
   return `/app/customers?${params.toString()}`;
 }
 
-function formatNumber(value: number) {
-  return new Intl.NumberFormat("en-IN").format(value);
-}
+function visiblePageNumbers(currentPage: number, totalPages: number) {
+  const pages = new Set([1, totalPages]);
+  for (
+    let page = Math.max(1, currentPage - 2);
+    page <= Math.min(totalPages, currentPage + 2);
+    page += 1
+  ) {
+    pages.add(page);
+  }
 
-function formatSigned(value: number) {
-  return `${value > 0 ? "+" : ""}${formatNumber(value)}`;
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "Asia/Kolkata",
-  }).format(new Date(value));
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Asia/Kolkata",
-  }).format(new Date(value));
-}
-
-function shortId(id: string) {
-  return id.length > 12 ? `${id.slice(0, 8)}...${id.slice(-4)}` : id;
+  const sorted = Array.from(pages).sort((left, right) => left - right);
+  return sorted.flatMap((page, index) => {
+    const previous = sorted[index - 1];
+    return previous && page - previous > 1
+      ? (["ellipsis", page] as const)
+      : ([page] as const);
+  });
 }
 
 export const headers: HeadersFunction = (headersArgs) => {
