@@ -11,10 +11,10 @@ import {
 } from "../components/loyalty-admin-ui";
 import db from "../db.server";
 import { getLoyaltyRuntimeSettings } from "../loyalty/settings";
-import { authenticate, unauthenticated } from "../shopify.server";
+import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const settings = await getLoyaltyRuntimeSettings({
     db,
     shopDomain: session.shop,
@@ -30,9 +30,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   try {
-    const { admin } = await unauthenticated.admin(session.shop);
-    const response = await admin.graphql(`#graphql { shop { id name } }`);
-    adminApiOk = response.ok;
+    const response = await admin.graphql(`#graphql
+      query LoyaltyHealthShop {
+        shop {
+          id
+          name
+        }
+      }
+    `);
+    const payload = (await response.json().catch(() => null)) as {
+      errors?: unknown;
+    } | null;
+    adminApiOk = response.ok && !payload?.errors;
   } catch {
     adminApiOk = false;
   }
