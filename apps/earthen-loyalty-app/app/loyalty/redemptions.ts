@@ -5,8 +5,10 @@ import {
   calculateMaxRedeemablePoints,
   calculateMinimumSubtotalForDiscount,
   confirmedBonDefaults,
+  type LoyaltyRules,
   normalizeRedeemPoints,
 } from "./rules";
+import { getLoyaltyRuntimeSettings } from "./settings";
 
 const REDEMPTION_TTL_MINUTES = 60;
 const CODE_PREFIX = "ESPOINTS";
@@ -26,24 +28,20 @@ export type RedemptionPreview = {
 export function previewRedemption(input: {
   availablePoints: number;
   cart: CartSnapshot;
+  rules?: LoyaltyRules;
 }): RedemptionPreview {
+  const rules = input.rules ?? confirmedBonDefaults;
   const maxRedeemablePoints = calculateMaxRedeemablePoints({
     availablePoints: input.availablePoints,
     eligibleCartSubtotal: input.cart.subtotal,
-    rules: confirmedBonDefaults,
+    rules,
   });
 
   return {
     maxRedeemablePoints,
-    discountAmount: calculateDiscountAmount(
-      maxRedeemablePoints,
-      confirmedBonDefaults,
-    ),
-    minimumSubtotal: calculateMinimumSubtotalForDiscount(
-      maxRedeemablePoints,
-      confirmedBonDefaults,
-    ),
-    currency: confirmedBonDefaults.currency,
+    discountAmount: calculateDiscountAmount(maxRedeemablePoints, rules),
+    minimumSubtotal: calculateMinimumSubtotalForDiscount(maxRedeemablePoints, rules),
+    currency: rules.currency,
   };
 }
 
@@ -75,6 +73,14 @@ export async function createRedemption(input: {
     throw new Error("Your points are still being prepared.");
   }
 
+  const settings = await getLoyaltyRuntimeSettings({
+    db: input.db,
+    shopDomain: input.shopDomain,
+  });
+  if (!settings.redemptionEnabled) {
+    throw new Error("Earthen Points redemption is currently paused.");
+  }
+
   const activeSession = await input.db.redemptionSession.findFirst({
     where: {
       customerId: loyaltyCustomer.id,
@@ -97,10 +103,10 @@ export async function createRedemption(input: {
       calculateMaxRedeemablePoints({
         availablePoints: loyaltyCustomer.wallet.availablePoints,
         eligibleCartSubtotal: input.cart.subtotal,
-        rules: confirmedBonDefaults,
+        rules: settings.rules,
       }),
     ),
-    confirmedBonDefaults,
+    settings.rules,
   );
 
   if (pointsToReserve <= 0) {
@@ -109,15 +115,15 @@ export async function createRedemption(input: {
 
   const discountAmount = calculateDiscountAmount(
     pointsToReserve,
-    confirmedBonDefaults,
+    settings.rules,
   );
   const minimumSubtotal = calculateMinimumSubtotalForDiscount(
     pointsToReserve,
-    confirmedBonDefaults,
+    settings.rules,
   );
   const discountCode = buildDiscountCode(input.shopifyCustomerId);
   const expiresAt = new Date(
-    Date.now() + REDEMPTION_TTL_MINUTES * 60 * 1000,
+    Date.now() + settings.discountCodeTtlMinutes * 60 * 1000,
   );
 
   const session = await input.db.$transaction(async (tx) => {
@@ -142,7 +148,7 @@ export async function createRedemption(input: {
         cartToken: input.cart.token,
         pointsReserved: pointsToReserve,
         discountAmount,
-        currency: confirmedBonDefaults.currency,
+        currency: settings.rules.currency,
         discountCode,
         status: "pending",
         expiresAt,
@@ -157,7 +163,7 @@ export async function createRedemption(input: {
         type: "redeem_reserve",
         pointsDelta: -pointsToReserve,
         moneyValue: discountAmount,
-        currency: confirmedBonDefaults.currency,
+        currency: settings.rules.currency,
         description: "Reserved points for cart redemption",
         metadata: {
           cartToken: input.cart.token,
@@ -179,6 +185,7 @@ export async function createRedemption(input: {
       discountAmount,
       minimumSubtotal,
       expiresAt,
+      allowDiscountStacking: settings.rules.allowDiscountStacking,
     });
 
     await input.db.redemptionSession.update({
@@ -334,6 +341,7 @@ async function createShopifyDiscountCode(input: {
   discountAmount: number;
   minimumSubtotal: number;
   expiresAt: Date;
+  allowDiscountStacking: boolean;
 }): Promise<string> {
   const response = await input.admin.graphql(
     `#graphql
@@ -359,9 +367,9 @@ async function createShopifyDiscountCode(input: {
           usageLimit: 1,
           appliesOncePerCustomer: true,
           combinesWith: {
-            orderDiscounts: false,
-            productDiscounts: false,
-            shippingDiscounts: false,
+            orderDiscounts: input.allowDiscountStacking,
+            productDiscounts: input.allowDiscountStacking,
+            shippingDiscounts: input.allowDiscountStacking,
           },
           customerSelection: {
             customers: {

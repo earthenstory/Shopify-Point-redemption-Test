@@ -10,16 +10,33 @@ import {
   getCustomerSnapshot,
   pointsToMoney,
 } from "../loyalty/customers";
+import { getLoyaltyRuntimeSettings } from "../loyalty/settings";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const context = authenticateAppProxyRequest(request);
+    const settings = await getLoyaltyRuntimeSettings({
+      db,
+      shopDomain: context.shop,
+    });
 
     if (!context.loggedInCustomerId) {
       return jsonResponse({
         ok: true,
         loggedIn: false,
-        message: "Sign in to see and use your Earthen points.",
+        programName: settings.program.programName,
+        pointName: settings.program.pointName,
+        programStatus: settings.program.status,
+        widget: {
+          homepageEnabled: settings.widget.homepageEnabled,
+          productEnabled: settings.widget.productEnabled,
+          cartEnabled: settings.widget.cartEnabled,
+          accountEnabled: settings.widget.accountEnabled,
+          primaryColor: settings.widget.primaryColor,
+          accentColor: settings.widget.accentColor,
+          backgroundColor: settings.widget.backgroundColor,
+        },
+        message: settings.widget.loggedOutMessage,
       });
     }
 
@@ -36,11 +53,26 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       hasLedgerEntries: snapshot.hasLedgerEntries,
       availablePoints: snapshot.availablePoints,
       pendingPoints: snapshot.pendingPoints,
-      availableValue: pointsToMoney(snapshot.availablePoints),
+      availableValue: pointsToMoney(snapshot.availablePoints, settings.rules),
       lifetimeEarnedPoints: snapshot.lifetimeEarnedPoints,
       lifetimeRedeemedPoints: snapshot.lifetimeRedeemedPoints,
-      currency: "INR",
-      message: getCustomerLoyaltyMessage(snapshot),
+      currency: settings.rules.currency,
+      programName: settings.program.programName,
+      pointName: settings.program.pointName,
+      programStatus: settings.program.status,
+      widget: {
+        homepageEnabled: settings.widget.homepageEnabled,
+        productEnabled: settings.widget.productEnabled,
+        cartEnabled: settings.widget.cartEnabled,
+        accountEnabled: settings.widget.accountEnabled,
+        primaryColor: settings.widget.primaryColor,
+        accentColor: settings.widget.accentColor,
+        backgroundColor: settings.widget.backgroundColor,
+      },
+      message: getCustomerLoyaltyMessage(
+        snapshot,
+        settings.widget.zeroPointsMessage,
+      ),
     });
   } catch (error) {
     if (error instanceof Response) return error;

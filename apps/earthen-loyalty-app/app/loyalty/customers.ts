@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
-import { confirmedBonDefaults } from "./rules";
+import { confirmedBonDefaults, type LoyaltyRules } from "./rules";
 
 export type LoyaltyCustomerSnapshot = {
   customerId: string | null;
@@ -54,18 +54,22 @@ export async function getCustomerSnapshot(input: {
   };
 }
 
-export function pointsToMoney(points: number): number {
-  return points * confirmedBonDefaults.currencyValuePerPoint;
+export function pointsToMoney(
+  points: number,
+  rules: LoyaltyRules = confirmedBonDefaults,
+): number {
+  return points * rules.currencyValuePerPoint;
 }
 
 export function getCustomerLoyaltyMessage(
   snapshot: LoyaltyCustomerSnapshot,
+  zeroPointsMessage = "You do not have Earthen Points yet. Create an account or place an order to start earning.",
 ): string | null {
   if (snapshot.hasLedgerEntries || snapshot.availablePoints > 0) {
     return null;
   }
 
-  return "You do not have Earthen Points yet. Create an account or place an order to start earning.";
+  return zeroPointsMessage;
 }
 
 function emptySnapshot(

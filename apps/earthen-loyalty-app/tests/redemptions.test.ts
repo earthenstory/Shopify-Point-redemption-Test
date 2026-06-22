@@ -5,6 +5,48 @@ import {
   releaseRedemption,
 } from "../app/loyalty/redemptions";
 
+function settingsModels() {
+  return {
+    loyaltyProgramSettings: {
+      upsert: vi.fn().mockResolvedValue({
+        status: "active",
+        programName: "Earthen Loyalty",
+        pointName: "Earthen Points",
+      }),
+    },
+    rewardRule: {
+      upsert: vi.fn().mockResolvedValue({
+        earningEnabled: true,
+        redemptionEnabled: true,
+        signupRewardPoints: 250,
+        pointsPerSpendAmount: 2,
+        spendAmountForEarnPoints: 100,
+        currencyValuePerPoint: 1,
+        minRedeemPoints: 10,
+        redeemIncrementPoints: 10,
+        maxRedeemPercentOfCart: 20,
+        maxRedeemPointsPerOrder: null,
+        allowDiscountStacking: false,
+        discountCodeTtlMinutes: 60,
+        awardOnStatus: "fulfilled",
+        returnRedeemedPointsOnRefund: true,
+        reverseEarnedPointsOnRefund: true,
+      }),
+    },
+    loyaltyWidgetSettings: {
+      upsert: vi.fn().mockResolvedValue({
+        homepageEnabled: true,
+        productEnabled: true,
+        cartEnabled: true,
+        accountEnabled: true,
+      }),
+    },
+    loyaltyMilestoneRule: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+  };
+}
+
 describe("redemption preview", () => {
   it("returns zero when the customer has no migrated points", () => {
     expect(
@@ -48,6 +90,7 @@ describe("redemption preview", () => {
         findFirst: vi.fn().mockResolvedValue({ id: "session-1" }),
       },
       $transaction: vi.fn(),
+      ...settingsModels(),
     };
     const admin = { graphql: vi.fn() };
 

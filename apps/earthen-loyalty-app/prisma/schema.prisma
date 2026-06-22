@@ -50,6 +50,20 @@ enum DiscountCleanupStatus {
   failed
 }
 
+enum LoyaltyProgramStatus {
+  test
+  active
+  paused
+}
+
+enum MilestoneType {
+  signup
+  first_order
+  order_count
+  spend_amount
+  birthday
+}
+
 model Session {
   id                  String    @id
   shop                String
@@ -173,8 +187,12 @@ model RedemptionSession {
 model RewardRule {
   id                          String   @id @default(cuid())
   shopDomain                  String
+  earningEnabled              Boolean  @default(true)
+  redemptionEnabled           Boolean  @default(true)
   earnRatePercent             Decimal  @db.Decimal(5, 2)
   pointsPerCurrencyUnit       Decimal  @db.Decimal(10, 4)
+  pointsPerSpendAmount        Decimal  @default(2) @db.Decimal(10, 2)
+  spendAmountForEarnPoints    Decimal  @default(100) @db.Decimal(10, 2)
   currencyValuePerPoint       Decimal  @db.Decimal(10, 4)
   signupRewardPoints          Int      @default(250)
   minRedeemPoints             Int      @default(10)
@@ -182,6 +200,7 @@ model RewardRule {
   maxRedeemPointsPerOrder     Int?
   maxRedeemPercentOfCart      Decimal  @db.Decimal(5, 2)
   allowDiscountStacking       Boolean  @default(false)
+  discountCodeTtlMinutes      Int      @default(60)
   awardOnStatus               String   @default("fulfilled")
   pointsExpiryDays            Int?
   returnRedeemedPointsOnRefund Boolean @default(true)
@@ -190,6 +209,53 @@ model RewardRule {
   updatedAt                   DateTime @updatedAt
 
   @@unique([shopDomain])
+}
+
+model LoyaltyProgramSettings {
+  id                    String               @id @default(cuid())
+  shopDomain            String               @unique
+  status                LoyaltyProgramStatus @default(test)
+  programName           String               @default("Earthen Loyalty")
+  pointName             String               @default("Earthen Points")
+  testModeCustomerTag   String?
+  launchChecklist       Json?
+  bonWidgetDisabled     Boolean              @default(false)
+  standardCheckoutTested Boolean             @default(false)
+  expressCheckoutTested Boolean              @default(false)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+}
+
+model LoyaltyWidgetSettings {
+  id                    String   @id @default(cuid())
+  shopDomain            String   @unique
+  homepageEnabled       Boolean  @default(true)
+  productEnabled        Boolean  @default(true)
+  cartEnabled           Boolean  @default(true)
+  accountEnabled        Boolean  @default(true)
+  loggedOutMessage      String   @default("Sign in to see your Earthen Points and unlock cart rewards.")
+  zeroPointsMessage     String   @default("You do not have Earthen Points yet. Create an account or place an order to start earning.")
+  primaryColor          String   @default("#1c6b3a")
+  accentColor           String   @default("#b8841e")
+  backgroundColor       String   @default("#fffaf0")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model LoyaltyMilestoneRule {
+  id                    String        @id @default(cuid())
+  shopDomain            String
+  type                  MilestoneType
+  title                 String
+  enabled               Boolean       @default(false)
+  points                Int
+  thresholdAmount       Decimal?      @db.Decimal(12, 2)
+  thresholdOrderCount   Int?
+  repeatable            Boolean       @default(false)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@index([shopDomain, type])
 }
 
 model BonMigrationBatch {

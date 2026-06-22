@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { calculateOrderEarnPoints, confirmedBonDefaults } from "./rules";
+import { getLoyaltyRuntimeSettings } from "./settings";
 
 const LOYALTY_CODE_PREFIX = "ESPOINTS-";
 
@@ -86,6 +87,10 @@ export async function processCustomerUpsert(
     shopDomain: context.shop,
     ...customerInfo,
   });
+  const settings = await getLoyaltyRuntimeSettings({
+    db,
+    shopDomain: context.shop,
+  });
 
   if (!isCustomerCreateTopic(context.topic)) {
     return "processed";
@@ -99,7 +104,11 @@ export async function processCustomerUpsert(
     select: { id: true },
   });
 
-  if (existingSignupBonus || confirmedBonDefaults.signupRewardPoints <= 0) {
+  if (
+    existingSignupBonus ||
+    !settings.earningEnabled ||
+    settings.rules.signupRewardPoints <= 0
+  ) {
     return "processed";
   }
 
@@ -114,10 +123,10 @@ export async function processCustomerUpsert(
       where: { id: freshCustomer.wallet.id },
       data: {
         availablePoints: {
-          increment: confirmedBonDefaults.signupRewardPoints,
+          increment: settings.rules.signupRewardPoints,
         },
         lifetimeEarnedPoints: {
-          increment: confirmedBonDefaults.signupRewardPoints,
+          increment: settings.rules.signupRewardPoints,
         },
       },
     });
@@ -127,8 +136,8 @@ export async function processCustomerUpsert(
         customerId: freshCustomer.id,
         walletId: freshCustomer.wallet.id,
         type: "signup_bonus",
-        pointsDelta: confirmedBonDefaults.signupRewardPoints,
-        currency: confirmedBonDefaults.currency,
+        pointsDelta: settings.rules.signupRewardPoints,
+        currency: settings.rules.currency,
         description: "Signup bonus points",
         metadata: {
           source: "customers/create webhook",
@@ -171,6 +180,10 @@ export async function processOrderPaid(
   const orderId = extractWebhookResourceId(context.payload);
   const discountCode = extractLoyaltyDiscountCode(context.payload);
   if (!orderId || !discountCode) return "ignored";
+  const settings = await getLoyaltyRuntimeSettings({
+    db,
+    shopDomain: context.shop,
+  });
 
   const subtotal = extractMoney(context.payload, [
     "current_subtotal_price",
@@ -203,7 +216,7 @@ export async function processOrderPaid(
   const pointsToConsume = Math.min(
     remainingReservedPoints,
     Math.floor(
-      discountAmountUsed / confirmedBonDefaults.currencyValuePerPoint,
+      discountAmountUsed / settings.rules.currencyValuePerPoint,
     ),
   );
   const pointsToRelease = remainingReservedPoints - pointsToConsume;
@@ -258,8 +271,7 @@ export async function processOrderPaid(
           shopifyOrderId: orderId,
           type: "redeem_release",
           pointsDelta: pointsToRelease,
-          moneyValue:
-            pointsToRelease * confirmedBonDefaults.currencyValuePerPoint,
+          moneyValue: pointsToRelease * settings.rules.currencyValuePerPoint,
           currency: session.currency,
           description:
             "Released unused reserved points after paid order discount allocation",
@@ -280,7 +292,13 @@ export async function processOrderFulfilled(
   db: PrismaClient,
   context: LoyaltyWebhookContext,
 ): Promise<"processed" | "ignored"> {
-  if (confirmedBonDefaults.awardOnStatus !== "fulfilled") return "ignored";
+  const settings = await getLoyaltyRuntimeSettings({
+    db,
+    shopDomain: context.shop,
+  });
+  if (!settings.earningEnabled || settings.rules.awardOnStatus !== "fulfilled") {
+    return "ignored";
+  }
 
   const orderId = extractWebhookResourceId(context.payload);
   const customerInfo = extractOrderCustomerInfo(context.payload);
@@ -300,7 +318,7 @@ export async function processOrderFulfilled(
     "subtotal_price",
     "total_line_items_price",
   ]);
-  const earnedPoints = calculateOrderEarnPoints(subtotal, confirmedBonDefaults);
+  const earnedPoints = calculateOrderEarnPoints(subtotal, settings.rules);
 
   if (earnedPoints <= 0) return "ignored";
 
@@ -326,11 +344,11 @@ export async function processOrderFulfilled(
         shopifyOrderId: orderId,
         type: "order_earn",
         pointsDelta: earnedPoints,
-        currency: confirmedBonDefaults.currency,
+        currency: settings.rules.currency,
         description: "Earned points on fulfilled order",
         metadata: {
           orderSubtotal: subtotal,
-          earningRule: "2 points per INR 100",
+          earningRule: `${settings.rules.pointsPerSpendAmount} points per INR ${settings.rules.spendAmountForEarnPoints}`,
         },
       },
     });
@@ -345,6 +363,10 @@ export async function processOrderCancelled(
 ): Promise<"processed" | "ignored"> {
   const orderId = extractWebhookResourceId(context.payload);
   if (!orderId) return "ignored";
+  const settings = await getLoyaltyRuntimeSettings({
+    db,
+    shopDomain: context.shop,
+  });
 
   await reverseEarnedPointsForOrder({
     db,
@@ -361,6 +383,7 @@ export async function processOrderCancelled(
     refundId: null,
     description: "Returned redeemed points for cancelled order",
     prorate: 1,
+    returnRedeemedPointsOnRefund: settings.rules.returnRedeemedPointsOnRefund,
   });
 
   return "processed";
@@ -375,9 +398,13 @@ export async function processRefundCreated(
   if (!orderId) return "ignored";
 
   const refundSubtotal = extractRefundSubtotal(context.payload);
+  const settings = await getLoyaltyRuntimeSettings({
+    db,
+    shopDomain: context.shop,
+  });
   const pointsToReverse = calculateOrderEarnPoints(
     refundSubtotal,
-    confirmedBonDefaults,
+    settings.rules,
   );
 
   await reverseEarnedPointsForOrder({
@@ -397,6 +424,7 @@ export async function processRefundCreated(
       refundId,
       description: "Returned redeemed points for refunded items",
       prorate: Math.min(1, refundSubtotal / orderSubtotal),
+      returnRedeemedPointsOnRefund: settings.rules.returnRedeemedPointsOnRefund,
     });
   }
 
@@ -651,8 +679,9 @@ async function returnRedeemedPointsForOrder(input: {
   refundId: string | null;
   description: string;
   prorate: number;
+  returnRedeemedPointsOnRefund: boolean;
 }): Promise<void> {
-  if (!confirmedBonDefaults.returnRedeemedPointsOnRefund) return;
+  if (!input.returnRedeemedPointsOnRefund) return;
 
   const sessions = await input.db.redemptionSession.findMany({
     where: {

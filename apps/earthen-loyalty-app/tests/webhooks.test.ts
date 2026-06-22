@@ -7,6 +7,48 @@ import {
   processOrderPaid,
 } from "../app/loyalty/webhooks";
 
+function settingsModels() {
+  return {
+    loyaltyProgramSettings: {
+      upsert: async () => ({
+        status: "active",
+        programName: "Earthen Loyalty",
+        pointName: "Earthen Points",
+      }),
+    },
+    rewardRule: {
+      upsert: async () => ({
+        earningEnabled: true,
+        redemptionEnabled: true,
+        signupRewardPoints: 250,
+        pointsPerSpendAmount: 2,
+        spendAmountForEarnPoints: 100,
+        currencyValuePerPoint: 1,
+        minRedeemPoints: 10,
+        redeemIncrementPoints: 10,
+        maxRedeemPercentOfCart: 20,
+        maxRedeemPointsPerOrder: null,
+        allowDiscountStacking: false,
+        discountCodeTtlMinutes: 60,
+        awardOnStatus: "fulfilled",
+        returnRedeemedPointsOnRefund: true,
+        reverseEarnedPointsOnRefund: true,
+      }),
+    },
+    loyaltyWidgetSettings: {
+      upsert: async () => ({
+        homepageEnabled: true,
+        productEnabled: true,
+        cartEnabled: true,
+        accountEnabled: true,
+      }),
+    },
+    loyaltyMilestoneRule: {
+      findMany: async () => [],
+    },
+  };
+}
+
 describe("loyalty webhook helpers", () => {
   it("hashes payloads independently from object key order", () => {
     expect(hashWebhookPayload({ id: 1, nested: { b: 2, a: 1 } })).toBe(
@@ -61,6 +103,7 @@ describe("loyalty webhook helpers", () => {
       },
       $transaction: async (callback: (transaction: typeof tx) => unknown) =>
         callback(tx),
+      ...settingsModels(),
     };
 
     await expect(
@@ -101,6 +144,7 @@ describe("loyalty webhook helpers", () => {
       $transaction: () => {
         throw new Error("duplicate fulfilled delivery should not transact");
       },
+      ...settingsModels(),
     };
 
     await expect(
@@ -158,6 +202,7 @@ describe("loyalty webhook helpers", () => {
       },
       $transaction: async (callback: (transaction: typeof tx) => unknown) =>
         callback(tx),
+      ...settingsModels(),
     };
 
     await expect(
@@ -230,6 +275,7 @@ describe("loyalty webhook helpers", () => {
       $transaction: () => {
         throw new Error("duplicate consume should not open a transaction");
       },
+      ...settingsModels(),
     };
 
     await expect(

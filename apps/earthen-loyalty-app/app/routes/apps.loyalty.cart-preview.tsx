@@ -9,6 +9,7 @@ import {
 } from "../loyalty/app-proxy";
 import { getCustomerSnapshot } from "../loyalty/customers";
 import { previewRedemption } from "../loyalty/redemptions";
+import { getLoyaltyRuntimeSettings } from "../loyalty/settings";
 
 const requestSchema = z.object({
   cartToken: z.string().optional().nullable(),
@@ -19,6 +20,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   try {
     const context = authenticateAppProxyRequest(request);
     const body = await readJsonBody(request, requestSchema);
+    const settings = await getLoyaltyRuntimeSettings({
+      db,
+      shopDomain: context.shop,
+    });
 
     if (!context.loggedInCustomerId) {
       return jsonResponse({
@@ -27,7 +32,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         maxRedeemablePoints: 0,
         discountAmount: 0,
         minimumSubtotal: 0,
-        currency: "INR",
+        currency: settings.rules.currency,
+      });
+    }
+
+    if (!settings.redemptionEnabled) {
+      return jsonResponse({
+        ok: true,
+        loggedIn: true,
+        maxRedeemablePoints: 0,
+        discountAmount: 0,
+        minimumSubtotal: 0,
+        currency: settings.rules.currency,
+        message: "Earthen Points redemption is currently paused.",
       });
     }
 
@@ -42,6 +59,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         token: body.cartToken,
         subtotal: body.subtotal,
       },
+      rules: settings.rules,
     });
 
     return jsonResponse({

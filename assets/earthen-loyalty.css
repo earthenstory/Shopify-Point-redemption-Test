@@ -10,7 +10,7 @@
 .earthen-loyalty__inner {
   border: 1px solid rgba(184, 132, 30, 0.28);
   border-radius: 8px;
-  background: #fffaf0;
+  background: var(--loyalty-background, #fffaf0);
   padding: 14px;
 }
 
@@ -58,7 +58,7 @@
 
 .earthen-loyalty__value {
   font-weight: 700;
-  color: #1c6b3a;
+  color: var(--loyalty-primary, #1c6b3a);
   white-space: nowrap;
 }
 
@@ -80,7 +80,7 @@
 .earthen-loyalty__range {
   flex: 1;
   min-width: 0;
-  accent-color: #1c6b3a;
+  accent-color: var(--loyalty-primary, #1c6b3a);
 }
 
 .earthen-loyalty__selected {
@@ -96,9 +96,9 @@
 
 .earthen-loyalty__button {
   min-height: 38px;
-  border: 1px solid #1c6b3a;
+  border: 1px solid var(--loyalty-primary, #1c6b3a);
   border-radius: 8px;
-  background: #1c6b3a;
+  background: var(--loyalty-primary, #1c6b3a);
   color: #fff;
   padding: 8px 13px;
   font: inherit;
@@ -108,7 +108,7 @@
 
 .earthen-loyalty__button--secondary {
   background: transparent;
-  color: #1c6b3a;
+  color: var(--loyalty-primary, #1c6b3a);
 }
 
 .earthen-loyalty__button:disabled {

@@ -38,11 +38,17 @@ class EarthenLoyaltyWidget extends HTMLElement {
     try {
       const customer = await this.request('/apps/loyalty/customer');
       if (!customer.ok) return;
+      if (!this.isContextEnabled(customer.widget)) {
+        this.hidden = true;
+        return;
+      }
+
+      this.applyTheme(customer.widget);
 
       this.hidden = false;
 
       if (!customer.loggedIn) {
-        this.renderMessage('Sign in to see your Earthen Points and unlock cart rewards.', '');
+        this.renderMessage(customer.message || 'Sign in to see your Earthen Points and unlock cart rewards.', '');
         return;
       }
 
@@ -194,6 +200,17 @@ class EarthenLoyaltyWidget extends HTMLElement {
   renderMessage(message, value) {
     this.refs.message.textContent = message;
     this.refs.value.textContent = value;
+  }
+
+  isContextEnabled(widget = {}) {
+    const key = `${this.dataset.context}Enabled`;
+    return widget[key] !== false;
+  }
+
+  applyTheme(widget = {}) {
+    if (widget.primaryColor) this.style.setProperty('--loyalty-primary', widget.primaryColor);
+    if (widget.accentColor) this.style.setProperty('--loyalty-accent', widget.accentColor);
+    if (widget.backgroundColor) this.style.setProperty('--loyalty-background', widget.backgroundColor);
   }
 
   async withBusy(callback) {
