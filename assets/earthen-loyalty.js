@@ -1,4 +1,4 @@
-import { DiscountUpdateEvent, ThemeEvents } from '@theme/events';
+import { ThemeEvents } from '@theme/events';
 import { morphSection } from '@theme/section-renderer';
 import { fetchConfig } from '@theme/utilities';
 
@@ -109,6 +109,11 @@ class EarthenLoyaltyWidget extends HTMLElement {
   async loadCartRedemption(customer, requestId) {
     const stored = getActiveStoredRedemption();
 
+    if (customer.redemption && !customer.redemption.enabled) {
+      if (stored?.discountCode) this.renderStoredRedemption(stored, 0);
+      return;
+    }
+
     if (customer.availablePoints <= 0) {
       if (stored?.discountCode) this.renderStoredRedemption(stored, 0);
       return;
@@ -118,13 +123,13 @@ class EarthenLoyaltyWidget extends HTMLElement {
       const cart = await this.getCartSnapshot();
       if (requestId !== this.loadRequestId || !this.isConnected) return;
 
-      const preview = await this.request('/apps/loyalty/cart-preview', {
-        method: 'POST',
-        body: {
-          cartToken: cart.token,
-          subtotal: cart.subtotal,
-        },
-      });
+      // Preferred path: compute the slider maximum locally from the rules the
+      // customer endpoint already returned. No network round trip on cart
+      // changes. Falls back to the server preview only if an older backend
+      // revision did not send `redemption` rules yet.
+      const preview = customer.redemption
+        ? previewFromRules(customer, cart)
+        : await this.fetchCartPreview(cart);
       if (requestId !== this.loadRequestId || !this.isConnected) return;
 
       if (!preview.ok || preview.maxRedeemablePoints <= 0) {
@@ -145,6 +150,16 @@ class EarthenLoyaltyWidget extends HTMLElement {
       this.resetRedeemControls();
       this.refs.message.textContent = 'Cart rewards are refreshing. Please try again in a moment.';
     }
+  }
+
+  async fetchCartPreview(cart) {
+    return this.request('/apps/loyalty/cart-preview', {
+      method: 'POST',
+      body: {
+        cartToken: cart.token,
+        subtotal: cart.subtotal,
+      },
+    });
   }
 
   handleCartRefresh = () => {
@@ -240,7 +255,10 @@ class EarthenLoyaltyWidget extends HTMLElement {
     const data = await response.json();
 
     if (sectionId && data.sections?.[sectionId]) {
-      document.dispatchEvent(new DiscountUpdateEvent(data, this.id));
+      // We morph our own cart section from the response we already have. We do
+      // NOT dispatch DiscountUpdateEvent here: the cart-items component reacts
+      // to it with a second full section re-fetch, and our own listener would
+      // re-run load() — both redundant since this morph already updates totals.
       morphSection(sectionId, data.sections[sectionId]);
     } else {
       window.location.reload();
@@ -350,6 +368,43 @@ class EarthenLoyaltyWidget extends HTMLElement {
 
 function centsToMoney(value) {
   return Math.max(0, Number(value || 0) / 100);
+}
+
+// Client-side port of the backend redemption math (app/loyalty/rules.ts).
+// Used to size the cart slider without a network round trip. Preview-only:
+// the backend re-validates the real amount on /redeem.
+function normalizeRedeemPoints(points, rules) {
+  if (points < rules.minRedeemPoints) return 0;
+  const increment = rules.redeemIncrementPoints || 1;
+  return Math.floor(points / increment) * increment;
+}
+
+function calculateMaxRedeemablePoints(availablePoints, eligibleCartSubtotal, rules) {
+  if (availablePoints < rules.minRedeemPoints || eligibleCartSubtotal <= 0) return 0;
+
+  const currencyValuePerPoint = rules.currencyValuePerPoint || 1;
+  const cartValueCap = Math.floor(
+    (eligibleCartSubtotal * (rules.maxRedeemPercentOfCart / 100)) / currencyValuePerPoint,
+  );
+  const orderCap = rules.maxRedeemPointsPerOrder ?? Number.MAX_SAFE_INTEGER;
+  const cappedPoints = Math.min(availablePoints, cartValueCap, orderCap);
+
+  return normalizeRedeemPoints(cappedPoints, rules);
+}
+
+function previewFromRules(customer, cart) {
+  const rules = customer.redemption;
+  const maxRedeemablePoints = calculateMaxRedeemablePoints(
+    Number(customer.availablePoints || 0),
+    Number(cart.subtotal || 0),
+    rules,
+  );
+
+  return {
+    ok: true,
+    maxRedeemablePoints,
+    redeemIncrementPoints: rules.redeemIncrementPoints || 10,
+  };
 }
 
 function formatMoney(value) {

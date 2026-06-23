@@ -57,6 +57,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       lifetimeEarnedPoints: snapshot.lifetimeEarnedPoints,
       lifetimeRedeemedPoints: snapshot.lifetimeRedeemedPoints,
       currency: settings.rules.currency,
+      // Redemption rules are returned so the storefront can compute the cart
+      // slider maximum locally and avoid a per-cart-change cart-preview round
+      // trip. This is preview-only; real enforcement stays in /redeem.
+      redemption: {
+        enabled: settings.redemptionEnabled,
+        minRedeemPoints: settings.rules.minRedeemPoints,
+        redeemIncrementPoints: settings.rules.redeemIncrementPoints,
+        maxRedeemPercentOfCart: settings.rules.maxRedeemPercentOfCart,
+        maxRedeemPointsPerOrder: settings.rules.maxRedeemPointsPerOrder,
+        currencyValuePerPoint: settings.rules.currencyValuePerPoint,
+      },
       programName: settings.program.programName,
       pointName: settings.program.pointName,
       programStatus: settings.program.status,
