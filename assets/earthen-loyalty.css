@@ -77,6 +77,22 @@
   margin-top: 12px;
 }
 
+/* Compact applied state: the cart totals already show the discount amount, so
+   when a discount is applied we collapse the widget to a single slim row with a
+   small remove (×) control to keep the cart drawer short. */
+.earthen-loyalty[data-applied] .earthen-loyalty__header,
+.earthen-loyalty[data-applied] .earthen-loyalty__message {
+  display: none;
+}
+
+.earthen-loyalty[data-applied] .earthen-loyalty__inner {
+  padding: 8px 10px;
+}
+
+.earthen-loyalty[data-applied] .earthen-loyalty__redeem {
+  margin-top: 0;
+}
+
 .earthen-loyalty__applied-summary {
   display: flex;
   align-items: center;
@@ -86,7 +102,7 @@
   border-radius: 8px;
   background: rgba(17, 37, 87, 0.08);
   color: var(--loyalty-primary, #112557);
-  padding: 10px 12px;
+  padding: 8px 6px 8px 12px;
   font-size: 13px;
   font-weight: 700;
 }

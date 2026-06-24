@@ -66,9 +66,18 @@ class CartDiscount extends Component {
 
       const storedLoyaltyRedemption = readStoredLoyaltyRedemption();
 
+      // Keep the Earthen Points loyalty discount in the list so a coupon stacks
+      // on top of it instead of replacing it (the loyalty code is not shown as a
+      // removable pill, so it would otherwise be dropped from the cart update).
+      const loyaltyCode = this.dataset.loyaltyCode || storedLoyaltyRedemption?.discountCode || '';
+      const discountList = [...existingDiscounts, discountCodeValue];
+      if (loyaltyCode && !discountList.some((code) => isLoyaltyDiscountCode(code))) {
+        discountList.unshift(loyaltyCode);
+      }
+
       const config = fetchConfig('json', {
         body: JSON.stringify({
-          discount: [...existingDiscounts, discountCodeValue].join(','),
+          discount: discountList.join(','),
           sections: [this.dataset.sectionId],
         }),
       });

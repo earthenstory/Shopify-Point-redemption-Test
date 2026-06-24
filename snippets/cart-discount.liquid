@@ -16,12 +16,14 @@
 
   assign discount_codes = discount_codes | uniq
   assign loyalty_discount_applied = false
+  assign loyalty_discount_code = ''
   assign manual_discount_count = 0
 
   for discount_code in discount_codes
     assign discount_prefix = discount_code | slice: 0, 8
     if discount_prefix == 'ESPOINTS'
       assign loyalty_discount_applied = true
+      assign loyalty_discount_code = discount_code
     else
       assign manual_discount_count = manual_discount_count | plus: 1
     endif
@@ -44,10 +46,11 @@
   {% capture discount_content %}
     <cart-discount-component
       data-section-id="{{ section_id }}"
+      data-loyalty-code="{{ loyalty_discount_code }}"
     >
       {% if loyalty_discount_applied %}
         <p class="cart-discount__status">
-          Earthen Points discount is applied. Entering another discount code will replace it and return the reserved points.
+          Earthen Points discount is applied. You can add another discount code on top of it.
         </p>
       {% else %}
         <p class="cart-discount__hint">

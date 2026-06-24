@@ -25,6 +25,19 @@ class EarthenLoyaltyWidget extends HTMLElement {
     if (this.dataset.context === 'cart') {
       document.addEventListener(ThemeEvents.cartUpdate, this.handleCartRefresh);
       document.addEventListener(ThemeEvents.discountUpdate, this.handleCartRefresh);
+
+      // Self-heal: a cart re-render (e.g. after adding another product) strips our
+      // JS-applied `data-applied` marker back to the server skeleton. If the cart
+      // still carries the loyalty discount, re-render the applied state so the
+      // Remove control never silently disappears. Loop-safe: it only fires while
+      // the applied marker is missing but a discount is present.
+      this.appliedObserver = new MutationObserver(() => {
+        if (!this.dataset.applied && this.getServerAppliedRedemption()) this.scheduleLoad();
+      });
+      this.appliedObserver.observe(this, {
+        attributes: true,
+        attributeFilter: ['data-applied', 'data-applied-code', 'data-applied-amount'],
+      });
     }
 
     // When the widget sits inside a <dialog> (the cart drawer), it hides itself
@@ -42,6 +55,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
     document.removeEventListener(ThemeEvents.cartUpdate, this.handleCartRefresh);
     document.removeEventListener(ThemeEvents.discountUpdate, this.handleCartRefresh);
     this.drawerObserver?.disconnect();
+    this.appliedObserver?.disconnect();
     clearTimeout(this.reloadTimer);
   }
 
@@ -242,7 +256,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
     if (this.refs.applied) {
       this.refs.applied.hidden = false;
       if (this.refs.appliedText) {
-        this.refs.appliedText.textContent = `Discount applied: ${formatMoney(discountAmount)} off`;
+        this.refs.appliedText.textContent = `Earthen Points discount · ${formatMoney(discountAmount)} off`;
       }
     }
     if (this.refs.rangeRow) this.refs.rangeRow.hidden = true;

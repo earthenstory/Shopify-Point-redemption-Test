@@ -28,7 +28,7 @@ export const confirmedBonDefaults: LoyaltyRules = loyaltyRuleSchema.parse({
   redeemIncrementPoints: 10,
   maxRedeemPercentOfCart: 100,
   maxRedeemPointsPerOrder: null,
-  allowDiscountStacking: false,
+  allowDiscountStacking: true,
   awardOnStatus: "fulfilled",
   returnRedeemedPointsOnRefund: true,
   reverseEarnedPointsOnRefund: true,
