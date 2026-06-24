@@ -235,8 +235,8 @@ model LoyaltyWidgetSettings {
   accountEnabled        Boolean  @default(true)
   loggedOutMessage      String   @default("Sign in to see your Earthen Points and unlock cart rewards.")
   zeroPointsMessage     String   @default("You do not have Earthen Points yet. Create an account or place an order to start earning.")
-  primaryColor          String   @default("#1c6b3a")
-  accentColor           String   @default("#b8841e")
+  primaryColor          String   @default("#112557")
+  accentColor           String   @default("#cca268")
   backgroundColor       String   @default("#fffaf0")
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt

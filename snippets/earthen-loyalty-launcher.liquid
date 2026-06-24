@@ -1,4 +1,9 @@
-<earthen-loyalty-launcher class="earthen-loyalty-launcher" hidden>
+<earthen-loyalty-launcher
+  class="earthen-loyalty-launcher"
+  data-login-url="{{ routes.account_login_url }}"
+  data-cart-url="{{ routes.cart_url }}"
+  hidden
+>
   <button
     class="earthen-loyalty-launcher__button"
     type="button"
@@ -31,14 +36,6 @@
         &times;
       </button>
     </div>
-    <p class="earthen-loyalty-launcher__message" data-loyalty-launcher-message></p>
-    <div class="earthen-loyalty-launcher__actions">
-      <a class="earthen-loyalty-launcher__link" href="{{ routes.collections_url }}/all-products">
-        Shop and earn
-      </a>
-      <a class="earthen-loyalty-launcher__link earthen-loyalty-launcher__link--secondary" href="{{ routes.account_login_url }}" data-loyalty-launcher-signin>
-        Sign in
-      </a>
-    </div>
+    <div class="earthen-loyalty-launcher__body" data-loyalty-launcher-body></div>
   </div>
 </earthen-loyalty-launcher>

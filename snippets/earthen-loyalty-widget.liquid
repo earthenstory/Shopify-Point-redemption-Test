@@ -2,6 +2,16 @@
   assign context = context | default: 'inline'
   assign section_id = section.id | default: ''
   assign subtotal = cart.items_subtotal_price | divided_by: 100.0
+
+  assign loyalty_applied_amount = 0
+  assign loyalty_applied_code = ''
+  for discount in cart.cart_level_discount_applications
+    assign discount_prefix = discount.title | slice: 0, 8
+    if discount_prefix == 'ESPOINTS'
+      assign loyalty_applied_amount = discount.total_allocated_amount | divided_by: 100.0
+      assign loyalty_applied_code = discount.title
+    endif
+  endfor
 -%}
 
 <earthen-loyalty-widget
@@ -10,6 +20,8 @@
   data-section-id="{{ section_id }}"
   data-cart-token="{{ cart.token }}"
   data-cart-subtotal="{{ subtotal }}"
+  data-applied-amount="{{ loyalty_applied_amount }}"
+  data-applied-code="{{ loyalty_applied_code }}"
   hidden
 >
   <div class="earthen-loyalty__inner">

@@ -62,7 +62,7 @@
 
 .earthen-loyalty__value {
   font-weight: 700;
-  color: var(--loyalty-primary, #1c6b3a);
+  color: var(--loyalty-primary, #112557);
   white-space: nowrap;
 }
 
@@ -84,8 +84,8 @@
   gap: 10px;
   width: 100%;
   border-radius: 8px;
-  background: rgba(28, 107, 58, 0.08);
-  color: var(--loyalty-primary, #1c6b3a);
+  background: rgba(17, 37, 87, 0.08);
+  color: var(--loyalty-primary, #112557);
   padding: 10px 12px;
   font-size: 13px;
   font-weight: 700;
@@ -98,10 +98,10 @@
   flex: 0 0 28px;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(28, 107, 58, 0.24);
+  border: 1px solid rgba(17, 37, 87, 0.24);
   border-radius: 999px;
   background: #fff;
-  color: var(--loyalty-primary, #1c6b3a);
+  color: var(--loyalty-primary, #112557);
   font: inherit;
   font-size: 20px;
   line-height: 1;
@@ -115,7 +115,7 @@
 .earthen-loyalty__range {
   flex: 1;
   min-width: 0;
-  accent-color: var(--loyalty-primary, #1c6b3a);
+  accent-color: var(--loyalty-primary, #112557);
 }
 
 .earthen-loyalty__selected {
@@ -131,9 +131,9 @@
 
 .earthen-loyalty__button {
   min-height: 38px;
-  border: 1px solid var(--loyalty-primary, #1c6b3a);
+  border: 1px solid var(--loyalty-primary, #112557);
   border-radius: 8px;
-  background: var(--loyalty-primary, #1c6b3a);
+  background: var(--loyalty-primary, #112557);
   color: #fff;
   padding: 8px 13px;
   font: inherit;
@@ -143,7 +143,7 @@
 
 .earthen-loyalty__button--secondary {
   background: transparent;
-  color: var(--loyalty-primary, #1c6b3a);
+  color: var(--loyalty-primary, #112557);
 }
 
 .earthen-loyalty__button:disabled {
@@ -152,8 +152,8 @@
 }
 
 .earthen-loyalty-launcher {
-  --loyalty-primary: #1c6b3a;
-  --loyalty-accent: #b8841e;
+  --loyalty-primary: #112557;
+  --loyalty-accent: #cca268;
   --loyalty-background: #fffaf0;
   position: fixed;
   right: 22px;
@@ -242,7 +242,7 @@
   place-items: center;
   width: 30px;
   height: 30px;
-  border: 1px solid rgba(28, 107, 58, 0.24);
+  border: 1px solid rgba(17, 37, 87, 0.24);
   border-radius: 50%;
   background: transparent;
   color: var(--loyalty-primary);
@@ -252,37 +252,136 @@
   line-height: 1;
 }
 
-.earthen-loyalty-launcher__message {
-  margin: 12px 0 0;
-  color: #5c5d64;
-  font-size: 14px;
-  line-height: 1.45;
-}
-
-.earthen-loyalty-launcher__actions {
-  display: flex;
-  gap: 10px;
+.earthen-loyalty-launcher__body {
   margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.earthen-loyalty-launcher__link {
+/* Balance card */
+.el-rw__balance {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: 10px;
+  background: var(--loyalty-primary);
+  color: #fff;
+  padding: 14px 16px;
+}
+
+.el-rw__balance-num {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--loyalty-accent);
+}
+
+.el-rw__balance-meta {
+  font-size: 13px;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.el-rw__balance-meta strong {
+  color: #fff;
+}
+
+.el-rw__balance--out {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.el-rw__balance--out p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* Sections */
+.el-rw__section {
+  border: 1px solid rgba(17, 37, 87, 0.12);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #fff;
+}
+
+.el-rw__h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--loyalty-primary);
+}
+
+.el-rw__h svg {
+  color: var(--loyalty-accent);
+  flex: 0 0 auto;
+}
+
+.el-rw__p {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #5c5d64;
+}
+
+.el-rw__p strong {
+  color: var(--loyalty-primary);
+}
+
+.el-rw__muted {
+  margin: 0;
+  font-size: 13px;
+  color: #8a8b91;
+}
+
+.el-rw__earn {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.el-rw__earn li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: #3c3d44;
+}
+
+.el-rw__earn strong {
+  color: var(--loyalty-accent);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* Buttons inside the panel */
+.el-rw__btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 38px;
+  min-height: 40px;
   border: 1px solid var(--loyalty-primary);
   border-radius: 8px;
   background: var(--loyalty-primary);
   color: #fff;
-  padding: 8px 12px;
+  padding: 8px 14px;
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
 }
 
-.earthen-loyalty-launcher__link--secondary {
-  background: transparent;
-  color: var(--loyalty-primary);
+.el-rw__btn--block {
+  width: 100%;
 }
 
 @media (max-width: 768px) {

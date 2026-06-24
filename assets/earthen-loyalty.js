@@ -49,18 +49,40 @@ class EarthenLoyaltyWidget extends HTMLElement {
     clearTimeout(this.reloadTimer);
   }
 
+  getServerAppliedRedemption() {
+    const discountAmount = Number(this.dataset.appliedAmount || 0);
+    const discountCode = this.dataset.appliedCode || '';
+    if (!discountCode || discountAmount <= 0) return null;
+    return { discountCode, discountAmount };
+  }
+
   async load() {
     const requestId = (this.loadRequestId || 0) + 1;
     this.loadRequestId = requestId;
-    const storedRedemption = this.dataset.context === 'cart' ? getActiveStoredRedemption() : null;
+    const isCart = this.dataset.context === 'cart';
+    // The server-rendered cart is the source of truth for whether a loyalty
+    // discount is applied, so the Remove control always shows when one is on the
+    // cart — even if localStorage was cleared or lost between sessions.
+    const serverApplied = isCart ? this.getServerAppliedRedemption() : null;
+    const storedRedemption = isCart ? getActiveStoredRedemption() : null;
+
+    // Drop a stale localStorage reservation if the cart no longer carries the
+    // discount (e.g. removed elsewhere), so we don't show a phantom applied state.
+    if (isCart && !serverApplied && storedRedemption) {
+      clearStoredRedemption();
+    }
+
+    const applied = serverApplied
+      ? { ...serverApplied, pointsReserved: storedRedemption?.pointsReserved, sessionId: storedRedemption?.sessionId }
+      : null;
 
     try {
-      if (storedRedemption?.discountCode) {
+      if (applied) {
         this.hidden = false;
         const cachedCustomer = getCachedCustomer();
         if (cachedCustomer?.widget) this.applyTheme(cachedCustomer.widget);
         this.resetRedeemControls();
-        this.renderStoredRedemption(storedRedemption, 0);
+        this.renderStoredRedemption(applied, 0);
         return;
       }
 
@@ -195,6 +217,9 @@ class EarthenLoyaltyWidget extends HTMLElement {
 
     if (pointsReserved && discountAmount) {
       this.refs.message.textContent = `${pointsReserved} points applied. This discount stays on the cart if you add more products. Remove it to change the points.`;
+    } else if (discountAmount) {
+      this.refs.message.textContent =
+        'Earthen Points discount applied. Remove it to change how many points you use.';
     }
 
     if (this.refs.selected) this.refs.selected.textContent = '';
@@ -228,13 +253,16 @@ class EarthenLoyaltyWidget extends HTMLElement {
 
   removePoints = async () => {
     const stored = readStoredRedemption();
+    // Fall back to the discount code the server rendered onto the cart so Remove
+    // releases the reservation even when localStorage has no record of it.
+    const discountCode = stored?.discountCode || this.dataset.appliedCode || '';
 
     await this.withBusy(async () => {
       await this.request('/apps/loyalty/remove', {
         method: 'POST',
         body: {
           sessionId: stored?.sessionId,
-          discountCode: stored?.discountCode,
+          discountCode,
         },
       }).catch(() => null);
       await this.applyDiscountCode('');
@@ -493,6 +521,13 @@ if (!customElements.get('earthen-loyalty-widget')) {
   customElements.define('earthen-loyalty-widget', EarthenLoyaltyWidget);
 }
 
+const LAUNCHER_ICONS = {
+  redeem:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-7"/><path d="M2 8.5h20V12H2zM12 8.5V20M12 8.5S10.5 4 8 4a2 2 0 0 0 0 4.5zM12 8.5S13.5 4 16 4a2 2 0 0 1 0 4.5z"/></svg>',
+  earn:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v10M9.5 9.2c.4-1 1.4-1.6 2.6-1.6 1.6 0 2.6.9 2.6 2.1 0 2.6-5 1.5-5 4.1 0 1.2 1.1 2.1 2.7 2.1 1.2 0 2.2-.6 2.6-1.6"/></svg>',
+};
+
 class EarthenLoyaltyLauncher extends HTMLElement {
   connectedCallback() {
     this.refs = {
@@ -500,8 +535,7 @@ class EarthenLoyaltyLauncher extends HTMLElement {
       panel: this.querySelector('[data-loyalty-launcher-panel]'),
       close: this.querySelector('[data-loyalty-launcher-close]'),
       value: this.querySelector('[data-loyalty-launcher-value]'),
-      message: this.querySelector('[data-loyalty-launcher-message]'),
-      signin: this.querySelector('[data-loyalty-launcher-signin]'),
+      body: this.querySelector('[data-loyalty-launcher-body]'),
     };
 
     this.refs.button?.addEventListener('click', this.togglePanel);
@@ -521,22 +555,61 @@ class EarthenLoyaltyLauncher extends HTMLElement {
 
       this.applyTheme(customer.widget);
       this.hidden = false;
-
-      if (!customer.loggedIn) {
-        this.refs.value.textContent = 'Rewards';
-        this.refs.message.textContent = customer.message || 'Sign in to see your Earthen Points and earn rewards on every order.';
-        this.refs.signin.hidden = false;
-        return;
-      }
-
-      this.refs.value.textContent = `${customer.availablePoints || 0} pts`;
-      this.refs.message.textContent =
-        customer.message ||
-        `You have ${customer.availablePoints || 0} Earthen Points worth ${formatMoney(customer.availableValue || 0)}.`;
-      this.refs.signin.hidden = true;
+      this.refs.value.textContent = customer.loggedIn ? `${customer.availablePoints || 0} pts` : '';
+      this.renderBody(customer);
     } catch (error) {
       this.hidden = true;
     }
+  }
+
+  renderBody(customer) {
+    if (!this.refs.body) return;
+    const rewards = customer.rewards || {};
+    const loginUrl = this.dataset.loginUrl || '/account/login';
+    const cartUrl = this.dataset.cartUrl || '/cart';
+
+    const pointName = rewards.pointName || 'Earthen Points';
+    const valuePerPoint = Number(rewards.currencyValuePerPoint || 1);
+    const increment = Number(rewards.redeemIncrementPoints || 10);
+    const signupPoints = Number(rewards.signupRewardPoints || 0);
+    const pointsPerSpend = Number(rewards.pointsPerSpendAmount || 0);
+    const spendAmount = Number(rewards.spendAmountForEarnPoints || 0);
+
+    const balance = customer.loggedIn
+      ? `<div class="el-rw__balance">
+           <span class="el-rw__balance-num">${customer.availablePoints || 0}</span>
+           <span class="el-rw__balance-meta">${pointName}<br><strong>${formatMoney(customer.availableValue || 0)}</strong> to spend</span>
+         </div>`
+      : `<div class="el-rw__balance el-rw__balance--out">
+           <p>${customer.message || 'Sign in to see your balance and start redeeming.'}</p>
+           <a class="el-rw__btn" href="${loginUrl}">Sign in</a>
+         </div>`;
+
+    const redeemBody =
+      rewards.redemptionEnabled === false
+        ? `<p class="el-rw__muted">Redemption is paused right now.</p>`
+        : `<p class="el-rw__p">Use points in your cart for instant savings. <strong>${increment} points = ${formatMoney(increment * valuePerPoint)}</strong> (1 point = ${formatMoney(valuePerPoint)}).</p>
+           ${customer.loggedIn ? `<a class="el-rw__btn el-rw__btn--block" href="${cartUrl}">Redeem in cart</a>` : ''}`;
+
+    const earnItems = [
+      signupPoints
+        ? `<li><span>Create an account</span><strong>+${signupPoints} pts</strong></li>`
+        : '',
+      pointsPerSpend && spendAmount
+        ? `<li><span>Every ${formatMoney(spendAmount)} you spend</span><strong>+${pointsPerSpend} pts</strong></li>`
+        : '',
+    ].join('');
+
+    this.refs.body.innerHTML = `
+      ${balance}
+      <section class="el-rw__section">
+        <h3 class="el-rw__h">${LAUNCHER_ICONS.redeem}<span>Redeem points</span></h3>
+        ${redeemBody}
+      </section>
+      <section class="el-rw__section">
+        <h3 class="el-rw__h">${LAUNCHER_ICONS.earn}<span>Ways to earn</span></h3>
+        <ul class="el-rw__earn">${earnItems}</ul>
+      </section>`;
   }
 
   togglePanel = () => {
@@ -549,15 +622,6 @@ class EarthenLoyaltyLauncher extends HTMLElement {
     this.refs.panel.hidden = true;
     this.refs.button.setAttribute('aria-expanded', 'false');
   };
-
-  async request(path) {
-    const response = await fetch(path, {
-      headers: { Accept: 'application/json' },
-      cache: 'no-store',
-    });
-    if (!response.ok) throw new Error('Loyalty request failed.');
-    return response.json();
-  }
 
   applyTheme(widget = {}) {
     if (widget.primaryColor) this.style.setProperty('--loyalty-primary', widget.primaryColor);

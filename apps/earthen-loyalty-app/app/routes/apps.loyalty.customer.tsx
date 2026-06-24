@@ -20,6 +20,31 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       shopDomain: context.shop,
     });
 
+    const widget = {
+      homepageEnabled: settings.widget.homepageEnabled,
+      productEnabled: settings.widget.productEnabled,
+      cartEnabled: settings.widget.cartEnabled,
+      accountEnabled: settings.widget.accountEnabled,
+      primaryColor: settings.widget.primaryColor,
+      accentColor: settings.widget.accentColor,
+      backgroundColor: settings.widget.backgroundColor,
+    };
+
+    // Earn + redeem display info for the rewards launcher panel. Returned for
+    // both logged-out and logged-in customers so the panel can always show how
+    // points are earned and what they are worth.
+    const rewards = {
+      pointName: settings.program.pointName,
+      currency: settings.rules.currency,
+      currencyValuePerPoint: settings.rules.currencyValuePerPoint,
+      minRedeemPoints: settings.rules.minRedeemPoints,
+      redeemIncrementPoints: settings.rules.redeemIncrementPoints,
+      redemptionEnabled: settings.redemptionEnabled,
+      signupRewardPoints: settings.rules.signupRewardPoints,
+      pointsPerSpendAmount: settings.rules.pointsPerSpendAmount,
+      spendAmountForEarnPoints: settings.rules.spendAmountForEarnPoints,
+    };
+
     if (!context.loggedInCustomerId) {
       return jsonResponse({
         ok: true,
@@ -27,15 +52,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         programName: settings.program.programName,
         pointName: settings.program.pointName,
         programStatus: settings.program.status,
-        widget: {
-          homepageEnabled: settings.widget.homepageEnabled,
-          productEnabled: settings.widget.productEnabled,
-          cartEnabled: settings.widget.cartEnabled,
-          accountEnabled: settings.widget.accountEnabled,
-          primaryColor: settings.widget.primaryColor,
-          accentColor: settings.widget.accentColor,
-          backgroundColor: settings.widget.backgroundColor,
-        },
+        widget,
+        rewards,
         message: settings.widget.loggedOutMessage,
       });
     }
@@ -71,15 +89,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       programName: settings.program.programName,
       pointName: settings.program.pointName,
       programStatus: settings.program.status,
-      widget: {
-        homepageEnabled: settings.widget.homepageEnabled,
-        productEnabled: settings.widget.productEnabled,
-        cartEnabled: settings.widget.cartEnabled,
-        accountEnabled: settings.widget.accountEnabled,
-        primaryColor: settings.widget.primaryColor,
-        accentColor: settings.widget.accentColor,
-        backgroundColor: settings.widget.backgroundColor,
-      },
+      widget,
+      rewards,
       message: getCustomerLoyaltyMessage(
         snapshot,
         settings.widget.zeroPointsMessage,
