@@ -365,8 +365,14 @@ async function createShopifyDiscountCode(input: {
           endsAt: input.expiresAt.toISOString(),
           usageLimit: 1,
           appliesOncePerCustomer: true,
+          // The loyalty discount is an order-class (amount off order) discount.
+          // We let it combine with PRODUCT- and shipping-class discounts but NOT
+          // other order discounts. This is what lets a customer stack their points
+          // with a single product-class coupon (e.g. an "amount off products"
+          // code) while keeping order-class coupons mutually exclusive with each
+          // other and with the points discount.
           combinesWith: {
-            orderDiscounts: input.allowDiscountStacking,
+            orderDiscounts: false,
             productDiscounts: input.allowDiscountStacking,
             shippingDiscounts: input.allowDiscountStacking,
           },
