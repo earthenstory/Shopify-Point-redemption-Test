@@ -15,6 +15,37 @@ let customerRequest = null;
 
 class EarthenLoyaltyWidget extends HTMLElement {
   connectedCallback() {
+    this.cacheRefs();
+
+    // Delegated listeners live on the host element, which survives cart-section
+    // morphs that replace the inner DOM (direct node listeners would be lost).
+    this.addEventListener('input', this.handleInput);
+    this.addEventListener('click', this.handleClick);
+
+    if (this.dataset.context === 'cart') {
+      document.addEventListener(ThemeEvents.cartUpdate, this.handleCartRefresh);
+      document.addEventListener(ThemeEvents.discountUpdate, this.handleCartRefresh);
+    }
+
+    // When the widget sits inside a <dialog> (the cart drawer), it hides itself
+    // with `display:none`, so nothing layout-based can detect the drawer opening.
+    // Watch the dialog's `open` attribute and reload when it opens, otherwise the
+    // widget stays stuck in its reset/hidden state after the drawer re-renders.
+    this.observeDrawer();
+
+    this.load();
+  }
+
+  disconnectedCallback() {
+    this.removeEventListener('input', this.handleInput);
+    this.removeEventListener('click', this.handleClick);
+    document.removeEventListener(ThemeEvents.cartUpdate, this.handleCartRefresh);
+    document.removeEventListener(ThemeEvents.discountUpdate, this.handleCartRefresh);
+    this.drawerObserver?.disconnect();
+    clearTimeout(this.reloadTimer);
+  }
+
+  cacheRefs() {
     this.refs = {
       value: this.querySelector('[data-loyalty-value]'),
       message: this.querySelector('[data-loyalty-message]'),
@@ -27,26 +58,24 @@ class EarthenLoyaltyWidget extends HTMLElement {
       apply: this.querySelector('[data-loyalty-apply]'),
       remove: this.querySelector('[data-loyalty-remove]'),
     };
-
-    this.refs.range?.addEventListener('input', this.updateSelected);
-    this.refs.apply?.addEventListener('click', this.applyPoints);
-    this.refs.remove?.addEventListener('click', this.removePoints);
-
-    if (this.dataset.context === 'cart') {
-      document.addEventListener(ThemeEvents.cartUpdate, this.handleCartRefresh);
-      document.addEventListener(ThemeEvents.discountUpdate, this.handleCartRefresh);
-    }
-
-    this.load();
   }
 
-  disconnectedCallback() {
-    this.refs?.range?.removeEventListener('input', this.updateSelected);
-    this.refs?.apply?.removeEventListener('click', this.applyPoints);
-    this.refs?.remove?.removeEventListener('click', this.removePoints);
-    document.removeEventListener(ThemeEvents.cartUpdate, this.handleCartRefresh);
-    document.removeEventListener(ThemeEvents.discountUpdate, this.handleCartRefresh);
-    clearTimeout(this.reloadTimer);
+  handleInput = (event) => {
+    if (event.target.closest('[data-loyalty-range]')) this.updateSelected();
+  };
+
+  handleClick = (event) => {
+    if (event.target.closest('[data-loyalty-apply]')) this.applyPoints();
+    else if (event.target.closest('[data-loyalty-remove]')) this.removePoints();
+  };
+
+  observeDrawer() {
+    const dialog = this.closest('dialog');
+    if (!dialog) return;
+    this.drawerObserver = new MutationObserver(() => {
+      if (dialog.hasAttribute('open')) this.scheduleLoad();
+    });
+    this.drawerObserver.observe(dialog, { attributes: true, attributeFilter: ['open'] });
   }
 
   getServerAppliedRedemption() {
@@ -59,6 +88,8 @@ class EarthenLoyaltyWidget extends HTMLElement {
   async load() {
     const requestId = (this.loadRequestId || 0) + 1;
     this.loadRequestId = requestId;
+    // Refresh refs in case a cart-section morph replaced the inner DOM.
+    this.cacheRefs();
     const isCart = this.dataset.context === 'cart';
     // The server-rendered cart is the source of truth for whether a loyalty
     // discount is applied, so the Remove control always shows when one is on the
