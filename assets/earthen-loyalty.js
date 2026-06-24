@@ -231,6 +231,10 @@ class EarthenLoyaltyWidget extends HTMLElement {
   };
 
   renderStoredRedemption(stored, maxRedeemablePoints) {
+    // Always refresh refs and unhide: this also runs right after an apply morph
+    // resets the root to `hidden` and may swap the inner nodes.
+    this.cacheRefs();
+    this.hidden = false;
     const pointsReserved = Number(stored.pointsReserved || 0);
     const discountAmount = Number(stored.discountAmount || pointsReserved || 0);
     this.dataset.applied = 'true';
