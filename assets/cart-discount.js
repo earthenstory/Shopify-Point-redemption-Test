@@ -87,7 +87,7 @@ class CartDiscount extends Component {
         signal: abortController.signal,
       });
 
-      const data = await response.json();
+      let data = await response.json();
 
       if (
         data.discount_codes.find((/** @type {{ code: string; applicable: boolean; }} */ discount) => {
@@ -98,6 +98,31 @@ class CartDiscount extends Component {
         discountCode.value = '';
         this.#handleDiscountError('discount_code');
         return;
+      }
+
+      // Stacking fallback: if the loyalty discount could not combine with the new
+      // coupon (e.g. the coupon isn't set to combine with order discounts in the
+      // Shopify admin), Shopify flags the loyalty code non-applicable. Re-apply
+      // without it so the cart is clean, and let the points be released below
+      // instead of staying reserved against an inactive discount.
+      if (loyaltyCode) {
+        const loyaltyEntry = data.discount_codes.find(
+          (/** @type {{ code: string; applicable: boolean; }} */ discount) =>
+            String(discount?.code || '').toUpperCase() === loyaltyCode.toUpperCase(),
+        );
+        if (loyaltyEntry && loyaltyEntry.applicable === false) {
+          const fallbackConfig = fetchConfig('json', {
+            body: JSON.stringify({
+              discount: [...existingDiscounts, discountCodeValue].join(','),
+              sections: [this.dataset.sectionId],
+            }),
+          });
+          const fallbackResponse = await fetch(Theme.routes.cart_update_url, {
+            ...fallbackConfig,
+            signal: abortController.signal,
+          });
+          data = await fallbackResponse.json();
+        }
       }
 
       const newHtml = data.sections[this.dataset.sectionId];
@@ -241,7 +266,9 @@ async function releaseStoredLoyaltyRedemption(stored, cartDiscountCodes = []) {
   if (!stored?.sessionId && !stored?.discountCode) return;
   const storedDiscountCode = String(stored.discountCode || '').toUpperCase();
   const loyaltyStillApplied = cartDiscountCodes.some((discount) => {
-    return String(discount?.code || '').toUpperCase() === storedDiscountCode;
+    return (
+      String(discount?.code || '').toUpperCase() === storedDiscountCode && discount?.applicable !== false
+    );
   });
   if (loyaltyStillApplied) return;
 
