@@ -620,6 +620,46 @@ function clearCustomerCache() {
   customerRequest = null;
 }
 
+// Release a reserved redemption once the cart is empty, independent of the widget's
+// lifecycle: an empty cart does not render the cart widget, so a per-widget handler
+// can never fire in that state and the reserved points would stay locked until the
+// reservation TTL expires. This lives on `document` (and runs once at load) so it
+// survives the widget unmounting. Cheap: it only touches the network when a
+// reservation is actually stored AND a cart change happened.
+async function releaseRedemptionIfCartEmpty() {
+  const stored = readStoredRedemption();
+  if (!stored?.discountCode && !stored?.sessionId) return;
+
+  let itemCount = null;
+  try {
+    const response = await fetch(`${Theme.routes.cart_url}.js`, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    if (!response.ok) return;
+    itemCount = (await response.json()).item_count;
+  } catch (error) {
+    return;
+  }
+  if (itemCount !== 0) return;
+
+  await fetch('/apps/loyalty/remove', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ sessionId: stored.sessionId, discountCode: stored.discountCode }),
+  }).catch(() => null);
+  clearStoredRedemption();
+  clearCustomerCache();
+}
+
+if (!window.__earthenLoyaltyCartEmptyGuard) {
+  window.__earthenLoyaltyCartEmptyGuard = true;
+  // Handles the cart being emptied while the shopper is on the page.
+  document.addEventListener(ThemeEvents.cartUpdate, releaseRedemptionIfCartEmpty);
+  // Handles landing on / reloading an already-empty cart (no cartUpdate fires then).
+  releaseRedemptionIfCartEmpty();
+}
+
 window.EarthenLoyalty = {
   ...(window.EarthenLoyalty || {}),
   clearCustomerCache,
