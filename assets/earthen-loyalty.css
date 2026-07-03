@@ -424,3 +424,81 @@
     display: none;
   }
 }
+
+/* Points transaction history (account / profile widget) */
+.earthen-loyalty__history {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(17, 37, 87, 0.12);
+}
+
+.el-txn__title {
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--loyalty-primary, #112557);
+}
+
+.el-txn__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.el-txn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(17, 37, 87, 0.08);
+}
+
+.el-txn:last-child {
+  border-bottom: 0;
+}
+
+.el-txn__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.el-txn__label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgb(var(--color-foreground-rgb, 18 18 18));
+}
+
+.el-txn__date {
+  font-size: 0.75rem;
+  color: rgba(17, 37, 87, 0.6);
+  margin-top: 2px;
+}
+
+.el-txn__points {
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.el-txn.is-earn .el-txn__points {
+  color: #1a7f4b;
+}
+
+.el-txn.is-redeem .el-txn__points {
+  color: var(--loyalty-accent, #cca268);
+}
+
+.el-txn__money {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: rgba(17, 37, 87, 0.55);
+}

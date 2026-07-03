@@ -9,9 +9,16 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat('en-IN', {
   currency: 'INR',
   maximumFractionDigits: 0,
 });
+const HISTORY_DATE_FORMATTER = new Intl.DateTimeFormat('en-IN', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+});
 
 let customerCache = null;
 let customerRequest = null;
+let historyCache = null;
+let historyRequest = null;
 
 class EarthenLoyaltyWidget extends HTMLElement {
   connectedCallback() {
@@ -73,6 +80,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
       selected: this.querySelector('[data-loyalty-selected]'),
       apply: this.querySelector('[data-loyalty-apply]'),
       remove: this.querySelector('[data-loyalty-remove]'),
+      history: this.querySelector('[data-loyalty-history]'),
     };
   }
 
@@ -196,6 +204,8 @@ class EarthenLoyaltyWidget extends HTMLElement {
 
       if (this.dataset.context === 'cart') {
         await this.loadCartRedemption(customer, requestId, signal);
+      } else if (this.dataset.context === 'account') {
+        await this.loadHistory(requestId);
       }
     } catch (error) {
       if (signal.aborted || error?.name === 'AbortError') return;
@@ -256,6 +266,27 @@ class EarthenLoyaltyWidget extends HTMLElement {
       if (signal?.aborted || error?.name === 'AbortError') return;
       this.resetRedeemControls();
       this.refs.message.textContent = 'Cart rewards are refreshing. Please try again in a moment.';
+    }
+  }
+
+  // Renders the customer's points transaction history (earned / redeemed) into the
+  // account/profile widget. Only runs for the account context.
+  async loadHistory(requestId) {
+    const container = this.refs.history;
+    if (!container) return;
+    try {
+      const data = await fetchLoyaltyHistory();
+      if (requestId !== this.loadRequestId || !this.isConnected) return;
+      const transactions = data?.ok ? data.transactions || [] : [];
+      if (!transactions.length) {
+        container.hidden = true;
+        container.innerHTML = '';
+        return;
+      }
+      container.innerHTML = renderHistoryHtml(transactions);
+      container.hidden = false;
+    } catch (error) {
+      container.hidden = true;
     }
   }
 
@@ -634,6 +665,66 @@ async function fetchCustomerSnapshot() {
 function clearCustomerCache() {
   customerCache = null;
   customerRequest = null;
+  historyCache = null;
+  historyRequest = null;
+}
+
+async function fetchLoyaltyHistory() {
+  if (historyCache && Date.now() - historyCache.createdAt <= CUSTOMER_CACHE_TTL_MS) {
+    return historyCache.data;
+  }
+  if (historyRequest) return historyRequest;
+
+  historyRequest = fetch('/apps/loyalty/history', {
+    headers: { Accept: 'application/json' },
+    cache: 'no-store',
+  })
+    .then(async (response) => {
+      if (!response.ok) throw new Error('Loyalty history request failed.');
+      const data = await response.json();
+      historyCache = { createdAt: Date.now(), data };
+      return data;
+    })
+    .finally(() => {
+      historyRequest = null;
+    });
+
+  return historyRequest;
+}
+
+function renderHistoryHtml(transactions) {
+  const rows = transactions
+    .map((txn) => {
+      const points = Number(txn.points || 0);
+      const positive = points > 0;
+      const rowClass = positive ? 'is-earn' : 'is-redeem';
+      const sign = positive ? '+' : '';
+      const order = txn.orderName ? ` · ${escapeHtml(txn.orderName)}` : '';
+      const money = txn.moneyValue
+        ? ` <span class="el-txn__money">${formatMoney(txn.moneyValue)}</span>`
+        : '';
+      return `<li class="el-txn ${rowClass}">
+          <span class="el-txn__info">
+            <span class="el-txn__label">${escapeHtml(txn.label)}${order}</span>
+            <span class="el-txn__date">${formatHistoryDate(txn.date)}</span>
+          </span>
+          <span class="el-txn__points">${sign}${points} pts${money}</span>
+        </li>`;
+    })
+    .join('');
+  return `<h3 class="el-txn__title">Points history</h3><ul class="el-txn__list">${rows}</ul>`;
+}
+
+function formatHistoryDate(iso) {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? '' : HISTORY_DATE_FORMATTER.format(date);
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(
+    /[&<>"']/g,
+    (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char],
+  );
 }
 
 // Release a reserved redemption once the cart is empty, independent of the widget's
