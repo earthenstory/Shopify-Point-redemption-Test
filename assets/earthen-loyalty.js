@@ -56,6 +56,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
     document.removeEventListener(ThemeEvents.discountUpdate, this.handleCartRefresh);
     this.drawerObserver?.disconnect();
     this.appliedObserver?.disconnect();
+    this.popoverEl?.removeEventListener('toggle', this.handlePopoverToggle);
     this.loadAbort?.abort();
     clearTimeout(this.reloadTimer);
   }
@@ -86,11 +87,26 @@ class EarthenLoyaltyWidget extends HTMLElement {
 
   observeDrawer() {
     const dialog = this.closest('dialog');
-    if (!dialog) return;
-    this.drawerObserver = new MutationObserver(() => {
-      if (dialog.hasAttribute('open')) this.scheduleLoad();
-    });
-    this.drawerObserver.observe(dialog, { attributes: true, attributeFilter: ['open'] });
+    if (dialog) {
+      this.drawerObserver = new MutationObserver(() => {
+        if (dialog.hasAttribute('open')) this.scheduleLoad();
+      });
+      this.drawerObserver.observe(dialog, { attributes: true, attributeFilter: ['open'] });
+    }
+
+    // The header account menu is a native popover (popover="auto"), not a <dialog>.
+    // Its content sits in the DOM but is only shown on open, and the initial
+    // connectedCallback load() races with the closed popover, so the balance never
+    // renders. (Re)load whenever it opens — this is what makes the points show up in
+    // the account/profile popover.
+    const popover = this.closest('[popover]');
+    if (popover) {
+      this.popoverEl = popover;
+      this.handlePopoverToggle = (event) => {
+        if (event.newState === 'open') this.scheduleLoad();
+      };
+      popover.addEventListener('toggle', this.handlePopoverToggle);
+    }
   }
 
   getServerAppliedRedemption() {
