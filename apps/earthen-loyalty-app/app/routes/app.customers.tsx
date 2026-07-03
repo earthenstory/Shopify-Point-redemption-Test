@@ -289,7 +289,7 @@ export default function CustomersPage() {
                 name="q"
                 label="Search"
                 value={search}
-                onChange={(event) => setSearch(event.currentTarget.value)}
+                onChange={(event) => setSearch(event.currentTarget.value ?? "")}
                 placeholder="Email, phone, name, or Shopify customer ID"
               ></s-text-field>
             </div>
