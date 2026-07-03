@@ -56,6 +56,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
     document.removeEventListener(ThemeEvents.discountUpdate, this.handleCartRefresh);
     this.drawerObserver?.disconnect();
     this.appliedObserver?.disconnect();
+    this.loadAbort?.abort();
     clearTimeout(this.reloadTimer);
   }
 
@@ -102,19 +103,40 @@ class EarthenLoyaltyWidget extends HTMLElement {
   async load() {
     const requestId = (this.loadRequestId || 0) + 1;
     this.loadRequestId = requestId;
+    // Cancel any in-flight cart/preview fetches from a superseded load so rapid
+    // cart edits don't stack concurrent requests against the backend. Pairs with
+    // the 200ms debounce in scheduleLoad().
+    this.loadAbort?.abort();
+    const abort = new AbortController();
+    this.loadAbort = abort;
+    const { signal } = abort;
     // Refresh refs in case a cart-section morph replaced the inner DOM.
     this.cacheRefs();
     const isCart = this.dataset.context === 'cart';
+    const cartToken = this.dataset.cartToken || null;
     // The server-rendered cart is the source of truth for whether a loyalty
     // discount is applied, so the Remove control always shows when one is on the
     // cart — even if localStorage was cleared or lost between sessions.
     const serverApplied = isCart ? this.getServerAppliedRedemption() : null;
-    const storedRedemption = isCart ? getActiveStoredRedemption() : null;
+    // Scope the stored reservation to the current cart token so a redemption from
+    // a previous cart never bleeds into a new one.
+    const storedRedemption = isCart ? getActiveStoredRedemption(cartToken) : null;
 
     // Drop a stale localStorage reservation if the cart no longer carries the
     // discount (e.g. removed elsewhere), so we don't show a phantom applied state.
     if (isCart && !serverApplied && storedRedemption) {
       clearStoredRedemption();
+    }
+
+    // Cart emptied: release any reserved points so the balance isn't left locked
+    // behind a discount that can no longer apply, then hide the widget.
+    if (isCart && Number(this.dataset.cartSubtotal || 0) <= 0) {
+      if (storedRedemption || serverApplied) {
+        await this.releaseOnEmptyCart(storedRedemption);
+      }
+      if (requestId !== this.loadRequestId || !this.isConnected) return;
+      this.hidden = true;
+      return;
     }
 
     const applied = serverApplied
@@ -157,9 +179,10 @@ class EarthenLoyaltyWidget extends HTMLElement {
       );
 
       if (this.dataset.context === 'cart') {
-        await this.loadCartRedemption(customer, requestId);
+        await this.loadCartRedemption(customer, requestId, signal);
       }
     } catch (error) {
+      if (signal.aborted || error?.name === 'AbortError') return;
       if (this.dataset.context === 'cart') {
         this.hidden = false;
         this.resetRedeemControls();
@@ -173,8 +196,8 @@ class EarthenLoyaltyWidget extends HTMLElement {
     }
   }
 
-  async loadCartRedemption(customer, requestId) {
-    const stored = getActiveStoredRedemption();
+  async loadCartRedemption(customer, requestId, signal) {
+    const stored = getActiveStoredRedemption(this.dataset.cartToken || null);
 
     if (customer.redemption && !customer.redemption.enabled) {
       if (stored?.discountCode) this.renderStoredRedemption(stored, 0);
@@ -187,7 +210,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
     }
 
     try {
-      const cart = await this.getCartSnapshot();
+      const cart = await this.getCartSnapshot(signal);
       if (requestId !== this.loadRequestId || !this.isConnected) return;
 
       // Preferred path: compute the slider maximum locally from the rules the
@@ -196,7 +219,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
       // revision did not send `redemption` rules yet.
       const preview = customer.redemption
         ? previewFromRules(customer, cart)
-        : await this.fetchCartPreview(cart);
+        : await this.fetchCartPreview(cart, signal);
       if (requestId !== this.loadRequestId || !this.isConnected) return;
 
       if (!preview.ok || preview.maxRedeemablePoints <= 0) {
@@ -214,19 +237,43 @@ class EarthenLoyaltyWidget extends HTMLElement {
         this.renderStoredRedemption(stored, preview.maxRedeemablePoints);
       }
     } catch (error) {
+      if (signal?.aborted || error?.name === 'AbortError') return;
       this.resetRedeemControls();
       this.refs.message.textContent = 'Cart rewards are refreshing. Please try again in a moment.';
     }
   }
 
-  async fetchCartPreview(cart) {
+  async fetchCartPreview(cart, signal) {
     return this.request('/apps/loyalty/cart-preview', {
       method: 'POST',
+      signal,
       body: {
         cartToken: cart.token,
         subtotal: cart.subtotal,
       },
     });
+  }
+
+  // Release a reservation left behind when the cart is emptied. Best-effort: hits
+  // the backend to free the reserved points and clears local state. We do not morph
+  // a cart section here — the cart is already empty.
+  async releaseOnEmptyCart(stored) {
+    if (this.autoReleasing) return;
+    this.autoReleasing = true;
+    try {
+      const discountCode = stored?.discountCode || this.dataset.appliedCode || '';
+      if (stored?.sessionId || discountCode) {
+        await this.request('/apps/loyalty/remove', {
+          method: 'POST',
+          body: { sessionId: stored?.sessionId, discountCode },
+        }).catch(() => null);
+      }
+      clearStoredRedemption();
+      clearCustomerCache();
+      delete this.dataset.applied;
+    } finally {
+      this.autoReleasing = false;
+    }
   }
 
   handleCartRefresh = () => {
@@ -294,7 +341,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
       }
 
       clearCustomerCache();
-      writeStoredRedemption(redemption);
+      writeStoredRedemption(redemption, cart.token);
       await this.applyDiscountCode(redemption.discountCode);
       this.renderStoredRedemption(redemption, 0);
     });
@@ -342,10 +389,11 @@ class EarthenLoyaltyWidget extends HTMLElement {
     }
   }
 
-  async getCart() {
+  async getCart(signal) {
     const response = await fetch(`${Theme.routes.cart_url}.js`, {
       headers: { Accept: 'application/json' },
       cache: 'no-store',
+      signal,
     });
 
     if (!response.ok) throw new Error('Could not load cart.');
@@ -353,7 +401,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
     return response.json();
   }
 
-  async getCartSnapshot() {
+  async getCartSnapshot(signal) {
     const fallback = {
       token: this.dataset.cartToken || null,
       subtotal: Math.max(0, Number(this.dataset.cartSubtotal || 0)),
@@ -364,7 +412,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
     }
 
     try {
-      const cart = await this.getCart();
+      const cart = await this.getCart(signal);
       return {
         token: cart.token || fallback.token,
         subtotal: centsToMoney(cart.items_subtotal_price ?? fallback.subtotal * 100),
@@ -381,6 +429,8 @@ class EarthenLoyaltyWidget extends HTMLElement {
       headers: { Accept: 'application/json' },
       cache: 'no-store',
     };
+
+    if (options.signal) fetchOptions.signal = options.signal;
 
     if (options.body) {
       fetchOptions.headers['Content-Type'] = 'application/json';
@@ -496,7 +546,7 @@ function readStoredRedemption() {
   }
 }
 
-function getActiveStoredRedemption() {
+function getActiveStoredRedemption(currentCartToken) {
   const stored = readStoredRedemption();
   if (!stored?.discountCode) return null;
 
@@ -505,10 +555,18 @@ function getActiveStoredRedemption() {
     return null;
   }
 
+  // A reservation belongs to the cart it was applied on. If the cart token has
+  // changed (new/replaced cart), the stored code no longer applies here — drop it
+  // so we never show a phantom applied state from a previous cart.
+  if (stored.cartToken && currentCartToken && stored.cartToken !== currentCartToken) {
+    clearStoredRedemption();
+    return null;
+  }
+
   return stored;
 }
 
-function writeStoredRedemption(redemption) {
+function writeStoredRedemption(redemption, cartToken) {
   window.localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({
@@ -517,6 +575,7 @@ function writeStoredRedemption(redemption) {
       pointsReserved: redemption.pointsReserved,
       discountAmount: redemption.discountAmount,
       expiresAt: redemption.expiresAt,
+      cartToken: cartToken ?? null,
     }),
   );
 }

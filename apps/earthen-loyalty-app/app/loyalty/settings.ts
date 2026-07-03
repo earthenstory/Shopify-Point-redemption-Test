@@ -71,10 +71,34 @@ export const milestoneSettingsSchema = z.object({
   repeatable: z.boolean(),
 });
 
+// Runtime settings change rarely (only via the admin) but are read on every
+// storefront request. Each miss runs three `ensure*` upserts + a milestone read,
+// so we cache the assembled result per shop for a short TTL and let the admin
+// write paths bust it. This turns the common path from ~4 DB round trips (3 of
+// them writes) into zero. The TTL bounds staleness in the rare case a second
+// Cloud Run instance holds an older copy.
+const RUNTIME_SETTINGS_TTL_MS = 60_000;
+
+type RuntimeSettingsCacheEntry = {
+  value: LoyaltyRuntimeSettings;
+  expiresAt: number;
+};
+
+const runtimeSettingsCache = new Map<string, RuntimeSettingsCacheEntry>();
+
+export function invalidateLoyaltyRuntimeSettings(shopDomain: string) {
+  runtimeSettingsCache.delete(shopDomain);
+}
+
 export async function getLoyaltyRuntimeSettings(input: {
   db: PrismaClient;
   shopDomain: string;
 }): Promise<LoyaltyRuntimeSettings> {
+  const cached = runtimeSettingsCache.get(input.shopDomain);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.value;
+  }
+
   const [program, rewardRule, widget, milestones] = await Promise.all([
     ensureProgramSettings(input.db, input.shopDomain),
     ensureRewardRule(input.db, input.shopDomain),
@@ -85,7 +109,7 @@ export async function getLoyaltyRuntimeSettings(input: {
     }),
   ]);
 
-  return {
+  const value: LoyaltyRuntimeSettings = {
     program,
     rewardRule,
     widget,
@@ -96,6 +120,13 @@ export async function getLoyaltyRuntimeSettings(input: {
       rewardRule.redemptionEnabled && program.status !== "paused",
     discountCodeTtlMinutes: rewardRule.discountCodeTtlMinutes,
   };
+
+  runtimeSettingsCache.set(input.shopDomain, {
+    value,
+    expiresAt: Date.now() + RUNTIME_SETTINGS_TTL_MS,
+  });
+
+  return value;
 }
 
 export async function updateProgramSettings(input: {
@@ -117,6 +148,7 @@ export async function updateProgramSettings(input: {
     after,
     reason: "Updated loyalty program settings",
   });
+  invalidateLoyaltyRuntimeSettings(input.shopDomain);
   return after;
 }
 
@@ -148,6 +180,7 @@ export async function updateRewardSettings(input: {
     after,
     reason: "Updated loyalty earning/redemption settings",
   });
+  invalidateLoyaltyRuntimeSettings(input.shopDomain);
   return after;
 }
 
@@ -170,6 +203,7 @@ export async function updateWidgetSettings(input: {
     after,
     reason: "Updated loyalty widget settings",
   });
+  invalidateLoyaltyRuntimeSettings(input.shopDomain);
   return after;
 }
 
@@ -206,6 +240,7 @@ export async function upsertMilestoneRule(input: {
     after,
     reason: "Updated loyalty milestone rule",
   });
+  invalidateLoyaltyRuntimeSettings(input.shopDomain);
   return after;
 }
 

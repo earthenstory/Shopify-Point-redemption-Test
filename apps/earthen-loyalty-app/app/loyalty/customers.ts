@@ -20,6 +20,10 @@ export async function getCustomerSnapshot(input: {
     return emptySnapshot(null);
   }
 
+  // The snapshot only needs two booleans from the ledger, so we avoid pulling the
+  // last 50 rows just to scan them in JS. Fetch a single migration marker with the
+  // customer/wallet (one row, one round trip); `migrated` implies ledger entries
+  // exist, so only fall back to a cheap existence check when it's absent.
   const loyaltyCustomer = await input.db.loyaltyCustomer.findUnique({
     where: {
       shopDomain_shopifyCustomerId: {
@@ -30,9 +34,9 @@ export async function getCustomerSnapshot(input: {
     include: {
       wallet: true,
       ledgerEntries: {
-        select: { type: true },
-        take: 50,
-        orderBy: { createdAt: "desc" },
+        where: { type: "migration_credit" },
+        select: { id: true },
+        take: 1,
       },
     },
   });
@@ -41,16 +45,22 @@ export async function getCustomerSnapshot(input: {
     return emptySnapshot(input.shopifyCustomerId);
   }
 
+  const migrated = loyaltyCustomer.ledgerEntries.length > 0;
+  const hasLedgerEntries =
+    migrated ||
+    (await input.db.ledgerEntry.findFirst({
+      where: { customerId: loyaltyCustomer.id },
+      select: { id: true },
+    })) !== null;
+
   return {
     customerId: loyaltyCustomer.id,
     availablePoints: loyaltyCustomer.wallet.availablePoints,
     pendingPoints: loyaltyCustomer.wallet.pendingPoints,
     lifetimeEarnedPoints: loyaltyCustomer.wallet.lifetimeEarnedPoints,
     lifetimeRedeemedPoints: loyaltyCustomer.wallet.lifetimeRedeemedPoints,
-    hasLedgerEntries: loyaltyCustomer.ledgerEntries.length > 0,
-    migrated: loyaltyCustomer.ledgerEntries.some(
-      (entry) => entry.type === "migration_credit",
-    ),
+    hasLedgerEntries,
+    migrated,
   };
 }
 
