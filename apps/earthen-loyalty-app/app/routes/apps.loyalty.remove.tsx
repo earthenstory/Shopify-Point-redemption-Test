@@ -8,7 +8,10 @@ import {
   jsonResponse,
   readJsonBody,
 } from "../loyalty/app-proxy";
-import { releaseRedemption } from "../loyalty/redemptions";
+import {
+  releaseActiveRedemptions,
+  releaseRedemption,
+} from "../loyalty/redemptions";
 
 const requestSchema = z.object({
   sessionId: z.string().optional().nullable(),
@@ -25,16 +28,31 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
 
     const { admin } = await unauthenticated.admin(context.shop);
-    const result = await releaseRedemption({
+
+    // With a specific target, release just that reservation (the Remove button).
+    // With no target, release every active reservation for the customer — this is
+    // the orphan-recovery path the cart widget uses when the cart carries no loyalty
+    // discount but points are still held.
+    if (body.sessionId || body.discountCode) {
+      const result = await releaseRedemption({
+        db,
+        admin,
+        shopDomain: context.shop,
+        shopifyCustomerId: context.loggedInCustomerId,
+        sessionId: body.sessionId,
+        discountCode: body.discountCode,
+      });
+      return jsonResponse({ ok: true, released: result.released });
+    }
+
+    const result = await releaseActiveRedemptions({
       db,
       admin,
       shopDomain: context.shop,
       shopifyCustomerId: context.loggedInCustomerId,
-      sessionId: body.sessionId,
-      discountCode: body.discountCode,
+      reason: "Released orphaned reservation",
     });
-
-    return jsonResponse({ ok: true, ...result });
+    return jsonResponse({ ok: true, released: result.released > 0 });
   } catch (error) {
     if (error instanceof Response) return error;
     return jsonError("Could not remove loyalty redemption", 400);

@@ -196,14 +196,36 @@ class EarthenLoyaltyWidget extends HTMLElement {
         return;
       }
 
+      // Orphan recovery (cart only): we reached here without a loyalty discount on the
+      // cart, so any still-reserved points are stranded from a prior redemption whose
+      // discount was dropped (coupon, emptied cart, or a lost client record). Release
+      // them once so the balance is correct and the customer can redeem again.
+      let snapshot = customer;
+      if (
+        this.dataset.context === 'cart' &&
+        Number(snapshot.pendingPoints || 0) > 0 &&
+        !this.orphanRecovering
+      ) {
+        this.orphanRecovering = true;
+        try {
+          await this.request('/apps/loyalty/remove', { method: 'POST', body: {} }).catch(() => null);
+          clearCustomerCache();
+          const refreshed = await fetchCustomerSnapshot();
+          if (requestId !== this.loadRequestId || !this.isConnected) return;
+          if (refreshed?.ok) snapshot = refreshed;
+        } finally {
+          this.orphanRecovering = false;
+        }
+      }
+
       this.renderMessage(
-        customer.message ||
-          `You have ${customer.availablePoints} points worth ${formatMoney(customer.availableValue)}.`,
-        `${customer.availablePoints} pts`,
+        snapshot.message ||
+          `You have ${snapshot.availablePoints} points worth ${formatMoney(snapshot.availableValue)}.`,
+        `${snapshot.availablePoints} pts`,
       );
 
       if (this.dataset.context === 'cart') {
-        await this.loadCartRedemption(customer, requestId, signal);
+        await this.loadCartRedemption(snapshot, requestId, signal);
       } else if (this.dataset.context === 'account') {
         await this.loadHistory(requestId);
       }

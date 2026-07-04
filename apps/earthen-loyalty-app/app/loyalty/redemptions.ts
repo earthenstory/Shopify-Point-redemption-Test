@@ -80,27 +80,32 @@ export async function createRedemption(input: {
     throw new Error("Earthen Points redemption is currently paused.");
   }
 
-  const activeSession = await input.db.redemptionSession.findFirst({
-    where: {
-      customerId: loyaltyCustomer.id,
-      cartToken: input.cart.token,
-      status: { in: ["pending", "applied"] },
-      expiresAt: { gt: new Date() },
-    },
-    select: { id: true },
+  // Release any prior active reservation for this customer before reserving again.
+  // A customer should only ever hold one live reservation; releasing first keeps
+  // "Apply" idempotent and, crucially, un-strands points from a previous hold whose
+  // discount was dropped by a coupon or whose client-side record was lost (the bug
+  // that left points stuck in `pending` with 0 available). Returns those points to
+  // the wallet, so we re-read the balance before sizing the new reservation.
+  await releaseActiveRedemptions({
+    db: input.db,
+    admin: input.admin,
+    shopDomain: input.shopDomain,
+    shopifyCustomerId: input.shopifyCustomerId,
+    reason: "Replaced by a new redemption",
   });
 
-  if (activeSession) {
-    throw new Error(
-      "You already have points applied to this cart. Remove them before applying again.",
-    );
-  }
+  const reconciledWallet = await input.db.wallet.findUnique({
+    where: { id: loyaltyCustomer.wallet.id },
+    select: { availablePoints: true },
+  });
+  const availablePoints =
+    reconciledWallet?.availablePoints ?? loyaltyCustomer.wallet.availablePoints;
 
   const pointsToReserve = normalizeRedeemPoints(
     Math.min(
       input.requestedPoints,
       calculateMaxRedeemablePoints({
-        availablePoints: loyaltyCustomer.wallet.availablePoints,
+        availablePoints,
         eligibleCartSubtotal: input.cart.subtotal,
         rules: settings.rules,
       }),
@@ -286,6 +291,59 @@ export async function releaseRedemption(input: {
   });
 
   return { released: true };
+}
+
+/**
+ * Release a customer's active (pending/applied) reservations and return the points
+ * to their wallet. This is the reconciliation safety net for the "stuck points" bug:
+ * a reservation can be orphaned if its Shopify discount is dropped from the cart (by a
+ * non-combinable coupon, an emptied cart, or a lost client-side record) yet the hold
+ * lives on. Any code path that observes a cart with no loyalty discount applied can
+ * call this to free the points.
+ *
+ * - `onlyExpired`: only release reservations whose hold has already lapsed. Safe and
+ *   cheap to run on every balance read — no admin call is needed because Shopify has
+ *   already expired the code (release runs DB-only when `admin` is omitted).
+ * - `exceptDiscountCode`: keep this one live (the code currently applied to the cart).
+ */
+export async function releaseActiveRedemptions(input: {
+  db: PrismaClient;
+  admin?: AdminApiContext;
+  shopDomain: string;
+  shopifyCustomerId: string;
+  onlyExpired?: boolean;
+  exceptDiscountCode?: string | null;
+  reason?: string;
+}): Promise<{ released: number }> {
+  const sessions = await input.db.redemptionSession.findMany({
+    where: {
+      customer: {
+        shopDomain: input.shopDomain,
+        shopifyCustomerId: input.shopifyCustomerId,
+      },
+      status: { in: ["pending", "applied"] },
+      ...(input.onlyExpired ? { expiresAt: { lte: new Date() } } : {}),
+      ...(input.exceptDiscountCode
+        ? { discountCode: { not: input.exceptDiscountCode } }
+        : {}),
+    },
+    select: { id: true },
+  });
+
+  let released = 0;
+  for (const session of sessions) {
+    const result = await releaseRedemption({
+      db: input.db,
+      admin: input.admin,
+      shopDomain: input.shopDomain,
+      shopifyCustomerId: input.shopifyCustomerId,
+      sessionId: session.id,
+      reason: input.reason ?? "Reconciled stale reservation",
+    });
+    if (result.released) released += 1;
+  }
+
+  return { released };
 }
 
 async function deactivateShopifyDiscountCode(input: {

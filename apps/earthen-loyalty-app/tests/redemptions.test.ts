@@ -75,47 +75,94 @@ describe("redemption preview", () => {
     });
   });
 
-  it("rejects a replay redemption when the same cart already has an active session", async () => {
+  it("releases a prior active reservation and re-reserves when applying again", async () => {
+    const releaseTx = {
+      wallet: { update: vi.fn().mockResolvedValue({}) },
+      redemptionSession: { update: vi.fn().mockResolvedValue({}) },
+      ledgerEntry: { create: vi.fn().mockResolvedValue({}) },
+    };
+    const reserveTx = {
+      wallet: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      redemptionSession: { create: vi.fn().mockResolvedValue({ id: "new-session" }) },
+      ledgerEntry: { create: vi.fn().mockResolvedValue({}) },
+    };
+    let txCall = 0;
     const db = {
       loyaltyCustomer: {
         findUnique: vi.fn().mockResolvedValue({
           id: "customer-1",
-          wallet: {
-            id: "wallet-1",
-            availablePoints: 500,
-          },
+          wallet: { id: "wallet-1", availablePoints: 500 },
         }),
       },
-      redemptionSession: {
-        findFirst: vi.fn().mockResolvedValue({ id: "session-1" }),
+      wallet: {
+        findUnique: vi.fn().mockResolvedValue({ availablePoints: 500 }),
       },
-      $transaction: vi.fn(),
+      redemptionSession: {
+        // A stale reservation is still active for this customer.
+        findMany: vi.fn().mockResolvedValue([{ id: "old-session" }]),
+        findFirst: vi.fn().mockResolvedValue({
+          id: "old-session",
+          customerId: "customer-1",
+          pointsReserved: 50,
+          pointsConsumed: 0,
+          discountAmount: 50,
+          currency: "INR",
+          shopifyDiscountNodeId: "gid://shopify/DiscountCodeNode/old",
+          customer: { wallet: { id: "wallet-1" } },
+        }),
+        update: vi.fn().mockResolvedValue({}),
+      },
+      $transaction: vi.fn().mockImplementation((callback: (tx: unknown) => unknown) => {
+        txCall += 1;
+        return callback(txCall === 1 ? releaseTx : reserveTx);
+      }),
       ...settingsModels(),
     };
-    const admin = { graphql: vi.fn() };
+    const admin = {
+      graphql: vi.fn().mockImplementation((query: string) => ({
+        json: async () =>
+          String(query).includes("discountCodeBasicCreate")
+            ? {
+                data: {
+                  discountCodeBasicCreate: {
+                    codeDiscountNode: { id: "gid://shopify/DiscountCodeNode/new" },
+                    userErrors: [],
+                  },
+                },
+              }
+            : {
+                data: {
+                  discountCodeDeactivate: {
+                    codeDiscountNode: { id: "gid://shopify/DiscountCodeNode/old" },
+                    userErrors: [],
+                  },
+                },
+              },
+      })),
+    };
 
-    await expect(
-      createRedemption({
-        db: db as never,
-        admin: admin as never,
-        shopDomain: "701031-e7.myshopify.com",
-        shopifyCustomerId: "8584673591392",
-        requestedPoints: 100,
-        cart: { token: "cart-1", subtotal: 1000 },
-      }),
-    ).rejects.toThrow("already have points applied");
-
-    expect(db.redemptionSession.findFirst).toHaveBeenCalledWith({
-      where: {
-        customerId: "customer-1",
-        cartToken: "cart-1",
-        status: { in: ["pending", "applied"] },
-        expiresAt: { gt: expect.any(Date) },
-      },
-      select: { id: true },
+    const result = await createRedemption({
+      db: db as never,
+      admin: admin as never,
+      shopDomain: "701031-e7.myshopify.com",
+      shopifyCustomerId: "8584673591392",
+      requestedPoints: 100,
+      cart: { token: "cart-1", subtotal: 1000 },
     });
-    expect(db.$transaction).not.toHaveBeenCalled();
-    expect(admin.graphql).not.toHaveBeenCalled();
+
+    // The prior reservation is released (points returned) instead of throwing.
+    expect(db.redemptionSession.findMany).toHaveBeenCalled();
+    expect(releaseTx.wallet.update).toHaveBeenCalledWith({
+      where: { id: "wallet-1" },
+      data: { availablePoints: { increment: 50 }, pendingPoints: { decrement: 50 } },
+    });
+    // A fresh reservation + discount is then created.
+    expect(reserveTx.redemptionSession.create).toHaveBeenCalled();
+    expect(admin.graphql).toHaveBeenCalledWith(
+      expect.stringContaining("discountCodeBasicCreate"),
+      expect.anything(),
+    );
+    expect(result).toMatchObject({ sessionId: "new-session", pointsReserved: 100 });
   });
 
   it("returns a safe error when a Shopify customer has no wallet yet", async () => {

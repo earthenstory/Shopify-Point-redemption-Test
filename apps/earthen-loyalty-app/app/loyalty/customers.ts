@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { confirmedBonDefaults, type LoyaltyRules } from "./rules";
+import { releaseActiveRedemptions } from "./redemptions";
 
 export type LoyaltyCustomerSnapshot = {
   customerId: string | null;
@@ -19,6 +20,17 @@ export async function getCustomerSnapshot(input: {
   if (!input.shopifyCustomerId) {
     return emptySnapshot(null);
   }
+
+  // Self-heal before reading the balance: no background job releases lapsed holds,
+  // so return points from any reservation whose TTL has expired. This keeps
+  // `availablePoints` from being permanently understated by an abandoned redemption.
+  await releaseActiveRedemptions({
+    db: input.db,
+    shopDomain: input.shopDomain,
+    shopifyCustomerId: input.shopifyCustomerId,
+    onlyExpired: true,
+    reason: "Expired reservation reconciled on balance read",
+  }).catch(() => {});
 
   // The snapshot only needs two booleans from the ledger, so we avoid pulling the
   // last 50 rows just to scan them in JS. Fetch a single migration marker with the
