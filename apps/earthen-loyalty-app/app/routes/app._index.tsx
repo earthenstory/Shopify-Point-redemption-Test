@@ -94,92 +94,114 @@ export default function Index() {
       : null,
   ].filter((warning): warning is string => Boolean(warning));
 
+  const metrics = [
+    { label: "Members", value: data.walletCount },
+    { label: "Available points", value: data.wallets.availablePoints ?? 0 },
+    { label: "Lifetime earned", value: data.wallets.lifetimeEarnedPoints ?? 0 },
+    { label: "Lifetime redeemed", value: data.wallets.lifetimeRedeemedPoints ?? 0 },
+  ];
+  const statusTone =
+    data.program.status === "active"
+      ? "success"
+      : data.program.status === "paused"
+        ? "warning"
+        : "info";
+
   return (
-    <s-page heading="Earthen loyalty overview">
-      <s-section heading="Program status">
-        <s-unordered-list>
-          <s-list-item>Shop: {data.shop}</s-list-item>
-          <s-list-item>Status: {data.program.status}</s-list-item>
-          <s-list-item>Program: {data.program.programName}</s-list-item>
-          <s-list-item>Point name: {data.program.pointName}</s-list-item>
-          <s-list-item>
-            Earning: {data.rule.earningEnabled ? "enabled" : "disabled"}
-          </s-list-item>
-          <s-list-item>
-            Redemption: {data.rule.redemptionEnabled ? "enabled" : "disabled"}
-          </s-list-item>
-        </s-unordered-list>
-      </s-section>
-
-      <s-section heading="Current rules">
-        <s-unordered-list>
-          <s-list-item>
-            Signup bonus: {data.rule.signupRewardPoints} points
-          </s-list-item>
-          <s-list-item>
-            Earn rate: {data.rule.pointsPerSpendAmount} points per INR{" "}
-            {data.rule.spendAmountForEarnPoints}
-          </s-list-item>
-          <s-list-item>
-            Minimum redemption: {data.rule.minRedeemPoints} points
-          </s-list-item>
-          <s-list-item>
-            Max cart redemption: {data.rule.maxRedeemPercentOfCart}%
-          </s-list-item>
-        </s-unordered-list>
-      </s-section>
-
-      <s-section heading="Point ledger summary">
-        <s-unordered-list>
-          <s-list-item>Wallets: {data.walletCount}</s-list-item>
-          <s-list-item>
-            Available points: {data.wallets.availablePoints ?? 0}
-          </s-list-item>
-          <s-list-item>
-            Pending points: {data.wallets.pendingPoints ?? 0}
-          </s-list-item>
-          <s-list-item>
-            Lifetime earned: {data.wallets.lifetimeEarnedPoints ?? 0}
-          </s-list-item>
-          <s-list-item>
-            Lifetime redeemed: {data.wallets.lifetimeRedeemedPoints ?? 0}
-          </s-list-item>
-          <s-list-item>Ledger entries: {data.ledgerCount}</s-list-item>
-        </s-unordered-list>
-      </s-section>
-
-      <s-section heading="Migration">
-        {data.latestBatch ? (
-          <s-unordered-list>
-            <s-list-item>File: {data.latestBatch.sourceFileName}</s-list-item>
-            <s-list-item>Status: {data.latestBatch.status}</s-list-item>
-            <s-list-item>Valid rows: {data.latestBatch.validRowCount}</s-list-item>
-            <s-list-item>
-              Invalid rows: {data.latestBatch.invalidRowCount}
-            </s-list-item>
-            <s-list-item>
-              Source points: {data.latestBatch.totalSourcePoints}
-            </s-list-item>
-            <s-list-item>
-              Imported points: {data.latestBatch.totalImportedPoints}
-            </s-list-item>
-          </s-unordered-list>
-        ) : (
-          <s-paragraph>No BON migration batch has been imported yet.</s-paragraph>
-        )}
-      </s-section>
-
-      <s-section heading="Launch warnings">
+    <s-page heading={`${data.program.programName} overview`}>
+      <s-stack direction="block" gap="large-100">
         {warnings.length > 0 ? (
-          <s-unordered-list>
-            {warnings.map((warning) => (
-              <s-list-item key={warning}>{warning}</s-list-item>
-            ))}
-          </s-unordered-list>
+          <s-banner tone="warning" heading="Before you go live">
+            <s-unordered-list>
+              {warnings.map((warning) => (
+                <s-list-item key={warning}>{warning}</s-list-item>
+              ))}
+            </s-unordered-list>
+          </s-banner>
         ) : (
-          <s-paragraph>No launch warnings are currently flagged.</s-paragraph>
+          <s-banner tone="success">Everything looks ready to go live.</s-banner>
         )}
-      </s-section>
+
+        <s-section heading="At a glance">
+          <s-grid gridTemplateColumns="1fr 1fr 1fr 1fr" gap="base">
+            {metrics.map((metric) => (
+              <s-box
+                key={metric.label}
+                padding="base"
+                background="subdued"
+                borderRadius="base"
+              >
+                <s-stack direction="block" gap="none">
+                  <s-text color="subdued">
+                    {metric.label}
+                  </s-text>
+                  <s-heading>{metric.value.toLocaleString("en-IN")}</s-heading>
+                </s-stack>
+              </s-box>
+            ))}
+          </s-grid>
+          <s-text color="subdued">
+            {data.ledgerCount.toLocaleString("en-IN")} ledger entries ·{" "}
+            {data.wallets.pendingPoints ?? 0} points currently reserved
+          </s-text>
+        </s-section>
+
+        <s-section heading="Program">
+          <s-stack direction="block" gap="base">
+            <s-stack direction="inline" gap="small" alignItems="center">
+              <s-badge tone={statusTone}>
+                {data.program.status === "active"
+                  ? "Active"
+                  : data.program.status === "paused"
+                    ? "Paused"
+                    : "Test mode"}
+              </s-badge>
+              <s-badge tone={data.rule.earningEnabled ? "success" : "neutral"}>
+                Earning {data.rule.earningEnabled ? "on" : "off"}
+              </s-badge>
+              <s-badge tone={data.rule.redemptionEnabled ? "success" : "neutral"}>
+                Redemption {data.rule.redemptionEnabled ? "on" : "off"}
+              </s-badge>
+            </s-stack>
+            <s-paragraph>
+              Customers earn{" "}
+              <s-text type="strong">
+                {data.rule.pointsPerSpendAmount} {data.program.pointName}
+              </s-text>{" "}
+              per ₹{data.rule.spendAmountForEarnPoints} spent, plus{" "}
+              <s-text type="strong">{data.rule.signupRewardPoints}</s-text> on
+              signup. They can redeem from {data.rule.minRedeemPoints} points, up to{" "}
+              {data.rule.maxRedeemPercentOfCart}% of a cart.
+            </s-paragraph>
+          </s-stack>
+        </s-section>
+
+        <s-section heading="Migration from BON">
+          {data.latestBatch ? (
+            <s-grid gridTemplateColumns="1fr 1fr 1fr" gap="base">
+              <s-stack direction="block" gap="none">
+                <s-text color="subdued">File</s-text>
+                <s-text>{data.latestBatch.sourceFileName}</s-text>
+              </s-stack>
+              <s-stack direction="block" gap="none">
+                <s-text color="subdued">Imported points</s-text>
+                <s-text>
+                  {data.latestBatch.totalImportedPoints?.toLocaleString("en-IN")}
+                </s-text>
+              </s-stack>
+              <s-stack direction="block" gap="none">
+                <s-text color="subdued">Rows</s-text>
+                <s-text>
+                  {data.latestBatch.validRowCount} valid ·{" "}
+                  {data.latestBatch.invalidRowCount} invalid
+                </s-text>
+              </s-stack>
+            </s-grid>
+          ) : (
+            <s-paragraph>No BON migration batch has been imported yet.</s-paragraph>
+          )}
+        </s-section>
+      </s-stack>
     </s-page>
   );
 }

@@ -58,72 +58,100 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 };
 
+const STATUS_TONE: Record<string, "info" | "success" | "warning"> = {
+  test: "info",
+  active: "success",
+  paused: "warning",
+};
+
 export default function ProgramPage() {
   const data = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
 
   return (
     <s-page heading="Point program">
-      <s-section heading="Program controls">
+      <s-stack direction="block" gap="large-100">
         {actionData?.message ? (
-          <s-paragraph>{actionData.message}</s-paragraph>
+          <s-banner tone={actionData.ok ? "success" : "critical"}>
+            {actionData.message}
+          </s-banner>
         ) : null}
+
+        <s-section heading="Program status">
+          <s-stack direction="block" gap="base">
+            <s-stack direction="inline" gap="small" alignItems="center">
+              <s-text>Current status</s-text>
+              <s-badge tone={STATUS_TONE[data.status] ?? "info"}>
+                {data.status === "active"
+                  ? "Active"
+                  : data.status === "paused"
+                    ? "Paused"
+                    : "Test mode"}
+              </s-badge>
+            </s-stack>
+            <s-paragraph>
+              Set the program live, keep it in test mode while you verify checkout,
+              or pause earning and redemption entirely.
+            </s-paragraph>
+          </s-stack>
+        </s-section>
+
         <Form method="post">
-          <div style={{ display: "grid", gap: 14, maxWidth: 640 }}>
-            <label>
-              Status
-              <select name="status" defaultValue={data.status}>
-                <option value="test">Test mode</option>
-                <option value="active">Active</option>
-                <option value="paused">Paused</option>
-              </select>
-            </label>
-            <label>
-              Program name
-              <input
-                name="programName"
-                defaultValue={data.programName}
-                required
-                maxLength={80}
-              />
-            </label>
-            <label>
-              Point name
-              <input
-                name="pointName"
-                defaultValue={data.pointName}
-                required
-                maxLength={80}
-              />
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                name="bonWidgetDisabled"
-                defaultChecked={data.bonWidgetDisabled}
-              />{" "}
-              BON storefront widget/app embed is disabled
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                name="standardCheckoutTested"
-                defaultChecked={data.standardCheckoutTested}
-              />{" "}
-              Standard checkout test passed
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                name="expressCheckoutTested"
-                defaultChecked={data.expressCheckoutTested}
-              />{" "}
-              Express checkout test passed or express checkout suppressed
-            </label>
-            <s-button type="submit">Save program settings</s-button>
-          </div>
+          <s-stack direction="block" gap="large-100">
+            <s-section heading="Program details">
+              <s-stack direction="block" gap="base">
+                <s-select name="status" label="Status" value={data.status}>
+                  <s-option value="test">Test mode</s-option>
+                  <s-option value="active">Active</s-option>
+                  <s-option value="paused">Paused</s-option>
+                </s-select>
+                <s-text-field
+                  name="programName"
+                  label="Program name"
+                  defaultValue={data.programName}
+                  details="The name customers see in the loyalty widget."
+                />
+                <s-text-field
+                  name="pointName"
+                  label="Point name"
+                  defaultValue={data.pointName}
+                  details="What you call your points, e.g. Earthen Points."
+                />
+              </s-stack>
+            </s-section>
+
+            <s-section heading="Checkout & widget">
+              <s-stack direction="block" gap="base">
+                <s-checkbox
+                  name="bonWidgetDisabled"
+                  value="true"
+                  defaultChecked={data.bonWidgetDisabled}
+                  label="Legacy BON storefront widget is disabled"
+                  details="Turn on once the old BON widget/app embed is removed, to avoid two loyalty widgets showing."
+                />
+                <s-checkbox
+                  name="standardCheckoutTested"
+                  value="true"
+                  defaultChecked={data.standardCheckoutTested}
+                  label="Standard checkout tested"
+                />
+                <s-checkbox
+                  name="expressCheckoutTested"
+                  value="true"
+                  defaultChecked={data.expressCheckoutTested}
+                  label="Express checkout tested (or express checkout suppressed)"
+                />
+              </s-stack>
+            </s-section>
+
+            <s-stack direction="inline" gap="base">
+              <s-button variant="primary" type="submit">
+                Save program settings
+              </s-button>
+            </s-stack>
+          </s-stack>
         </Form>
-      </s-section>
+      </s-stack>
     </s-page>
   );
 }
