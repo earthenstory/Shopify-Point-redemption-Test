@@ -502,3 +502,47 @@
   font-weight: 500;
   color: rgba(17, 37, 87, 0.55);
 }
+
+/* Reward catalog + earn-action claim controls in the rewards launcher */
+.el-rw__btn--pill {
+  border-radius: 999px;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  padding: 4px 12px;
+  white-space: nowrap;
+  width: auto;
+}
+
+.el-rw__btn--pill[disabled] {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.el-rw__catalog {
+  margin-top: 10px;
+}
+
+.el-rw__note {
+  color: var(--loyalty-primary, #112557);
+  font-size: 0.78rem;
+  margin: 8px 0 0;
+  min-height: 1em;
+}
+
+/* Referral link row in the rewards launcher */
+.el-rw__reflink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.el-rw__reflink-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid rgba(17, 37, 87, 0.2);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--loyalty-primary, #112557);
+  font-size: 12px;
+  padding: 8px 10px;
+}

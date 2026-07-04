@@ -1,5 +1,5 @@
 import type { AdminApiContext } from "@shopify/shopify-app-react-router/server";
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient, RewardDefinition } from "@prisma/client";
 import {
   calculateDiscountAmount,
   calculateMaxRedeemablePoints,
@@ -346,6 +346,282 @@ export async function releaseActiveRedemptions(input: {
   return { released };
 }
 
+/**
+ * Claim a catalog reward (fixed amount off, percent off, or free shipping) for
+ * a fixed points cost. Mirrors createRedemption's reserve-then-create-discount
+ * flow, sharing the same safety nets: any prior active reservation is released
+ * first (idempotent apply, no stranded points) and a failed discount creation
+ * rolls the reservation back.
+ */
+export async function claimReward(input: {
+  db: PrismaClient;
+  admin: AdminApiContext;
+  shopDomain: string;
+  shopifyCustomerId: string;
+  rewardId: string;
+  cart: CartSnapshot;
+}): Promise<{
+  sessionId: string;
+  discountCode: string;
+  pointsReserved: number;
+  discountAmount: number;
+  rewardType: RewardDefinition["type"];
+  rewardTitle: string;
+  expiresAt: string;
+}> {
+  const reward = await input.db.rewardDefinition.findFirst({
+    where: {
+      id: input.rewardId,
+      shopDomain: input.shopDomain,
+      enabled: true,
+    },
+  });
+  if (!reward) {
+    throw new Error("This reward is not available right now.");
+  }
+
+  const settings = await getLoyaltyRuntimeSettings({
+    db: input.db,
+    shopDomain: input.shopDomain,
+  });
+  if (!settings.redemptionEnabled) {
+    throw new Error("Earthen Points redemption is currently paused.");
+  }
+
+  const minSubtotal = reward.minSubtotal ? Number(reward.minSubtotal) : 0;
+  if (input.cart.subtotal <= 0) {
+    throw new Error("Add items to your cart before redeeming this reward.");
+  }
+  if (minSubtotal > 0 && input.cart.subtotal < minSubtotal) {
+    throw new Error(
+      `This reward needs a cart of at least INR ${minSubtotal}.`,
+    );
+  }
+
+  const loyaltyCustomer = await input.db.loyaltyCustomer.findUnique({
+    where: {
+      shopDomain_shopifyCustomerId: {
+        shopDomain: input.shopDomain,
+        shopifyCustomerId: input.shopifyCustomerId,
+      },
+    },
+    include: { wallet: true },
+  });
+  if (!loyaltyCustomer?.wallet) {
+    throw new Error("Your points are still being prepared.");
+  }
+
+  await releaseActiveRedemptions({
+    db: input.db,
+    admin: input.admin,
+    shopDomain: input.shopDomain,
+    shopifyCustomerId: input.shopifyCustomerId,
+    reason: "Replaced by a reward claim",
+  });
+
+  const wallet = await input.db.wallet.findUnique({
+    where: { id: loyaltyCustomer.wallet.id },
+    select: { availablePoints: true },
+  });
+  if ((wallet?.availablePoints ?? 0) < reward.pointsCost) {
+    throw new Error(
+      `You need ${reward.pointsCost} points for this reward.`,
+    );
+  }
+
+  const rewardValue = reward.value ? Number(reward.value) : 0;
+  const discountAmount = reward.type === "fixed_amount" ? rewardValue : 0;
+  const discountCode = buildDiscountCode(input.shopifyCustomerId);
+  const expiresAt = new Date(
+    Date.now() + settings.discountCodeTtlMinutes * 60 * 1000,
+  );
+
+  const session = await input.db.$transaction(async (tx) => {
+    const walletUpdate = await tx.wallet.updateMany({
+      where: {
+        id: loyaltyCustomer.wallet?.id,
+        availablePoints: { gte: reward.pointsCost },
+      },
+      data: {
+        availablePoints: { decrement: reward.pointsCost },
+        pendingPoints: { increment: reward.pointsCost },
+      },
+    });
+    if (walletUpdate.count !== 1) {
+      throw new Error("Your points balance changed. Please try again.");
+    }
+
+    const redemptionSession = await tx.redemptionSession.create({
+      data: {
+        customerId: loyaltyCustomer.id,
+        cartToken: input.cart.token,
+        pointsReserved: reward.pointsCost,
+        discountAmount,
+        currency: settings.rules.currency,
+        discountCode,
+        rewardType: reward.type,
+        rewardTitle: reward.title,
+        status: "pending",
+        expiresAt,
+      },
+    });
+
+    await tx.ledgerEntry.create({
+      data: {
+        customerId: loyaltyCustomer.id,
+        walletId: loyaltyCustomer.wallet!.id,
+        redemptionSessionId: redemptionSession.id,
+        type: "redeem_reserve",
+        pointsDelta: -reward.pointsCost,
+        moneyValue: rewardValue || null,
+        currency: settings.rules.currency,
+        description: `Reserved points for reward: ${reward.title}`,
+        metadata: {
+          rewardId: reward.id,
+          rewardType: reward.type,
+          cartToken: input.cart.token,
+          expiresAt: expiresAt.toISOString(),
+        },
+      },
+    });
+
+    return redemptionSession;
+  });
+
+  try {
+    let discountNodeId: string;
+    if (reward.type === "free_shipping") {
+      discountNodeId = await createFreeShippingDiscountCode({
+        admin: input.admin,
+        shopifyCustomerId: input.shopifyCustomerId,
+        code: discountCode,
+        title: `Earthen reward: ${reward.title}`,
+        minimumSubtotal: minSubtotal,
+        expiresAt,
+        allowDiscountStacking: settings.rules.allowDiscountStacking,
+      });
+    } else {
+      discountNodeId = await createShopifyDiscountCode({
+        admin: input.admin,
+        shopifyCustomerId: input.shopifyCustomerId,
+        code: discountCode,
+        points: reward.pointsCost,
+        discountAmount: reward.type === "fixed_amount" ? rewardValue : 0,
+        percentOff: reward.type === "percent_off" ? rewardValue : null,
+        minimumSubtotal: minSubtotal,
+        expiresAt,
+        allowDiscountStacking: settings.rules.allowDiscountStacking,
+        title: `Earthen reward: ${reward.title}`,
+      });
+    }
+
+    await input.db.redemptionSession.update({
+      where: { id: session.id },
+      data: {
+        shopifyDiscountNodeId: discountNodeId,
+        status: "applied",
+      },
+    });
+  } catch (error) {
+    await releaseRedemption({
+      db: input.db,
+      shopDomain: input.shopDomain,
+      shopifyCustomerId: input.shopifyCustomerId,
+      sessionId: session.id,
+      reason: "Reward discount creation failed",
+    });
+    throw error;
+  }
+
+  return {
+    sessionId: session.id,
+    discountCode,
+    pointsReserved: reward.pointsCost,
+    discountAmount,
+    rewardType: reward.type,
+    rewardTitle: reward.title,
+    expiresAt: expiresAt.toISOString(),
+  };
+}
+
+async function createFreeShippingDiscountCode(input: {
+  admin: AdminApiContext;
+  shopifyCustomerId: string;
+  code: string;
+  title: string;
+  minimumSubtotal: number;
+  expiresAt: Date;
+  allowDiscountStacking: boolean;
+}): Promise<string> {
+  const response = await input.admin.graphql(
+    `#graphql
+    mutation LoyaltyFreeShippingCreate($freeShippingCodeDiscount: DiscountCodeFreeShippingInput!) {
+      discountCodeFreeShippingCreate(freeShippingCodeDiscount: $freeShippingCodeDiscount) {
+        codeDiscountNode {
+          id
+        }
+        userErrors {
+          field
+          code
+          message
+        }
+      }
+    }`,
+    {
+      variables: {
+        freeShippingCodeDiscount: {
+          title: input.title,
+          code: input.code,
+          startsAt: new Date().toISOString(),
+          endsAt: input.expiresAt.toISOString(),
+          usageLimit: 1,
+          appliesOncePerCustomer: true,
+          combinesWith: {
+            orderDiscounts: input.allowDiscountStacking,
+            productDiscounts: input.allowDiscountStacking,
+            shippingDiscounts: false,
+          },
+          customerSelection: {
+            customers: {
+              add: [`gid://shopify/Customer/${input.shopifyCustomerId}`],
+            },
+          },
+          destination: { all: true },
+          minimumRequirement:
+            input.minimumSubtotal > 0
+              ? {
+                  subtotal: {
+                    greaterThanOrEqualToSubtotal:
+                      input.minimumSubtotal.toFixed(2),
+                  },
+                }
+              : null,
+        },
+      },
+    },
+  );
+
+  const json = (await response.json()) as {
+    data?: {
+      discountCodeFreeShippingCreate?: {
+        codeDiscountNode?: { id?: string };
+        userErrors?: Array<{ message: string }>;
+      };
+    };
+    errors?: Array<{ message: string }>;
+  };
+  const result = json.data?.discountCodeFreeShippingCreate;
+  const errors = result?.userErrors ?? json.errors;
+  if (errors?.length) {
+    throw new Error(errors.map((error) => error.message).join("; "));
+  }
+  const discountNodeId = result?.codeDiscountNode?.id;
+  if (!discountNodeId) {
+    throw new Error("Shopify did not return a discount ID.");
+  }
+  return discountNodeId;
+}
+
 async function deactivateShopifyDiscountCode(input: {
   admin: AdminApiContext;
   discountNodeId: string;
@@ -396,9 +672,11 @@ async function createShopifyDiscountCode(input: {
   code: string;
   points: number;
   discountAmount: number;
+  percentOff?: number | null;
   minimumSubtotal: number;
   expiresAt: Date;
   allowDiscountStacking: boolean;
+  title?: string;
 }): Promise<string> {
   const response = await input.admin.graphql(
     `#graphql
@@ -417,7 +695,7 @@ async function createShopifyDiscountCode(input: {
     {
       variables: {
         basicCodeDiscount: {
-          title: `Earthen loyalty ${input.points} points`,
+          title: input.title ?? `Earthen loyalty ${input.points} points`,
           code: input.code,
           startsAt: new Date().toISOString(),
           endsAt: input.expiresAt.toISOString(),
@@ -440,12 +718,15 @@ async function createShopifyDiscountCode(input: {
             },
           },
           customerGets: {
-            value: {
-              discountAmount: {
-                amount: input.discountAmount.toFixed(2),
-                appliesOnEachItem: false,
-              },
-            },
+            value:
+              input.percentOff != null
+                ? { percentage: Math.min(100, input.percentOff) / 100 }
+                : {
+                    discountAmount: {
+                      amount: input.discountAmount.toFixed(2),
+                      appliesOnEachItem: false,
+                    },
+                  },
             items: {
               all: true,
             },

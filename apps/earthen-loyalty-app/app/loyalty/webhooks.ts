@@ -1,5 +1,10 @@
 import { createHash } from "node:crypto";
 import type { Prisma, PrismaClient } from "@prisma/client";
+import {
+  applyEarnMultiplier,
+  getEarnMultiplierContext,
+} from "./multipliers";
+import { rewardReferralForOrder } from "./referrals";
 import { calculateOrderEarnPoints } from "./rules";
 import { getLoyaltyRuntimeSettings } from "./settings";
 
@@ -62,18 +67,40 @@ export async function recordWebhookEvent(
     return { status: "duplicate", eventId: existing.id };
   }
 
-  const event = await db.webhookEvent.create({
-    data: {
-      shopifyWebhookId: context.webhookId,
-      topic,
-      shopDomain: context.shop,
-      resourceId,
-      payloadHash,
-      status: "received",
-    },
-  });
+  try {
+    const event = await db.webhookEvent.create({
+      data: {
+        shopifyWebhookId: context.webhookId,
+        topic,
+        shopDomain: context.shop,
+        resourceId,
+        payloadHash,
+        status: "received",
+      },
+    });
 
-  return { status: "received", eventId: event.id };
+    return { status: "received", eventId: event.id };
+  } catch (error) {
+    // Shopify delivers webhooks at-least-once and can send the same delivery
+    // concurrently. Two requests can both pass the findUnique check above and
+    // race into create; the loser hits the unique constraint (P2002). Treat it
+    // as the duplicate it is instead of crashing with a 500 (which would make
+    // Shopify retry and pollute the failure metrics).
+    if (
+      error &&
+      typeof error === "object" &&
+      (error as { code?: string }).code === "P2002"
+    ) {
+      const winner = await db.webhookEvent.findUnique({
+        where: { shopifyWebhookId: context.webhookId },
+        select: { id: true },
+      });
+      if (winner) {
+        return { status: "duplicate", eventId: winner.id };
+      }
+    }
+    throw error;
+  }
 }
 
 export async function processCustomerUpsert(
@@ -178,8 +205,14 @@ export async function processOrderPaid(
   context: LoyaltyWebhookContext,
 ): Promise<"processed" | "ignored"> {
   const orderId = extractWebhookResourceId(context.payload);
+  if (!orderId) return "ignored";
+
+  // Referral payout is independent of loyalty-discount consumption: any first
+  // qualifying order by a referred customer triggers it (idempotent inside).
+  await maybeRewardReferral(db, context, orderId);
+
   const discountCode = extractLoyaltyDiscountCode(context.payload);
-  if (!orderId || !discountCode) return "ignored";
+  if (!discountCode) return "ignored";
   const settings = await getLoyaltyRuntimeSettings({
     db,
     shopDomain: context.shop,
@@ -213,12 +246,16 @@ export async function processOrderPaid(
   const discountAmountUsed = Number(
     actualDiscountAmount ?? session.discountAmount,
   );
-  const pointsToConsume = Math.min(
-    remainingReservedPoints,
-    Math.floor(
-      discountAmountUsed / settings.rules.currencyValuePerPoint,
-    ),
-  );
+  // Catalog reward claims (percent off / free shipping / fixed reward) have a
+  // fixed points price: consume the full reservation regardless of the rupee
+  // value Shopify allocated to the code. Slider redemptions keep the pro-rated
+  // consume (points = rupees actually discounted).
+  const pointsToConsume = session.rewardType
+    ? remainingReservedPoints
+    : Math.min(
+        remainingReservedPoints,
+        Math.floor(discountAmountUsed / settings.rules.currencyValuePerPoint),
+      );
   const pointsToRelease = remainingReservedPoints - pointsToConsume;
 
   await db.$transaction(async (tx) => {
@@ -304,6 +341,8 @@ export async function processOrderFulfilled(
   const customerInfo = extractOrderCustomerInfo(context.payload);
   if (!orderId || !customerInfo.shopifyCustomerId) return "ignored";
 
+  await maybeRewardReferral(db, context, orderId);
+
   const existingEarn = await db.ledgerEntry.findFirst({
     where: {
       shopifyOrderId: orderId,
@@ -318,8 +357,26 @@ export async function processOrderFulfilled(
     "subtotal_price",
     "total_line_items_price",
   ]);
-  const earnedPoints = calculateOrderEarnPoints(subtotal, settings.rules);
+  const basePoints = calculateOrderEarnPoints(subtotal, settings.rules);
 
+  if (basePoints <= 0) return "ignored";
+
+  // VIP tier + limited-time campaign multipliers. Ensure the wallet exists
+  // first (idempotent upsert) so the tier is derived from the real lifetime
+  // total.
+  const existingCustomer = await ensureCustomerWallet(db, {
+    shopDomain: context.shop,
+    ...customerInfo,
+  });
+  const multiplierContext = await getEarnMultiplierContext({
+    db,
+    shopDomain: context.shop,
+    lifetimeEarnedPoints: existingCustomer.wallet?.lifetimeEarnedPoints ?? 0,
+  });
+  const earnedPoints = applyEarnMultiplier(
+    basePoints,
+    multiplierContext.totalMultiplier,
+  );
   if (earnedPoints <= 0) return "ignored";
 
   await db.$transaction(async (tx) => {
@@ -349,6 +406,15 @@ export async function processOrderFulfilled(
         metadata: {
           orderSubtotal: subtotal,
           earningRule: `${settings.rules.pointsPerSpendAmount} points per INR ${settings.rules.spendAmountForEarnPoints}`,
+          ...(multiplierContext.totalMultiplier !== 1
+            ? {
+                basePoints,
+                vipTier: multiplierContext.currentTier?.name ?? null,
+                vipMultiplier: multiplierContext.vipMultiplier,
+                campaign: multiplierContext.campaign?.title ?? null,
+                campaignMultiplier: multiplierContext.campaignMultiplier,
+              }
+            : {}),
         },
       },
     });
@@ -469,6 +535,45 @@ function sortObjectKeys(value: unknown): unknown {
   }
 
   return value;
+}
+
+async function maybeRewardReferral(
+  db: PrismaClient,
+  context: LoyaltyWebhookContext,
+  orderId: string,
+): Promise<void> {
+  try {
+    const customerInfo = extractOrderCustomerInfo(context.payload);
+    if (!customerInfo.shopifyCustomerId) return;
+
+    const customer = await db.loyaltyCustomer.findUnique({
+      where: {
+        shopDomain_shopifyCustomerId: {
+          shopDomain: context.shop,
+          shopifyCustomerId: customerInfo.shopifyCustomerId,
+        },
+      },
+      select: { id: true },
+    });
+    if (!customer) return;
+
+    const subtotal = extractMoney(context.payload, [
+      "current_subtotal_price",
+      "subtotal_price",
+      "total_line_items_price",
+    ]);
+
+    await rewardReferralForOrder({
+      db,
+      shopDomain: context.shop,
+      refereeCustomerId: customer.id,
+      orderId,
+      orderSubtotal: subtotal,
+    });
+  } catch {
+    // Referral payout must never fail the webhook; a missed payout stays
+    // pending and is retried by the next order webhook for the same order.
+  }
 }
 
 async function ensureCustomerWallet(

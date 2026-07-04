@@ -781,6 +781,18 @@ async function releaseRedemptionIfCartEmpty() {
   clearCustomerCache();
 }
 
+// Capture ?ref=CODE referral links for later attachment (after the visitor
+// signs up / logs in, the launcher attaches it to their account).
+const REFERRAL_STORAGE_KEY = 'earthen_referral_code';
+try {
+  const refParam = new URLSearchParams(window.location.search).get('ref');
+  if (refParam && /^[A-Za-z0-9-]{3,32}$/.test(refParam)) {
+    window.localStorage.setItem(REFERRAL_STORAGE_KEY, refParam.toUpperCase());
+  }
+} catch (error) {
+  // Storage unavailable (private mode) — referral capture silently skipped.
+}
+
 if (!window.__earthenLoyaltyCartEmptyGuard) {
   window.__earthenLoyaltyCartEmptyGuard = true;
   // Handles the cart being emptied while the shopper is on the page.
@@ -817,29 +829,185 @@ class EarthenLoyaltyLauncher extends HTMLElement {
 
     this.refs.button?.addEventListener('click', this.togglePanel);
     this.refs.close?.addEventListener('click', this.closePanel);
+    this.addEventListener('click', this.handlePanelClick);
     this.load();
   }
 
   disconnectedCallback() {
     this.refs?.button?.removeEventListener('click', this.togglePanel);
     this.refs?.close?.removeEventListener('click', this.closePanel);
+    this.removeEventListener('click', this.handlePanelClick);
+  }
+
+  // Delegated clicks for reward-claim and earn-action buttons rendered into the
+  // panel body (innerHTML re-renders would drop direct listeners).
+  handlePanelClick = async (event) => {
+    const rewardButton = event.target.closest('[data-loyalty-claim-reward]');
+    if (rewardButton) {
+      await this.claimReward(rewardButton.dataset.loyaltyClaimReward, rewardButton);
+      return;
+    }
+    const actionButton = event.target.closest('[data-loyalty-earn-action]');
+    if (actionButton) {
+      await this.claimEarnAction(actionButton.dataset.loyaltyEarnAction, actionButton);
+      return;
+    }
+    const copyButton = event.target.closest('[data-loyalty-copy-referral]');
+    if (copyButton) {
+      const input = this.querySelector('[data-loyalty-referral-link]');
+      if (!input?.value) return;
+      try {
+        await navigator.clipboard.writeText(input.value);
+        copyButton.textContent = 'Copied ✓';
+        setTimeout(() => {
+          copyButton.textContent = 'Copy';
+        }, 2000);
+      } catch (error) {
+        input.select();
+        this.showPanelMessage('Press Ctrl/Cmd+C to copy your link.');
+      }
+    }
+  };
+
+  async claimReward(rewardId, button) {
+    if (!rewardId || button.disabled) return;
+    button.disabled = true;
+    const originalText = button.textContent;
+    button.textContent = 'Applying…';
+    try {
+      const cart = await fetch(`${Theme.routes.cart_url}.js`, {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+      }).then((response) => response.json());
+
+      const claim = await fetch('/apps/loyalty/claim-reward', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        cache: 'no-store',
+        body: JSON.stringify({
+          rewardId,
+          cartToken: cart.token || null,
+          subtotal: centsToMoney(cart.items_subtotal_price),
+        }),
+      }).then(async (response) => {
+        const data = await response.json().catch(() => null);
+        if (!response.ok || !data?.ok) {
+          throw new Error(data?.error || 'Could not claim reward.');
+        }
+        return data;
+      });
+
+      writeStoredRedemption(claim, cart.token || null);
+      clearCustomerCache();
+      await fetch(
+        Theme.routes.cart_update_url,
+        fetchConfig('json', { body: JSON.stringify({ discount: claim.discountCode }) }),
+      );
+      button.textContent = 'Applied ✓';
+      if (window.location.pathname.startsWith('/cart')) {
+        window.location.reload();
+      } else {
+        await this.load();
+      }
+    } catch (error) {
+      button.disabled = false;
+      button.textContent = originalText;
+      this.showPanelMessage(
+        error instanceof Error ? error.message : 'Could not claim reward.',
+      );
+    }
+  }
+
+  async claimEarnAction(actionId, button) {
+    if (!actionId || button.disabled) return;
+    const url = button.dataset.loyaltyEarnUrl;
+    if (url) window.open(url, '_blank', 'noopener');
+    button.disabled = true;
+    try {
+      const result = await fetch('/apps/loyalty/earn-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        cache: 'no-store',
+        body: JSON.stringify({ actionId }),
+      }).then(async (response) => {
+        const data = await response.json().catch(() => null);
+        if (!response.ok || !data?.ok) {
+          throw new Error(data?.error || 'Could not claim points.');
+        }
+        return data;
+      });
+      clearCustomerCache();
+      await this.load();
+      if (result.alreadyClaimed) {
+        this.showPanelMessage('You have already claimed this reward.');
+      }
+    } catch (error) {
+      button.disabled = false;
+      this.showPanelMessage(
+        error instanceof Error ? error.message : 'Could not claim points.',
+      );
+    }
+  }
+
+  showPanelMessage(message) {
+    const note = this.querySelector('[data-loyalty-panel-note]');
+    if (note) note.textContent = message;
   }
 
   async load() {
     try {
-      const customer = await fetchCustomerSnapshot();
+      const [customer, referral] = await Promise.all([
+        fetchCustomerSnapshot(),
+        fetch('/apps/loyalty/referral', {
+          headers: { Accept: 'application/json' },
+          cache: 'no-store',
+        })
+          .then((response) => (response.ok ? response.json() : null))
+          .catch(() => null),
+      ]);
       if (!customer.ok) return;
+
+      await this.attachPendingReferral(customer, referral);
 
       this.applyTheme(customer.widget);
       this.hidden = false;
       this.refs.value.textContent = customer.loggedIn ? `${customer.availablePoints || 0} pts` : '';
-      this.renderBody(customer);
+      this.renderBody(customer, referral);
     } catch (error) {
       this.hidden = true;
     }
   }
 
-  renderBody(customer) {
+  // If the visitor arrived through a referral link and is now signed in, link
+  // the referral to their account (once). Server-side guards handle the rest
+  // (self-referral, existing customers, duplicates).
+  async attachPendingReferral(customer, referral) {
+    let storedCode = null;
+    try {
+      storedCode = window.localStorage.getItem(REFERRAL_STORAGE_KEY);
+    } catch (error) {
+      return;
+    }
+    if (!storedCode || !customer.loggedIn || !referral?.enabled) return;
+    if (referral.code && referral.code === storedCode) return;
+
+    try {
+      const result = await fetch('/apps/loyalty/referral', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        cache: 'no-store',
+        body: JSON.stringify({ code: storedCode }),
+      }).then((response) => response.json());
+      if (result?.attached) {
+        this.pendingReferralMessage = 'Referral linked — your bonus arrives with your first order!';
+      }
+      window.localStorage.removeItem(REFERRAL_STORAGE_KEY);
+    } catch (error) {
+      // Leave the stored code for a later retry.
+    }
+  }
+
+  renderBody(customer, referral) {
     if (!this.refs.body) return;
     const rewards = customer.rewards || {};
     const loginUrl = this.dataset.loginUrl || '/account/login';
@@ -852,10 +1020,16 @@ class EarthenLoyaltyLauncher extends HTMLElement {
     const pointsPerSpend = Number(rewards.pointsPerSpendAmount || 0);
     const spendAmount = Number(rewards.spendAmountForEarnPoints || 0);
 
+    const vip = customer.vip || null;
+    const vipLine = vip?.tier
+      ? `<br><span class="el-rw__tier">${escapeHtml(vip.tier)} member${vip.multiplier > 1 ? ` · ${vip.multiplier}x points` : ''}</span>`
+      : vip?.nextTier && vip.pointsToNext != null
+        ? `<br><span class="el-rw__tier">${vip.pointsToNext} pts to ${escapeHtml(vip.nextTier)}</span>`
+        : '';
     const balance = customer.loggedIn
       ? `<div class="el-rw__balance">
            <span class="el-rw__balance-num">${customer.availablePoints || 0}</span>
-           <span class="el-rw__balance-meta">${pointName}<br><strong>${formatMoney(customer.availableValue || 0)}</strong> to spend</span>
+           <span class="el-rw__balance-meta">${pointName}<br><strong>${formatMoney(customer.availableValue || 0)}</strong> to spend${vipLine}</span>
          </div>`
       : `<div class="el-rw__balance el-rw__balance--out">
            <p>${customer.message || 'Sign in to see your balance and start redeeming.'}</p>
@@ -868,25 +1042,92 @@ class EarthenLoyaltyLauncher extends HTMLElement {
         : `<p class="el-rw__p">Use points in your cart for instant savings. <strong>${increment} points = ${formatMoney(increment * valuePerPoint)}</strong> (1 point = ${formatMoney(valuePerPoint)}).</p>
            ${customer.loggedIn ? `<a class="el-rw__btn el-rw__btn--block" href="${cartUrl}">Redeem in cart</a>` : ''}`;
 
+    const availablePoints = Number(customer.availablePoints || 0);
+    const catalog = Array.isArray(customer.catalog) ? customer.catalog : [];
+    const catalogItems = catalog
+      .map((reward) => {
+        const valueLabel =
+          reward.type === 'fixed_amount'
+            ? `${formatMoney(reward.value)} off`
+            : reward.type === 'percent_off'
+              ? `${reward.value}% off`
+              : 'Free shipping';
+        const minLabel = reward.minSubtotal
+          ? ` <span class="el-rw__muted">min ${formatMoney(reward.minSubtotal)}</span>`
+          : '';
+        const control = customer.loggedIn
+          ? `<button class="el-rw__btn el-rw__btn--pill" type="button" data-loyalty-claim-reward="${reward.id}"${
+              availablePoints < reward.pointsCost ? ' disabled' : ''
+            }>${reward.pointsCost} pts</button>`
+          : `<strong>${reward.pointsCost} pts</strong>`;
+        return `<li><span>${escapeHtml(reward.title)} · <strong>${valueLabel}</strong>${minLabel}</span>${control}</li>`;
+      })
+      .join('');
+
+    const actionItems = (Array.isArray(customer.earnActions) ? customer.earnActions : [])
+      .map((action) => {
+        const control = !customer.loggedIn
+          ? `<strong>+${action.points} pts</strong>`
+          : action.claimed
+            ? `<strong>Claimed ✓</strong>`
+            : `<button class="el-rw__btn el-rw__btn--pill" type="button" data-loyalty-earn-action="${action.id}" data-loyalty-earn-url="${escapeHtml(action.url || '')}">+${action.points} pts</button>`;
+        return `<li><span>${escapeHtml(action.title)}</span>${control}</li>`;
+      })
+      .join('');
+
+    const campaign = customer.campaign || null;
+    const campaignLine = campaign
+      ? `<li><span><strong>${escapeHtml(campaign.title)}</strong> · ${campaign.multiplier}x points until ${formatHistoryDate(campaign.endsAt)}</span></li>`
+      : '';
+
     const earnItems = [
+      campaignLine,
       signupPoints
         ? `<li><span>Create an account</span><strong>+${signupPoints} pts</strong></li>`
         : '',
       pointsPerSpend && spendAmount
         ? `<li><span>Every ${formatMoney(spendAmount)} you spend</span><strong>+${pointsPerSpend} pts</strong></li>`
         : '',
+      actionItems,
     ].join('');
+
+    let referralSection = '';
+    if (referral?.enabled) {
+      const referralLink = referral.code
+        ? `${window.location.origin}/?ref=${referral.code}`
+        : '';
+      const referralBody = !customer.loggedIn
+        ? `<p class="el-rw__p">Refer a friend: they get <strong>+${referral.refereePoints || 0} pts</strong>, you get <strong>+${referral.referrerPoints || 0} pts</strong> after their first order. Sign in to get your link.</p>`
+        : `<p class="el-rw__p">Share your link — your friend gets <strong>+${referral.refereePoints || 0} pts</strong> and you get <strong>+${referral.referrerPoints || 0} pts</strong> after their first order.${referral.rewardedCount ? ` <strong>${referral.rewardedCount}</strong> rewarded so far.` : ''}</p>
+           <div class="el-rw__reflink">
+             <input class="el-rw__reflink-input" type="text" readonly value="${escapeHtml(referralLink)}" data-loyalty-referral-link>
+             <button class="el-rw__btn el-rw__btn--pill" type="button" data-loyalty-copy-referral>Copy</button>
+           </div>`;
+      referralSection = `
+      <section class="el-rw__section">
+        <h3 class="el-rw__h">${LAUNCHER_ICONS.earn}<span>Refer a friend</span></h3>
+        ${referralBody}
+      </section>`;
+    }
 
     this.refs.body.innerHTML = `
       ${balance}
       <section class="el-rw__section">
         <h3 class="el-rw__h">${LAUNCHER_ICONS.redeem}<span>Redeem points</span></h3>
         ${redeemBody}
+        ${catalogItems ? `<ul class="el-rw__earn el-rw__catalog">${catalogItems}</ul>` : ''}
       </section>
       <section class="el-rw__section">
         <h3 class="el-rw__h">${LAUNCHER_ICONS.earn}<span>Ways to earn</span></h3>
         <ul class="el-rw__earn">${earnItems}</ul>
-      </section>`;
+      </section>
+      ${referralSection}
+      <p class="el-rw__note" data-loyalty-panel-note></p>`;
+
+    if (this.pendingReferralMessage) {
+      this.showPanelMessage(this.pendingReferralMessage);
+      this.pendingReferralMessage = null;
+    }
   }
 
   togglePanel = () => {

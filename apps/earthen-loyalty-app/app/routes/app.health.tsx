@@ -11,6 +11,10 @@ import {
 } from "../components/loyalty-admin-ui";
 import db from "../db.server";
 import { getLoyaltyRuntimeSettings } from "../loyalty/settings";
+import {
+  replayFailedWebhooks,
+  type ReplaySummary,
+} from "../loyalty/webhook-replay";
 import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -19,6 +23,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     db,
     shopDomain: session.shop,
   });
+
+  // Self-heal: replay failed webhook deliveries by re-fetching the resource from
+  // the Shopify Admin API and re-running the (idempotent) processor. Safe to run
+  // on every page view; capped per batch and per-event attempts.
+  let replaySummary: ReplaySummary | null = null;
+  try {
+    replaySummary = await replayFailedWebhooks(db, admin, session.shop);
+  } catch {
+    replaySummary = null;
+  }
 
   let databaseOk = false;
   let adminApiOk = false;
@@ -46,27 +60,37 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     adminApiOk = false;
   }
 
-  const [latestWebhooks, failedWebhooks, migrationBatch, activeRedemptions] =
-    await Promise.all([
-      db.webhookEvent.findMany({
-        where: { shopDomain: session.shop },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      }),
-      db.webhookEvent.count({
-        where: { shopDomain: session.shop, status: "failed" },
-      }),
-      db.bonMigrationBatch.findFirst({
-        where: { shopDomain: session.shop },
-        orderBy: { createdAt: "desc" },
-      }),
-      db.redemptionSession.count({
-        where: {
-          customer: { shopDomain: session.shop },
-          status: { in: ["pending", "applied"] },
-        },
-      }),
-    ]);
+  const [
+    latestWebhooks,
+    failedWebhooks,
+    failedEvents,
+    migrationBatch,
+    activeRedemptions,
+  ] = await Promise.all([
+    db.webhookEvent.findMany({
+      where: { shopDomain: session.shop },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+    db.webhookEvent.count({
+      where: { shopDomain: session.shop, status: "failed" },
+    }),
+    db.webhookEvent.findMany({
+      where: { shopDomain: session.shop, status: "failed" },
+      orderBy: { createdAt: "desc" },
+      take: 25,
+    }),
+    db.bonMigrationBatch.findFirst({
+      where: { shopDomain: session.shop },
+      orderBy: { createdAt: "desc" },
+    }),
+    db.redemptionSession.count({
+      where: {
+        customer: { shopDomain: session.shop },
+        status: { in: ["pending", "applied"] },
+      },
+    }),
+  ]);
 
   const checks = [
     {
@@ -146,6 +170,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     activeRedemptions,
     checks,
     failedWebhooks,
+    replaySummary,
+    failedEvents: failedEvents.map((event) => ({
+      id: event.id,
+      topic: event.topic,
+      resourceId: event.resourceId,
+      attemptCount: event.attemptCount,
+      lastError: event.lastError,
+      createdAt: event.createdAt.toISOString(),
+    })),
     launchGates,
     program: {
       programName: settings.program.programName,
@@ -172,6 +205,43 @@ export default function HealthPage() {
 
   return (
     <s-page heading="Settings and health">
+      {data.replaySummary && data.replaySummary.scanned > 0 ? (
+        <s-banner
+          tone={data.replaySummary.stillFailing === 0 ? "success" : "warning"}
+          heading="Failed webhook recovery"
+        >
+          Scanned {data.replaySummary.scanned} failed event(s):{" "}
+          {data.replaySummary.processed} replayed successfully,{" "}
+          {data.replaySummary.ignored} no longer applicable,{" "}
+          {data.replaySummary.stillFailing} still failing.
+        </s-banner>
+      ) : null}
+
+      {data.failedEvents.length > 0 ? (
+        <s-section heading="Failed webhook events">
+          <s-table variant="auto">
+            <s-table-header-row>
+              <s-table-header listSlot="primary">Time</s-table-header>
+              <s-table-header>Topic</s-table-header>
+              <s-table-header>Resource</s-table-header>
+              <s-table-header format="numeric">Attempts</s-table-header>
+              <s-table-header>Last error</s-table-header>
+            </s-table-header-row>
+            <s-table-body>
+              {data.failedEvents.map((event) => (
+                <s-table-row key={event.id}>
+                  <s-table-cell>{formatDateTime(event.createdAt)}</s-table-cell>
+                  <s-table-cell>{event.topic}</s-table-cell>
+                  <s-table-cell>{event.resourceId ?? ""}</s-table-cell>
+                  <s-table-cell>{event.attemptCount}</s-table-cell>
+                  <s-table-cell>{event.lastError ?? ""}</s-table-cell>
+                </s-table-row>
+              ))}
+            </s-table-body>
+          </s-table>
+        </s-section>
+      ) : null}
+
       <s-section heading="Runtime status">
         <MetricGrid>
           <MetricCard

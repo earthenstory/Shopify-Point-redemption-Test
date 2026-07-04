@@ -10,6 +10,8 @@ import {
   getCustomerSnapshot,
   pointsToMoney,
 } from "../loyalty/customers";
+import { listEarnActions } from "../loyalty/earn-actions";
+import { getEarnMultiplierContext } from "../loyalty/multipliers";
 import { getLoyaltyRuntimeSettings } from "../loyalty/settings";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -19,6 +21,21 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       db,
       shopDomain: context.shop,
     });
+
+    // Catalog rewards (fixed points cost) shown in the rewards launcher.
+    const catalog = (
+      await db.rewardDefinition.findMany({
+        where: { shopDomain: context.shop, enabled: true },
+        orderBy: [{ sortOrder: "asc" }, { pointsCost: "asc" }],
+      })
+    ).map((reward) => ({
+      id: reward.id,
+      title: reward.title,
+      type: reward.type,
+      pointsCost: reward.pointsCost,
+      value: reward.value ? Number(reward.value) : null,
+      minSubtotal: reward.minSubtotal ? Number(reward.minSubtotal) : null,
+    }));
 
     const widget = {
       homepageEnabled: settings.widget.homepageEnabled,
@@ -46,6 +63,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     };
 
     if (!context.loggedInCustomerId) {
+      const earnActions = await listEarnActions({
+        db,
+        shopDomain: context.shop,
+      });
       return jsonResponse({
         ok: true,
         loggedIn: false,
@@ -54,6 +75,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         programStatus: settings.program.status,
         widget,
         rewards,
+        catalog,
+        earnActions,
         message: settings.widget.loggedOutMessage,
       });
     }
@@ -63,6 +86,39 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       shopDomain: context.shop,
       shopifyCustomerId: context.loggedInCustomerId,
     });
+    const earnActions = await listEarnActions({
+      db,
+      shopDomain: context.shop,
+      customerId: snapshot.customerId,
+    });
+
+    const multiplierContext = await getEarnMultiplierContext({
+      db,
+      shopDomain: context.shop,
+      lifetimeEarnedPoints: snapshot.lifetimeEarnedPoints,
+    });
+    const vip =
+      multiplierContext.currentTier || multiplierContext.nextTier
+        ? {
+            tier: multiplierContext.currentTier?.name ?? null,
+            multiplier: multiplierContext.vipMultiplier,
+            nextTier: multiplierContext.nextTier?.name ?? null,
+            pointsToNext: multiplierContext.nextTier
+              ? Math.max(
+                  0,
+                  multiplierContext.nextTier.thresholdPoints -
+                    snapshot.lifetimeEarnedPoints,
+                )
+              : null,
+          }
+        : null;
+    const campaign = multiplierContext.campaign
+      ? {
+          title: multiplierContext.campaign.title,
+          multiplier: multiplierContext.campaignMultiplier,
+          endsAt: multiplierContext.campaign.endsAt.toISOString(),
+        }
+      : null;
 
     return jsonResponse({
       ok: true,
@@ -91,6 +147,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       programStatus: settings.program.status,
       widget,
       rewards,
+      catalog,
+      earnActions,
+      vip,
+      campaign,
       message: getCustomerLoyaltyMessage(
         snapshot,
         settings.widget.zeroPointsMessage,

@@ -101,6 +101,15 @@ describe("loyalty webhook helpers", () => {
       ledgerEntry: {
         findFirst: async () => null,
       },
+      loyaltyCustomer: {
+        upsert: async () => ({
+          id: "customer-1",
+          wallet: { id: "wallet-1", lifetimeEarnedPoints: 0 },
+        }),
+      },
+      vipTier: { findMany: async () => [] },
+      pointsCampaign: { findFirst: async () => null },
+      referralAttribution: { findUnique: async () => null },
       $transaction: async (callback: (transaction: typeof tx) => unknown) =>
         callback(tx),
       ...settingsModels(),

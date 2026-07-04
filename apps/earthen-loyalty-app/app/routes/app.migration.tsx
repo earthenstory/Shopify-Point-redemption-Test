@@ -45,69 +45,73 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function MigrationPage() {
   const data = useLoaderData<typeof loader>();
 
+  const errorRows = data.batches.flatMap((batch) =>
+    batch.errors.map((row) => ({ ...row, batchId: batch.id })),
+  );
+
   return (
     <s-page heading="BON migration">
       <s-section heading="Import batches">
         {data.batches.length > 0 ? (
-          <table>
-            <thead>
-              <tr>
-                <th>Batch</th>
-                <th>File</th>
-                <th>Status</th>
-                <th>Rows</th>
-                <th>Imported points</th>
-                <th>Imported at</th>
-              </tr>
-            </thead>
-            <tbody>
+          <s-table variant="auto">
+            <s-table-header-row>
+              <s-table-header listSlot="primary">File</s-table-header>
+              <s-table-header>Status</s-table-header>
+              <s-table-header format="numeric">Valid rows</s-table-header>
+              <s-table-header format="numeric">Imported points</s-table-header>
+              <s-table-header>Imported at</s-table-header>
+            </s-table-header-row>
+            <s-table-body>
               {data.batches.map((batch) => (
-                <tr key={batch.id}>
-                  <td>{batch.id}</td>
-                  <td>{batch.sourceFileName}</td>
-                  <td>{batch.status}</td>
-                  <td>
-                    {batch.validRowCount}/{batch.sourceRowCount} valid
-                  </td>
-                  <td>
+                <s-table-row key={batch.id}>
+                  <s-table-cell>{batch.sourceFileName}</s-table-cell>
+                  <s-table-cell>
+                    <s-badge
+                      tone={batch.status === "processed" ? "success" : "warning"}
+                    >
+                      {batch.status}
+                    </s-badge>
+                  </s-table-cell>
+                  <s-table-cell>
+                    {batch.validRowCount}/{batch.sourceRowCount}
+                  </s-table-cell>
+                  <s-table-cell>
                     {batch.totalImportedPoints}/{batch.totalSourcePoints}
-                  </td>
-                  <td>{batch.importedAt ?? "Not imported"}</td>
-                </tr>
+                  </s-table-cell>
+                  <s-table-cell>{batch.importedAt ?? "Not imported"}</s-table-cell>
+                </s-table-row>
               ))}
-            </tbody>
-          </table>
+            </s-table-body>
+          </s-table>
         ) : (
           <s-paragraph>No migration batches found.</s-paragraph>
         )}
       </s-section>
 
       <s-section heading="Rows needing review">
-        {data.batches.flatMap((batch) => batch.errors).length > 0 ? (
-          <table>
-            <thead>
-              <tr>
-                <th>Row</th>
-                <th>Customer</th>
-                <th>Points</th>
-                <th>Error</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.batches.flatMap((batch) =>
-                batch.errors.map((row) => (
-                  <tr key={`${batch.id}-${row.rowIndex}`}>
-                    <td>{row.rowIndex}</td>
-                    <td>
-                      {row.shopifyCustomerId || row.email || row.phone || "Unknown"}
-                    </td>
-                    <td>{row.points ?? ""}</td>
-                    <td>{row.error}</td>
-                  </tr>
-                )),
-              )}
-            </tbody>
-          </table>
+        {errorRows.length > 0 ? (
+          <s-table variant="auto">
+            <s-table-header-row>
+              <s-table-header format="numeric" listSlot="primary">
+                Row
+              </s-table-header>
+              <s-table-header>Customer</s-table-header>
+              <s-table-header format="numeric">Points</s-table-header>
+              <s-table-header>Error</s-table-header>
+            </s-table-header-row>
+            <s-table-body>
+              {errorRows.map((row) => (
+                <s-table-row key={`${row.batchId}-${row.rowIndex}`}>
+                  <s-table-cell>{row.rowIndex}</s-table-cell>
+                  <s-table-cell>
+                    {row.shopifyCustomerId || row.email || row.phone || "Unknown"}
+                  </s-table-cell>
+                  <s-table-cell>{row.points ?? ""}</s-table-cell>
+                  <s-table-cell>{row.error}</s-table-cell>
+                </s-table-row>
+              ))}
+            </s-table-body>
+          </s-table>
         ) : (
           <s-paragraph>No migration row errors are currently recorded.</s-paragraph>
         )}
