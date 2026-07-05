@@ -181,7 +181,7 @@ class EarthenDeliveryEstimate extends HTMLElement {
 
     const date = document.createElement('span');
     date.className = 'earthen-delivery__date';
-    date.textContent = `Delivery by ${data.deliveryText}`;
+    date.textContent = `Estimated delivery date: ${data.deliveryText}`;
     row.appendChild(date);
 
     const change = document.createElement('button');
@@ -195,8 +195,8 @@ class EarthenDeliveryEstimate extends HTMLElement {
     meta.className = 'earthen-delivery__meta';
     const shipDay = this.formatDispatch(data.dispatchDate);
     meta.textContent = shipDay
-      ? `Ships ${shipDay} from our Bengaluru farm store`
-      : 'Ships from our Bengaluru farm store';
+      ? `Ships ${shipDay} from our Bengaluru warehouse`
+      : 'Ships from our Bengaluru warehouse';
 
     this.result.appendChild(row);
     this.result.appendChild(meta);
