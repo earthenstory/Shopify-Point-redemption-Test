@@ -168,6 +168,54 @@
   color: var(--loyalty-primary, #112557);
 }
 
+/* Compact redeem layout in the cart drawer: two slim rows — header, then
+   slider + Apply on ONE line — so the box takes ~half the height and the
+   products above stay visible. The product page keeps the roomier layout. */
+.earthen-loyalty--cart .earthen-loyalty__inner {
+  padding: 8px 10px;
+}
+
+.earthen-loyalty--cart .earthen-loyalty__message {
+  display: none;
+}
+
+.earthen-loyalty--cart .earthen-loyalty__redeem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.earthen-loyalty--cart .earthen-loyalty__range-row {
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 8px;
+}
+
+.earthen-loyalty--cart .earthen-loyalty__selected {
+  min-width: 52px;
+  font-size: 12px;
+}
+
+.earthen-loyalty--cart .earthen-loyalty__actions {
+  margin-top: 0;
+  flex: 0 0 auto;
+}
+
+.earthen-loyalty--cart .earthen-loyalty__button {
+  min-height: 30px;
+  padding: 4px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* The applied state already collapses to a slim chip — keep its own flow. */
+.earthen-loyalty--cart[data-applied] .earthen-loyalty__redeem {
+  display: block;
+  margin-top: 0;
+}
+
 .earthen-loyalty__button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
