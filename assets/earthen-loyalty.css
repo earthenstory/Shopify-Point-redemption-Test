@@ -86,7 +86,13 @@
 }
 
 .earthen-loyalty[data-applied] .earthen-loyalty__inner {
-  padding: 8px 10px;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.earthen-loyalty--cart[data-applied] .earthen-loyalty__inner {
+  margin-block: 2px;
 }
 
 .earthen-loyalty[data-applied] .earthen-loyalty__redeem {
@@ -102,16 +108,16 @@
   border-radius: 8px;
   background: rgba(17, 37, 87, 0.08);
   color: var(--loyalty-primary, #112557);
-  padding: 8px 6px 8px 12px;
-  font-size: 13px;
+  padding: 4px 5px 4px 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .earthen-loyalty__remove-icon {
   display: inline-flex;
-  width: 28px;
-  height: 28px;
-  flex: 0 0 28px;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(17, 37, 87, 0.24);
@@ -119,7 +125,7 @@
   background: #fff;
   color: var(--loyalty-primary, #112557);
   font: inherit;
-  font-size: 20px;
+  font-size: 16px;
   line-height: 1;
   cursor: pointer;
 }

@@ -214,21 +214,10 @@
                     {% endif %}
                   {%- endif -%}
 
-                  {% if item.line_level_discount_allocations.size > 0 %}
-                    <ul
-                      class="list-unstyled"
-                      role="list"
-                    >
-                      {%- for discount in item.line_level_discount_allocations -%}
-                        <li>{{ discount.discount_application.title | escape }}</li>
-                      {%- endfor -%}
-                    </ul>
-                  {% endif %}
-
-                  <div>
+                  <div class="cart-items__price-line">
                     {% if item.original_price != item.final_price %}
                       <span class="visually-hidden">{{ 'content.price_sale' | t }}</span>
-                      <span>{{ item.final_price | money }}</span>
+                      <span class="cart-items__price-current">{{ item.final_price | money }}</span>
                       <span class="visually-hidden">{{ 'content.price_regular' | t }}</span>
                       <s class="compare-at-price">
                         {% if item.variant.compare_at_price > item.original_price %}
@@ -244,12 +233,18 @@
                         <span class="visually-hidden">{{ 'content.price' | t }}</span>
                       {% endif %}
 
-                      <span>{{ item.original_price | money }}</span>
+                      <span class="cart-items__price-current">{{ item.original_price | money }}</span>
 
                       {% if item.variant.compare_at_price > item.original_price %}
                         <span class="visually-hidden">{{ 'content.price_regular' | t }}</span>
                         <s class="compare-at-price">{{ item.variant.compare_at_price | money }}</s>
                       {% endif %}
+                    {% endif %}
+
+                    {% if item.line_level_discount_allocations.size > 0 %}
+                      {%- for discount in item.line_level_discount_allocations -%}
+                        <span class="cart-items__discount-tag">{{ discount.discount_application.title | escape }}</span>
+                      {%- endfor -%}
                     {% endif %}
                   </div>
                 </td>
@@ -493,6 +488,31 @@
 
   .cart-items__price-unit {
     font-size: var(--cart-font-size--xs);
+  }
+
+  .cart-items__price-line {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-block-start: var(--margin-3xs);
+  }
+
+  .cart-items__price-current {
+    font-weight: 600;
+  }
+
+  .cart-items__discount-tag {
+    display: inline-block;
+    align-self: center;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(17, 37, 87, 0.08);
+    color: var(--loyalty-primary, #112557);
+    font-size: var(--cart-font-size--xs);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
   }
 
   .cart-items__media-container {
