@@ -26,6 +26,7 @@ export default function App() {
         <s-link href="/app/referrals">Referrals</s-link>
         <s-link href="/app/vip">VIP Tiers</s-link>
         <s-link href="/app/campaigns">Campaigns</s-link>
+        <s-link href="/app/delivery">Delivery Estimates</s-link>
         <s-link href="/app/customers">Customer Data</s-link>
         <s-link href="/app/migration">Migration</s-link>
         <s-link href="/app/analytics">Analytics</s-link>

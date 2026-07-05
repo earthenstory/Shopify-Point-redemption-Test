@@ -1,0 +1,151 @@
+/* Estimated delivery date widget (Shiprocket-backed). Matches the Earthen
+   loyalty widget's cream/gold card language. */
+
+.earthen-delivery {
+  display: block;
+  margin-top: 12px;
+}
+
+.earthen-delivery[hidden] {
+  display: none;
+}
+
+.earthen-delivery__inner {
+  border: 1px solid rgba(184, 132, 30, 0.28);
+  border-radius: 8px;
+  background: var(--loyalty-background, #fffaf0);
+  padding: 12px 14px;
+}
+
+.earthen-delivery__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-foreground, #121212);
+}
+
+.earthen-delivery__header svg {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  color: var(--loyalty-primary, #112557);
+}
+
+.earthen-delivery__form {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.earthen-delivery__form[hidden] {
+  display: none;
+}
+
+.earthen-delivery__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 180px;
+  padding: 8px 12px;
+  border: 1px solid rgba(18, 18, 18, 0.25);
+  border-radius: 6px;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  background: #fff;
+}
+
+.earthen-delivery__input:focus {
+  outline: 2px solid var(--loyalty-primary, #112557);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.earthen-delivery__button {
+  flex: 0 0 auto;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 6px;
+  background: var(--loyalty-primary, #112557);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.earthen-delivery__button[disabled] {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.earthen-delivery__result {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.earthen-delivery__result[hidden] {
+  display: none;
+}
+
+.earthen-delivery__date-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.earthen-delivery__date {
+  font-weight: 700;
+  color: var(--loyalty-primary, #112557);
+}
+
+.earthen-delivery__change {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 12px;
+  color: var(--loyalty-primary, #112557);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.earthen-delivery__meta {
+  margin-top: 2px;
+  font-size: 12px;
+  color: rgba(18, 18, 18, 0.62);
+}
+
+.earthen-delivery__error {
+  color: #b3261e;
+  font-size: 13px;
+}
+
+.earthen-delivery__loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(18, 18, 18, 0.62);
+  font-size: 13px;
+}
+
+.earthen-delivery__spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(17, 37, 87, 0.25);
+  border-top-color: var(--loyalty-primary, #112557);
+  border-radius: 50%;
+  animation: earthen-delivery-spin 0.7s linear infinite;
+}
+
+@keyframes earthen-delivery-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 749px) {
+  .earthen-delivery__input {
+    max-width: none;
+  }
+}
