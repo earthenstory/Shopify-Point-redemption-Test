@@ -4,6 +4,8 @@ import {
   processCustomerDelete,
   processCustomerUpsert,
   processOrderCancelled,
+  processOrderCreated,
+  processOrderDelivered,
   processOrderFulfilled,
   processOrderPaid,
   processRefundCreated,
@@ -86,6 +88,30 @@ export function buildCustomerWebhookPayload(customer: {
     first_name: customer.firstName,
     last_name: customer.lastName,
   };
+}
+
+export async function fetchOrderPayloadForReplay(
+  admin: AdminApiContext,
+  numericId: string,
+) {
+  return fetchOrderForReplay(admin, numericId);
+}
+
+async function fetchOrderDeliveryStatus(
+  admin: AdminApiContext,
+  numericId: string,
+): Promise<string | null> {
+  const response = await admin.graphql(
+    `#graphql
+    query LoyaltyReplayOrderDelivery($id: ID!) {
+      order(id: $id) { displayFulfillmentStatus }
+    }`,
+    { variables: { id: `gid://shopify/Order/${numericId}` } },
+  );
+  const json = (await response.json()) as {
+    data?: { order?: { displayFulfillmentStatus?: string } | null };
+  };
+  return json.data?.order?.displayFulfillmentStatus ?? null;
 }
 
 async function fetchOrderForReplay(admin: AdminApiContext, numericId: string) {
@@ -245,15 +271,29 @@ async function replayEvent(
       await processCustomerDelete(db, context({ id: Number(numericId) }));
       return { outcome: "processed" };
     }
+    case "orders/create":
     case "orders/paid":
     case "orders/fulfilled":
     case "orders/cancelled": {
       const payload = await fetchOrderForReplay(admin, numericId);
       if (!payload) return { outcome: "ignored" };
-      if (topic === "orders/paid") await processOrderPaid(db, context(payload));
+      if (topic === "orders/create")
+        await processOrderCreated(db, context(payload));
+      else if (topic === "orders/paid")
+        await processOrderPaid(db, context(payload));
       else if (topic === "orders/fulfilled")
         await processOrderFulfilled(db, context(payload));
       else await processOrderCancelled(db, context(payload));
+      return { outcome: "processed" };
+    }
+    case "fulfillment/events/create": {
+      // The event itself can't be re-fetched; check the order's current
+      // delivery state instead and award if it has been delivered.
+      const deliveryStatus = await fetchOrderDeliveryStatus(admin, numericId);
+      if (deliveryStatus !== "DELIVERED") return { outcome: "ignored" };
+      const payload = await fetchOrderForReplay(admin, numericId);
+      if (!payload) return { outcome: "ignored" };
+      await processOrderDelivered(db, context(payload));
       return { outcome: "processed" };
     }
     case "refunds/create": {

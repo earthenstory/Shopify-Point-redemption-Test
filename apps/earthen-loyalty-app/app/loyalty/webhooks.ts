@@ -337,6 +337,19 @@ export async function processOrderFulfilled(
     return "ignored";
   }
 
+  return awardOrderEarn(db, context, settings);
+}
+
+/**
+ * Awards order earn from an ORDER-shaped payload once the caller has verified
+ * the configured award trigger (fulfilled webhook, or a carrier "delivered"
+ * fulfillment event). Idempotent via the per-order existingEarn check.
+ */
+export async function awardOrderEarn(
+  db: PrismaClient,
+  context: LoyaltyWebhookContext,
+  settings: Awaited<ReturnType<typeof getLoyaltyRuntimeSettings>>,
+): Promise<"processed" | "ignored"> {
   const orderId = extractWebhookResourceId(context.payload);
   const customerInfo = extractOrderCustomerInfo(context.payload);
   if (!orderId || !customerInfo.shopifyCustomerId) return "ignored";
@@ -423,6 +436,115 @@ export async function processOrderFulfilled(
   return "processed";
 }
 
+/**
+ * Award earn once a carrier reports the shipment DELIVERED (payload must be an
+ * ORDER payload; the route/replay verifies the delivered signal first). Used
+ * when awardOnStatus === "delivered" — the safest mode for COD/RTO markets:
+ * rejected-at-doorstep shipments simply never earn.
+ */
+export async function processOrderDelivered(
+  db: PrismaClient,
+  context: LoyaltyWebhookContext,
+): Promise<"processed" | "ignored"> {
+  const settings = await getLoyaltyRuntimeSettings({
+    db,
+    shopDomain: context.shop,
+  });
+  if (!settings.earningEnabled || settings.rules.awardOnStatus !== "delivered") {
+    return "ignored";
+  }
+  return awardOrderEarn(db, context, settings);
+}
+
+// Extend a reservation for the lifetime of a real order. Without this, a COD
+// order's reservation (60-minute TTL) would expire before payment/delivery and
+// the expiry self-heal would hand the points back even though the customer
+// keeps the discount. Runs on orders/create: pins the session to the order and
+// pushes expiry out; if the self-heal already released it (slow checkout),
+// re-reserves the points so the books stay honest.
+const ORDER_RESERVATION_TTL_DAYS = 45;
+
+export async function processOrderCreated(
+  db: PrismaClient,
+  context: LoyaltyWebhookContext,
+): Promise<"processed" | "ignored"> {
+  const orderId = extractWebhookResourceId(context.payload);
+  const discountCode = extractLoyaltyDiscountCode(context.payload);
+  if (!orderId || !discountCode) return "ignored";
+
+  const session = await db.redemptionSession.findUnique({
+    where: { discountCode },
+    include: { customer: { include: { wallet: true } } },
+  });
+  if (!session?.customer.wallet) return "ignored";
+
+  const pinnedExpiry = new Date(
+    Date.now() + ORDER_RESERVATION_TTL_DAYS * 24 * 60 * 60 * 1000,
+  );
+
+  if (session.status === "pending" || session.status === "applied") {
+    await db.redemptionSession.update({
+      where: { id: session.id },
+      data: { shopifyOrderId: orderId, expiresAt: pinnedExpiry },
+    });
+    return "processed";
+  }
+
+  if (session.status === "released") {
+    // The hold was released (expiry self-heal / manual) but the code was still
+    // accepted at checkout. Re-reserve so the discount isn't a free ride.
+    const amount = session.pointsReserved;
+    const reclaimed = await db.wallet.updateMany({
+      where: {
+        id: session.customer.wallet.id,
+        availablePoints: { gte: amount },
+      },
+      data: {
+        availablePoints: { decrement: amount },
+        pendingPoints: { increment: amount },
+      },
+    });
+
+    if (reclaimed.count === 1) {
+      await db.$transaction([
+        db.redemptionSession.update({
+          where: { id: session.id },
+          data: {
+            status: "applied",
+            shopifyOrderId: orderId,
+            expiresAt: pinnedExpiry,
+            pointsReleased: { decrement: amount },
+          },
+        }),
+        db.ledgerEntry.create({
+          data: {
+            customerId: session.customerId,
+            walletId: session.customer.wallet.id,
+            redemptionSessionId: session.id,
+            shopifyOrderId: orderId,
+            type: "redeem_reserve",
+            pointsDelta: -amount,
+            moneyValue: session.discountAmount,
+            currency: session.currency,
+            description:
+              "Re-reserved points: released hold was used on a placed order",
+          },
+        }),
+      ]);
+    } else {
+      // Balance already spent elsewhere — flag for the merchant instead of
+      // driving the wallet negative.
+      await db.redemptionSession.update({
+        where: { id: session.id },
+        data: { status: "manual_review", shopifyOrderId: orderId },
+      });
+    }
+    return "processed";
+  }
+
+  return "processed";
+}
+
 export async function processOrderCancelled(
   db: PrismaClient,
   context: LoyaltyWebhookContext,
@@ -433,6 +555,47 @@ export async function processOrderCancelled(
     db,
     shopDomain: context.shop,
   });
+
+  // Unpaid orders (typical rejected COD): the reservation was never consumed.
+  // Release it so the points go straight back to the customer.
+  const unconsumedSessions = await db.redemptionSession.findMany({
+    where: {
+      shopifyOrderId: orderId,
+      status: { in: ["pending", "applied"] },
+    },
+    include: { customer: { include: { wallet: true } } },
+  });
+  for (const session of unconsumedSessions) {
+    const points =
+      session.pointsReserved - session.pointsConsumed - session.pointsReleased;
+    if (points <= 0 || !session.customer.wallet) continue;
+    await db.$transaction([
+      db.wallet.update({
+        where: { id: session.customer.wallet.id },
+        data: {
+          availablePoints: { increment: points },
+          pendingPoints: { decrement: points },
+        },
+      }),
+      db.redemptionSession.update({
+        where: { id: session.id },
+        data: { status: "released", pointsReleased: { increment: points } },
+      }),
+      db.ledgerEntry.create({
+        data: {
+          customerId: session.customerId,
+          walletId: session.customer.wallet.id,
+          redemptionSessionId: session.id,
+          shopifyOrderId: orderId,
+          type: "redeem_release",
+          pointsDelta: points,
+          moneyValue: session.discountAmount,
+          currency: session.currency,
+          description: "Returned reserved points for cancelled order",
+        },
+      }),
+    ]);
+  }
 
   await reverseEarnedPointsForOrder({
     db,

@@ -42,7 +42,7 @@ export const rewardSettingsSchema = z.object({
   maxRedeemPointsPerOrder: z.number().int().positive().nullable(),
   allowDiscountStacking: z.boolean(),
   discountCodeTtlMinutes: z.number().int().min(5).max(10080),
-  awardOnStatus: z.enum(["paid", "fulfilled"]),
+  awardOnStatus: z.enum(["paid", "fulfilled", "delivered"]),
   pointsExpiryDays: z.number().int().positive().nullable(),
   returnRedeemedPointsOnRefund: z.boolean(),
   reverseEarnedPointsOnRefund: z.boolean(),
@@ -307,7 +307,9 @@ export function rewardRuleToRules(rule: RewardRule): LoyaltyRules {
     maxRedeemPointsPerOrder: rule.maxRedeemPointsPerOrder,
     allowDiscountStacking: rule.allowDiscountStacking,
     awardOnStatus:
-      rule.awardOnStatus === "paid" || rule.awardOnStatus === "fulfilled"
+      rule.awardOnStatus === "paid" ||
+      rule.awardOnStatus === "fulfilled" ||
+      rule.awardOnStatus === "delivered"
         ? rule.awardOnStatus
         : confirmedBonDefaults.awardOnStatus,
     returnRedeemedPointsOnRefund: rule.returnRedeemedPointsOnRefund,

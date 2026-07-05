@@ -69,7 +69,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         discountCodeTtlMinutes: formNumber(form.get("discountCodeTtlMinutes")),
         awardOnStatus: String(form.get("awardOnStatus")) as
           | "paid"
-          | "fulfilled",
+          | "fulfilled"
+          | "delivered",
         pointsExpiryDays: formNullablePositiveInt(form.get("pointsExpiryDays")),
         returnRedeemedPointsOnRefund: formBoolean(
           form.get("returnRedeemedPointsOnRefund"),
@@ -153,7 +154,8 @@ export default function RedemptionPage() {
                     label="Award points when"
                     value={data.awardOnStatus}
                   >
-                    <s-option value="fulfilled">Order fulfilled</s-option>
+                    <s-option value="delivered">Order delivered (carrier event)</s-option>
+                    <s-option value="fulfilled">Order fulfilled (shipped)</s-option>
                     <s-option value="paid">Order paid</s-option>
                   </s-select>
                   <s-number-field

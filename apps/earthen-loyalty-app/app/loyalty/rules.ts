@@ -11,7 +11,7 @@ export const loyaltyRuleSchema = z.object({
   maxRedeemPercentOfCart: z.number().min(0).max(100),
   maxRedeemPointsPerOrder: z.number().int().positive().nullable(),
   allowDiscountStacking: z.boolean(),
-  awardOnStatus: z.enum(["paid", "fulfilled"]),
+  awardOnStatus: z.enum(["paid", "fulfilled", "delivered"]),
   returnRedeemedPointsOnRefund: z.boolean(),
   reverseEarnedPointsOnRefund: z.boolean(),
 });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-// @ts-expect-error plain mjs module
+// eslint-disable-next-line -- plain mjs module
+// @ts-ignore
 import { computeSyncAdjustment } from "../scripts/import-bon-export.mjs";
 
 describe("BON balance sync deltas", () => {
