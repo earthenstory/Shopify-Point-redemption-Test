@@ -49,13 +49,7 @@
       data-loyalty-code="{{ loyalty_discount_code }}"
     >
       {% if loyalty_discount_applied %}
-        <p class="cart-discount__status">
-          Earthen Points discount is applied. You can add another discount code on top of it.
-        </p>
-      {% else %}
-        <p class="cart-discount__hint">
-          Enter a discount code.
-        </p>
+        <p class="cart-discount__status">Stack a coupon on top of your points:</p>
       {% endif %}
       <div class="cart-discount__content">
         <form
@@ -112,6 +106,25 @@
           {% if discount_prefix == 'ESPOINTS' %}
             {% continue %}
           {% endif %}
+          {%- liquid
+            # Resolve how much this code actually took off, whether it lands as an
+            # order-level discount or a per-product (line-level) allocation.
+            assign pill_amount = 0
+            for cart_discount in cart.cart_level_discount_applications
+              if cart_discount.title == discount_code
+                assign pill_amount = cart_discount.total_allocated_amount
+              endif
+            endfor
+            if pill_amount == 0
+              for line_item in cart.items
+                for allocation in line_item.line_level_discount_allocations
+                  if allocation.discount_application.title == discount_code
+                    assign pill_amount = allocation.discount_application.total_allocated_amount
+                  endif
+                endfor
+              endfor
+            endif
+          -%}
           <li
             class="cart-discount__pill"
             data-discount-code="{{ discount_code }}"
@@ -120,6 +133,9 @@
             <p class="cart-discount__pill-code">
               {{ discount_code }}
             </p>
+            {% if pill_amount > 0 %}
+              <span class="cart-discount__pill-amount">−{{ pill_amount | money }}</span>
+            {% endif %}
             <button
               type="button"
               on:click="/removeDiscount"
@@ -177,6 +193,13 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     margin: 0;
+  }
+
+  .cart-discount__pill-amount {
+    margin: 0;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.75;
   }
 
   .cart-discount {

@@ -7,6 +7,12 @@ import { cartPerformance } from '@theme/performance';
 const LOYALTY_STORAGE_KEY = 'earthen_loyalty_redemption';
 const LOYALTY_CODE_PREFIX = 'ESPOINTS';
 
+// Minimum cart subtotal (major currency unit) each coupon needs before Shopify
+// will accept it. Used to explain WHY a code was rejected instead of showing a
+// generic error. Keep in sync with each discount's "Minimum purchase amount" in
+// the Shopify admin (Discounts).
+const DISCOUNT_MIN_SUBTOTAL = { ES10: 1500, ES15: 3000 };
+
 /**
  * A custom element that applies a discount to the cart.
  *
@@ -96,7 +102,7 @@ class CartDiscount extends Component {
       ) {
         await this.#restoreStoredLoyaltyDiscount(storedLoyaltyRedemption, abortController.signal);
         discountCode.value = '';
-        this.#handleDiscountError('discount_code');
+        this.#handleDiscountError('discount_code', discountReason(discountCodeValue, data));
         return;
       }
 
@@ -234,10 +240,14 @@ class CartDiscount extends Component {
    * Handles the discount error.
    *
    * @param {'discount_code' | 'shipping'} type - The type of discount error.
+   * @param {string} [message] - Optional custom message to show for discount_code errors.
    */
-  #handleDiscountError(type) {
+  #handleDiscountError(type, message) {
     const { cartDiscountError, cartDiscountErrorDiscountCode, cartDiscountErrorShipping } = this.refs;
     const target = type === 'discount_code' ? cartDiscountErrorDiscountCode : cartDiscountErrorShipping;
+    if (type === 'discount_code' && message) {
+      cartDiscountErrorDiscountCode.textContent = message;
+    }
     cartDiscountError.classList.remove('hidden');
     target.classList.remove('hidden');
   }
@@ -309,6 +319,27 @@ function clearStoredLoyaltyRedemption() {
 
 function isLoyaltyDiscountCode(code) {
   return code.toUpperCase().startsWith(LOYALTY_CODE_PREFIX);
+}
+
+/**
+ * Builds a human-friendly reason a coupon was rejected. Falls back to a generic
+ * message for codes we don't have a known requirement for.
+ * @param {string} code - The code the shopper tried to apply.
+ * @param {{ items_subtotal_price?: number }} [cart] - The cart payload from the update response.
+ * @returns {string}
+ */
+function discountReason(code, cart) {
+  const upper = String(code || '').toUpperCase();
+  const min = DISCOUNT_MIN_SUBTOTAL[upper];
+  if (!min) return 'This code can’t be applied to your cart.';
+
+  const format = (/** @type {number} */ value) => `₹${Math.round(value).toLocaleString('en-IN')}`;
+  const subtotal = (cart?.items_subtotal_price ?? 0) / 100;
+  const shortfall = min - subtotal;
+  if (shortfall > 0) {
+    return `${upper} applies to orders of ${format(min)} or more — add ${format(shortfall)} to use it.`;
+  }
+  return `${upper} applies to orders of ${format(min)} or more.`;
 }
 
 if (!customElements.get('cart-discount-component')) {
