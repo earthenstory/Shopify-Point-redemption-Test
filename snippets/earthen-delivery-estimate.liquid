@@ -1,50 +1,83 @@
 {%- doc -%}
   Estimated delivery date widget (Shiprocket surface serviceability via the
-  loyalty app proxy). Rendered on the product page under the buy buttons.
+  Earthen Delivery app proxy).
 
-  @param {object} product - The product whose default variant weight is used.
+  @param {object} product - Product whose variant weight is used (product context).
+  @param {string} context - 'product' (default, PDP card) or 'cart' (slim row
+                            in the cart drawer / cart page; uses total cart weight).
 {%- enddoc -%}
 
 {{ 'earthen-delivery.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'earthen-delivery.js' | asset_url }}" type="module" fetchpriority="low"></script>
 
 {%- liquid
-  assign delivery_variant = product.selected_or_first_available_variant
+  assign delivery_context = context | default: 'product'
   assign delivery_weight_grams = 0
-  if delivery_variant and delivery_variant.weight > 0
-    assign delivery_weight_grams = delivery_variant.weight
+  if delivery_context == 'product'
+    assign delivery_variant = product.selected_or_first_available_variant
+    if delivery_variant and delivery_variant.weight > 0
+      assign delivery_weight_grams = delivery_variant.weight
+    endif
   endif
 -%}
 
 <earthen-delivery-estimate
-  class="earthen-delivery"
+  class="earthen-delivery earthen-delivery--{{ delivery_context }}"
+  data-context="{{ delivery_context }}"
   data-weight-grams="{{ delivery_weight_grams }}"
 >
   <div class="earthen-delivery__inner">
-    <div class="earthen-delivery__header">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M1 6h13v11H1z"/>
-        <path d="M14 9h4l4 4v4h-8z"/>
-        <circle cx="6" cy="19" r="1.8"/>
-        <circle cx="18" cy="19" r="1.8"/>
-      </svg>
-      <span>Check delivery date</span>
-    </div>
-    <form class="earthen-delivery__form" data-delivery-form>
-      <input
-        class="earthen-delivery__input"
-        data-delivery-input
-        type="text"
-        inputmode="numeric"
-        autocomplete="postal-code"
-        maxlength="6"
-        placeholder="Enter pincode"
-        aria-label="Delivery pincode"
-      >
-      <button class="earthen-delivery__button" data-delivery-check type="submit">
-        Check
-      </button>
-    </form>
-    <div class="earthen-delivery__result" data-delivery-result hidden></div>
+    {%- if delivery_context == 'cart' -%}
+      <div class="earthen-delivery__row">
+        <svg class="earthen-delivery__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M1 6h13v11H1z"/>
+          <path d="M14 9h4l4 4v4h-8z"/>
+          <circle cx="6" cy="19" r="1.8"/>
+          <circle cx="18" cy="19" r="1.8"/>
+        </svg>
+        <form class="earthen-delivery__form" data-delivery-form>
+          <input
+            class="earthen-delivery__input"
+            data-delivery-input
+            type="text"
+            inputmode="numeric"
+            autocomplete="postal-code"
+            maxlength="6"
+            placeholder="Pincode for delivery date"
+            aria-label="Delivery pincode"
+          >
+          <button class="earthen-delivery__button" data-delivery-check type="submit">
+            Check
+          </button>
+        </form>
+        <div class="earthen-delivery__result" data-delivery-result hidden></div>
+      </div>
+    {%- else -%}
+      <div class="earthen-delivery__header">
+        <svg class="earthen-delivery__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M1 6h13v11H1z"/>
+          <path d="M14 9h4l4 4v4h-8z"/>
+          <circle cx="6" cy="19" r="1.8"/>
+          <circle cx="18" cy="19" r="1.8"/>
+        </svg>
+        <span>Check delivery date</span>
+      </div>
+      <form class="earthen-delivery__form" data-delivery-form>
+        <input
+          class="earthen-delivery__input"
+          data-delivery-input
+          type="text"
+          inputmode="numeric"
+          autocomplete="postal-code"
+          maxlength="6"
+          placeholder="Enter pincode"
+          aria-label="Delivery pincode"
+        >
+        <button class="earthen-delivery__button" data-delivery-check type="submit">
+          Check
+        </button>
+      </form>
+      <div class="earthen-delivery__result" data-delivery-result hidden></div>
+    {%- endif -%}
   </div>
 </earthen-delivery-estimate>

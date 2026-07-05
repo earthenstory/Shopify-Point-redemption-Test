@@ -1,9 +1,18 @@
-/* Estimated delivery date widget. Asks for a pincode, calls the loyalty
-   app's /apps/delivery/estimate proxy endpoint (Shiprocket surface
-   serviceability behind it), and shows "Delivery by <date>". The pincode is
-   remembered in localStorage and re-checked automatically on future visits.
+/* Estimated delivery date widget. Asks for a pincode, calls the Earthen
+   Delivery app's /apps/delivery/estimate proxy endpoint (Shiprocket surface
+   serviceability behind it), and shows the estimated delivery date. The
+   pincode is remembered in localStorage and re-checked automatically on
+   future visits.
+
+   Contexts:
+   - product: uses the variant's weight (data-weight-grams).
+   - cart: uses the TOTAL cart weight from /cart.js and silently re-checks
+     when the cart changes (quantity edits move the weight bucket).
+
    If the feature is disabled server-side or the API fails, the widget stays
    in its quiet input state — never a broken UI. */
+
+import { ThemeEvents } from '@theme/events';
 
 const PINCODE_STORAGE_KEY = 'earthen_pincode';
 const PINCODE_RE = /^[1-9][0-9]{5}$/;
@@ -13,6 +22,7 @@ class EarthenDeliveryEstimate extends HTMLElement {
     if (this.dataset.ready) return;
     this.dataset.ready = 'true';
 
+    this.context = this.dataset.context || 'product';
     this.input = this.querySelector('[data-delivery-input]');
     this.button = this.querySelector('[data-delivery-check]');
     this.form = this.querySelector('[data-delivery-form]');
@@ -32,10 +42,30 @@ class EarthenDeliveryEstimate extends HTMLElement {
       }
     });
 
+    if (this.context === 'cart') {
+      this.handleCartChange = () => {
+        // Re-estimate with the new total weight, but only when a pincode is
+        // already known — never interrupt a customer mid-typing.
+        clearTimeout(this.cartChangeTimer);
+        this.cartChangeTimer = setTimeout(() => {
+          if (this.storedPincode()) this.check({ silent: true });
+        }, 600);
+      };
+      document.addEventListener(ThemeEvents.cartUpdate, this.handleCartChange);
+      document.addEventListener(ThemeEvents.discountUpdate, this.handleCartChange);
+    }
+
     const stored = this.storedPincode();
     if (stored) {
       if (this.input) this.input.value = stored;
       this.check({ silent: true });
+    }
+  }
+
+  disconnectedCallback() {
+    if (this.handleCartChange) {
+      document.removeEventListener(ThemeEvents.cartUpdate, this.handleCartChange);
+      document.removeEventListener(ThemeEvents.discountUpdate, this.handleCartChange);
     }
   }
 
@@ -56,13 +86,27 @@ class EarthenDeliveryEstimate extends HTMLElement {
     }
   }
 
-  weightKg() {
+  async weightKg() {
+    if (this.context === 'cart') {
+      try {
+        const response = await fetch(`${window.Theme?.routes?.cart_url || '/cart'}.js`, {
+          headers: { Accept: 'application/json' },
+          cache: 'no-store',
+        });
+        const cart = await response.json();
+        const grams = Number(cart?.total_weight || 0);
+        this.cartWeightKg = grams > 0 ? Math.round(grams / 10) / 100 : 0;
+        return this.cartWeightKg;
+      } catch (error) {
+        return this.cartWeightKg || 0;
+      }
+    }
     const grams = Number(this.dataset.weightGrams || 0);
     return grams > 0 ? grams / 1000 : 0;
   }
 
   async check(options = {}) {
-    const pincode = (this.input?.value || '').trim();
+    const pincode = (this.input?.value || '').trim() || this.storedPincode();
     if (!PINCODE_RE.test(pincode)) {
       if (!options.silent) {
         this.renderError('Please enter a valid 6-digit pincode.');
@@ -77,7 +121,7 @@ class EarthenDeliveryEstimate extends HTMLElement {
 
     try {
       const params = new URLSearchParams({ pincode });
-      const weight = this.weightKg();
+      const weight = await this.weightKg();
       if (weight > 0) params.set('weight', String(weight));
 
       const response = await fetch(
@@ -113,7 +157,7 @@ class EarthenDeliveryEstimate extends HTMLElement {
       }
 
       this.rememberPincode(pincode);
-      this.renderEstimate(data, pincode);
+      this.renderEstimate(data, pincode, weight);
     } catch (error) {
       if (error?.name === 'AbortError') return;
       if (options.silent) {
@@ -170,7 +214,7 @@ class EarthenDeliveryEstimate extends HTMLElement {
     this.result.appendChild(error);
   }
 
-  renderEstimate(data, pincode) {
+  renderEstimate(data, pincode, weightKg) {
     if (!this.result) return;
     if (this.form) this.form.hidden = true;
     this.result.hidden = false;
@@ -181,7 +225,10 @@ class EarthenDeliveryEstimate extends HTMLElement {
 
     const date = document.createElement('span');
     date.className = 'earthen-delivery__date';
-    date.textContent = `Estimated delivery date: ${data.deliveryText}`;
+    date.textContent =
+      this.context === 'cart'
+        ? `Estimated delivery: ${data.deliveryText}`
+        : `Estimated delivery date: ${data.deliveryText}`;
     row.appendChild(date);
 
     const change = document.createElement('button');
@@ -194,9 +241,16 @@ class EarthenDeliveryEstimate extends HTMLElement {
     const meta = document.createElement('div');
     meta.className = 'earthen-delivery__meta';
     const shipDay = this.formatDispatch(data.dispatchDate);
-    meta.textContent = shipDay
-      ? `Ships ${shipDay} from our Bengaluru warehouse`
-      : 'Ships from our Bengaluru warehouse';
+    if (this.context === 'cart') {
+      const parts = [];
+      if (shipDay) parts.push(`Ships ${shipDay}`);
+      if (weightKg > 0) parts.push(`based on ${trimKg(weightKg)} kg cart weight`);
+      meta.textContent = parts.join(' · ') || 'Ships from our Bengaluru warehouse';
+    } else {
+      meta.textContent = shipDay
+        ? `Ships ${shipDay} from our Bengaluru warehouse`
+        : 'Ships from our Bengaluru warehouse';
+    }
 
     this.result.appendChild(row);
     this.result.appendChild(meta);
@@ -210,6 +264,11 @@ class EarthenDeliveryEstimate extends HTMLElement {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return `${names[date.getUTCDay()]}, ${day} ${months[month - 1]}`;
   }
+}
+
+function trimKg(value) {
+  const rounded = Math.round(value * 100) / 100;
+  return String(rounded);
 }
 
 if (!customElements.get('earthen-delivery-estimate')) {
