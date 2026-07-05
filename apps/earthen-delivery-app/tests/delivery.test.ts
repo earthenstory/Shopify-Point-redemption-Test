@@ -6,12 +6,12 @@ import {
   getDeliveryEstimate,
   invalidateDeliverySettings,
   weightBucketGrams,
-} from "../app/loyalty/delivery";
+} from "../app/delivery/delivery";
 import {
   checkServiceability,
   pickCourier,
   type ServiceabilityResult,
-} from "../app/loyalty/shiprocket";
+} from "../app/delivery/shiprocket";
 
 const SHOP = "701031-e7.myshopify.com";
 

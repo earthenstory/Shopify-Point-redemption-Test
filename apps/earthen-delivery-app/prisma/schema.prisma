@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+model DeliverySettings {
+  shopDomain       String   @id
+  enabled          Boolean  @default(false)
+  pickupPincode    String   @default("560048")
+  cutoffHour       Int      @default(11)
+  // ISO weekday numbers that count as working days (1=Mon ... 7=Sun).
+  workingDays      String   @default("1,2,3,4,5,6")
+  // Array of "YYYY-MM-DD" strings - extra non-working dates.
+  holidays         Json     @default("[]")
+  defaultWeightKg  Decimal  @default(0.5) @db.Decimal(6, 2)
+  // "recommended" = Shiprocket pick; "fastest" = lowest transit days.
+  courierStrategy  String   @default("recommended")
+  surfaceOnly      Boolean  @default(true)
+  // When no surface courier serves the pincode, fall back to any courier
+  // instead of telling the customer we cannot deliver.
+  fallbackToAny    Boolean  @default(true)
+  showRange        Boolean  @default(false)
+  widgetTitle      String   @default("Check delivery date")
+  cacheTtlMinutes  Int      @default(720)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model ShiprocketToken {
+  id        String    @id @default("default")
+  token     String?   @db.Text
+  expiresAt DateTime?
+  updatedAt DateTime  @updatedAt
+}
+
+model DeliveryEstimateCache {
+  id           String   @id @default(cuid())
+  pincode      String
+  weightBucket Int
+  cod          Boolean  @default(false)
+  serviceable  Boolean
+  courierName  String?
+  transitDays  Int?
+  isSurface    Boolean?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  @@unique([pincode, weightBucket, cod])
+  @@index([expiresAt])
+}

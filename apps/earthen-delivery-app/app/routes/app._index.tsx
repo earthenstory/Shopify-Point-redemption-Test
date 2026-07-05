@@ -7,7 +7,7 @@ import { Form, useActionData, useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import db from "../db.server";
 import { authenticate } from "../shopify.server";
-import { formBoolean, formNumber } from "../loyalty/settings";
+import { formBoolean, formNumber } from "../delivery/forms";
 import {
   deliverySettingsSchema,
   getDeliveryEstimate,
@@ -15,7 +15,7 @@ import {
   invalidateDeliverySettings,
   PINCODE_PATTERN,
   updateDeliverySettings,
-} from "../loyalty/delivery";
+} from "../delivery/delivery";
 
 const WEEKDAYS: Array<{ value: number; label: string }> = [
   { value: 1, label: "Mon" },

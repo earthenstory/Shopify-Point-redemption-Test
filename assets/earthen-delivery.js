@@ -1,5 +1,5 @@
 /* Estimated delivery date widget. Asks for a pincode, calls the loyalty
-   app's /apps/loyalty/delivery-estimate proxy endpoint (Shiprocket surface
+   app's /apps/delivery/estimate proxy endpoint (Shiprocket surface
    serviceability behind it), and shows "Delivery by <date>". The pincode is
    remembered in localStorage and re-checked automatically on future visits.
    If the feature is disabled server-side or the API fails, the widget stays
@@ -81,7 +81,7 @@ class EarthenDeliveryEstimate extends HTMLElement {
       if (weight > 0) params.set('weight', String(weight));
 
       const response = await fetch(
-        `/apps/loyalty/delivery-estimate?${params}`,
+        `/apps/delivery/estimate?${params}`,
         {
           headers: { Accept: 'application/json' },
           cache: 'no-store',

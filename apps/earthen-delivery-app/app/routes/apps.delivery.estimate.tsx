@@ -4,11 +4,11 @@ import {
   authenticateAppProxyRequest,
   jsonError,
   jsonResponse,
-} from "../loyalty/app-proxy";
-import { getDeliveryEstimate, PINCODE_PATTERN } from "../loyalty/delivery";
-import { ShiprocketError } from "../loyalty/shiprocket";
+} from "../delivery/app-proxy";
+import { getDeliveryEstimate, PINCODE_PATTERN } from "../delivery/delivery";
+import { ShiprocketError } from "../delivery/shiprocket";
 
-// GET /apps/loyalty/delivery-estimate?pincode=560001&weight=1.5
+// GET /apps/delivery/estimate?pincode=560001&weight=1.5
 // Returns the estimated delivery date for the customer's pincode. Weight is
 // in kg (optional — falls back to the merchant's default). Public via the
 // HMAC-verified Shopify app proxy; works logged in or out.

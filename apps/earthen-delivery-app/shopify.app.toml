@@ -1,0 +1,34 @@
+# Earthen Delivery — standalone estimated-delivery-date app.
+# Same infra as the loyalty app (GCP project es-automation-2026, Cloud SQL
+# instance shared, separate database), separate Shopify app + proxy.
+
+client_id = "6e31726b9a0bb118135dc9ce94132901"
+name = "earthen-delivery"
+application_url = "https://earthen-delivery-app-x5vmupepiq-el.a.run.app"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+
+[webhooks]
+api_version = "2026-07"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+[access_scopes]
+# No Admin API data needed — the app only serves delivery estimates.
+scopes = ""
+
+[auth]
+redirect_urls = [ "https://earthen-delivery-app-x5vmupepiq-el.a.run.app/auth/callback" ]
+
+[app_proxy]
+url = "https://earthen-delivery-app-x5vmupepiq-el.a.run.app/apps/delivery"
+prefix = "apps"
+subpath = "delivery"
