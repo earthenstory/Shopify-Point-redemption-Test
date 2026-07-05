@@ -4,7 +4,10 @@ import {
   applyEarnMultiplier,
   getEarnMultiplierContext,
 } from "./multipliers";
-import { rewardReferralForOrder } from "./referrals";
+import {
+  reverseReferralForCancelledOrder,
+  rewardReferralForOrder,
+} from "./referrals";
 import { calculateOrderEarnPoints } from "./rules";
 import { getLoyaltyRuntimeSettings } from "./settings";
 
@@ -433,6 +436,18 @@ export async function awardOrderEarn(
     });
   });
 
+  // Milestones ride on the same trigger as order earn; failures must never
+  // fail the webhook (the earn itself has already landed).
+  if (existingCustomer.wallet) {
+    await evaluateOrderMilestones(
+      db,
+      settings,
+      { id: existingCustomer.id, walletId: existingCustomer.wallet.id },
+      orderId,
+      subtotal,
+    ).catch(() => {});
+  }
+
   return "processed";
 }
 
@@ -615,6 +630,14 @@ export async function processOrderCancelled(
     returnRedeemedPointsOnRefund: settings.rules.returnRedeemedPointsOnRefund,
   });
 
+  // If this order triggered a referral payout, claw it back (fraud guard:
+  // refer-a-friend + reject-the-first-order must not farm points).
+  await reverseReferralForCancelledOrder({
+    db,
+    shopDomain: context.shop,
+    orderId,
+  }).catch(() => {});
+
   return "processed";
 }
 
@@ -631,10 +654,28 @@ export async function processRefundCreated(
     db,
     shopDomain: context.shop,
   });
-  const pointsToReverse = calculateOrderEarnPoints(
-    refundSubtotal,
-    settings.rules,
+
+  // Reverse in proportion to what was ACTUALLY earned on this order (which may
+  // include VIP/campaign multipliers), not the base earn rate — otherwise a
+  // partial refund of a 2x-campaign order would under-reverse. Falls back to
+  // the base-rate estimate when the earn entry has no recorded subtotal.
+  const earnEntry = await db.ledgerEntry.findFirst({
+    where: { shopifyOrderId: orderId, type: "order_earn" },
+    select: { pointsDelta: true, metadata: true },
+  });
+  const earnedOrderSubtotal = Number(
+    (earnEntry?.metadata as { orderSubtotal?: unknown } | null)
+      ?.orderSubtotal ?? 0,
   );
+  const pointsToReverse =
+    earnEntry && earnedOrderSubtotal > 0 && refundSubtotal > 0
+      ? Math.min(
+          earnEntry.pointsDelta,
+          Math.round(
+            (earnEntry.pointsDelta * refundSubtotal) / earnedOrderSubtotal,
+          ),
+        )
+      : calculateOrderEarnPoints(refundSubtotal, settings.rules);
 
   await reverseEarnedPointsForOrder({
     db,
@@ -698,6 +739,118 @@ function sortObjectKeys(value: unknown): unknown {
   }
 
   return value;
+}
+
+/**
+ * Awards configured milestone rules when an order lands. Runs once per new
+ * earned order (right after the order_earn ledger entry is written), so
+ * crossing checks are naturally idempotent:
+ * - first_order: on the customer's first earned order
+ * - order_count: when the order count crosses the threshold (repeatable:
+ *   every multiple of the threshold)
+ * - spend_amount: when cumulative earned-order spend crosses the threshold
+ *   (repeatable: every multiple)
+ * signup is covered by the signup bonus; birthday needs a stored DOB and is
+ * not automated yet.
+ */
+async function evaluateOrderMilestones(
+  db: PrismaClient,
+  settings: Awaited<ReturnType<typeof getLoyaltyRuntimeSettings>>,
+  customer: { id: string; walletId: string },
+  orderId: string,
+  orderSubtotal: number,
+): Promise<void> {
+  const rules = settings.milestones.filter(
+    (rule) =>
+      rule.enabled &&
+      rule.points > 0 &&
+      ["first_order", "order_count", "spend_amount"].includes(rule.type),
+  );
+  if (rules.length === 0) return;
+
+  // Counts INCLUDE the order that was just awarded.
+  const earnEntries = await db.ledgerEntry.findMany({
+    where: { customerId: customer.id, type: "order_earn" },
+    select: { metadata: true },
+    take: 500,
+  });
+  const orderCount = earnEntries.length;
+  const previousCount = Math.max(0, orderCount - 1);
+  const totalSpend = earnEntries.reduce((sum, entry) => {
+    const metadata = entry.metadata as { orderSubtotal?: unknown } | null;
+    const value = Number(metadata?.orderSubtotal ?? 0);
+    return sum + (Number.isFinite(value) ? value : 0);
+  }, 0);
+  const previousSpend = Math.max(0, totalSpend - orderSubtotal);
+
+  for (const rule of rules) {
+    let crossings = 0;
+
+    if (rule.type === "first_order") {
+      crossings = orderCount === 1 ? 1 : 0;
+    } else if (rule.type === "order_count") {
+      const threshold = rule.thresholdOrderCount ?? 0;
+      if (threshold > 0) {
+        crossings = rule.repeatable
+          ? Math.floor(orderCount / threshold) -
+            Math.floor(previousCount / threshold)
+          : previousCount < threshold && orderCount >= threshold
+            ? 1
+            : 0;
+      }
+    } else if (rule.type === "spend_amount") {
+      const threshold = Number(rule.thresholdAmount ?? 0);
+      if (threshold > 0) {
+        crossings = rule.repeatable
+          ? Math.floor(totalSpend / threshold) -
+            Math.floor(previousSpend / threshold)
+          : previousSpend < threshold && totalSpend >= threshold
+            ? 1
+            : 0;
+      }
+    }
+    if (crossings <= 0) continue;
+
+    // Once-guard for non-repeatable rules (safety on top of the crossing math).
+    if (!rule.repeatable) {
+      const alreadyAwarded = await db.ledgerEntry.findFirst({
+        where: {
+          customerId: customer.id,
+          metadata: { path: ["milestoneId"], equals: rule.id },
+        },
+        select: { id: true },
+      });
+      if (alreadyAwarded) continue;
+      crossings = 1;
+    }
+
+    const points = rule.points * crossings;
+    await db.$transaction([
+      db.wallet.update({
+        where: { id: customer.walletId },
+        data: {
+          availablePoints: { increment: points },
+          lifetimeEarnedPoints: { increment: points },
+        },
+      }),
+      db.ledgerEntry.create({
+        data: {
+          customerId: customer.id,
+          walletId: customer.walletId,
+          shopifyOrderId: orderId,
+          type: "manual_adjustment",
+          pointsDelta: points,
+          currency: settings.rules.currency,
+          description: `Milestone reward: ${rule.title}`,
+          metadata: {
+            milestoneId: rule.id,
+            milestoneType: rule.type,
+            crossings,
+          },
+        },
+      }),
+    ]);
+  }
 }
 
 async function maybeRewardReferral(

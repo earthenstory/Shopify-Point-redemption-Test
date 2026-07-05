@@ -254,3 +254,76 @@ export async function rewardReferralForOrder(input: {
 
   return { rewarded };
 }
+
+/**
+ * Claw back a referral payout when the qualifying order is cancelled (e.g. a
+ * rejected COD first order — otherwise refer-a-friend + reject-at-doorstep
+ * would farm free points). Reverses exactly what the payout ledger recorded,
+ * once, via the rewarded -> blocked transition. Balances may go negative by
+ * design: a clawback is a debt, clamping it would let the abuse through.
+ */
+export async function reverseReferralForCancelledOrder(input: {
+  db: PrismaClient;
+  shopDomain: string;
+  orderId: string;
+}): Promise<{ reversed: boolean }> {
+  const attribution = await input.db.referralAttribution.findFirst({
+    where: {
+      shopDomain: input.shopDomain,
+      shopifyOrderId: input.orderId,
+      status: "rewarded",
+    },
+  });
+  if (!attribution) return { reversed: false };
+
+  // The exact paid amounts live on the payout ledger entries.
+  const payoutEntries = await input.db.ledgerEntry.findMany({
+    where: {
+      type: "manual_adjustment",
+      pointsDelta: { gt: 0 },
+      metadata: { path: ["referralAttributionId"], equals: attribution.id },
+    },
+    include: { customer: { include: { wallet: true } } },
+  });
+
+  let reversed = false;
+  await input.db.$transaction(async (tx) => {
+    const claimed = await tx.referralAttribution.updateMany({
+      where: { id: attribution.id, status: "rewarded" },
+      data: {
+        status: "blocked",
+        blockedReason: "Qualifying order was cancelled",
+      },
+    });
+    if (claimed.count !== 1) return;
+    reversed = true;
+
+    for (const entry of payoutEntries) {
+      if (!entry.customer.wallet) continue;
+      await tx.wallet.update({
+        where: { id: entry.customer.wallet.id },
+        data: {
+          availablePoints: { decrement: entry.pointsDelta },
+          lifetimeEarnedPoints: { decrement: entry.pointsDelta },
+        },
+      });
+      await tx.ledgerEntry.create({
+        data: {
+          customerId: entry.customerId,
+          walletId: entry.walletId,
+          shopifyOrderId: input.orderId,
+          type: "order_cancel_reversal",
+          pointsDelta: -entry.pointsDelta,
+          currency: entry.currency,
+          description: "Reversed referral reward: order was cancelled",
+          metadata: {
+            referralAttributionId: attribution.id,
+            reversedLedgerEntryId: entry.id,
+          },
+        },
+      });
+    }
+  });
+
+  return { reversed };
+}
