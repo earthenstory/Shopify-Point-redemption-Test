@@ -4,6 +4,8 @@ import { readFile } from "node:fs/promises";
 import { PrismaClient } from "@prisma/client";
 
 const SHOP_DOMAIN = "701031-e7.myshopify.com";
+// BON has shipped (at least) two export layouts; both are supported. The
+// header row is matched exactly to pick the right field mapping.
 const EXPECTED_FIELDS = [
   "shopify_id",
   "first_name",
@@ -21,67 +23,323 @@ const EXPECTED_FIELDS = [
   "total_orders",
   "predicted_spend_tier",
 ];
+const LIST_EXPORT_FIELDS = [
+  "email",
+  "shopify_id",
+  "last_name",
+  "first_name",
+  "points",
+  "status",
+  "phone_number",
+  "date_of_birth",
+  "created_at",
+];
 
 const args = parseArgs(process.argv.slice(2));
 
-if (!args.file) {
-  printUsageAndExit();
+const isMain = process.argv[1] && import.meta.url.endsWith(basename(process.argv[1]));
+
+if (isMain) {
+  if (!args.file) {
+    printUsageAndExit();
+  }
+
+  const filePath = resolve(args.file);
+  const sourceFileName = basename(filePath);
+  const csv = await readFile(filePath, "utf8");
+  const parsed = parseBonExport(csv);
+  const summary = summarizeRows(parsed.rows, parsed.repairs, parsed.invalidRows);
+
+  if (!args.import && !args.sync && !args.syncApply) {
+    printJson({
+      mode: "dry-run",
+      sourceFileName,
+      ...summary,
+    });
+    process.exit(summary.invalidRows.length > 0 ? 1 : 0);
+  }
+
+  if (summary.invalidRows.length > 0) {
+    printJson({
+      mode: args.import ? "import" : "sync",
+      sourceFileName,
+      error: "Refusing to proceed while invalid rows remain.",
+      ...summary,
+    });
+    process.exit(1);
+  }
+
+  const prisma = new PrismaClient();
+
+  try {
+    if (args.sync || args.syncApply) {
+      const result = await syncRows({
+        prisma,
+        rows: parsed.rows,
+        sourceFileName,
+        apply: Boolean(args.syncApply),
+        createdBy: args.createdBy ?? "sync-script",
+      });
+      printJson({
+        mode: args.syncApply ? "sync-apply" : "sync-dry-run",
+        sourceFileName,
+        sourceRowCount: summary.sourceRowCount,
+        ...result,
+      });
+    } else {
+      const result = await importRows({
+        prisma,
+        rows: parsed.rows,
+        sourceFileName,
+        sourceFilePath: filePath,
+        createdBy: args.createdBy ?? "codex",
+      });
+      printJson({
+        mode: "import",
+        sourceFileName,
+        ...summary,
+        ...result,
+      });
+    }
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
-const filePath = resolve(args.file);
-const sourceFileName = basename(filePath);
-const csv = await readFile(filePath, "utf8");
-const parsed = parseBonExport(csv);
-const summary = summarizeRows(parsed.rows, parsed.repairs, parsed.invalidRows);
-
-if (!args.import) {
-  printJson({
-    mode: "dry-run",
-    sourceFileName,
-    ...summary,
-  });
-  process.exit(summary.invalidRows.length > 0 ? 1 : 0);
+/**
+ * Pure delta computation for --sync mode. The goal state is
+ * available == bonPoints for every exported customer:
+ *  - positive delta -> credit (customer earned in BON since last sync)
+ *  - negative delta -> debit, clamped so available never goes below zero
+ *  - wallets holding an active reservation are skipped for manual review
+ */
+export function computeSyncAdjustment({ bonPoints, availablePoints, pendingPoints }) {
+  if (pendingPoints > 0) {
+    return { action: "skip_pending", delta: 0 };
+  }
+  const delta = bonPoints - availablePoints;
+  if (delta === 0) {
+    return { action: "in_sync", delta: 0 };
+  }
+  if (delta < 0 && availablePoints + delta < 0) {
+    return { action: "adjust", delta: -availablePoints };
+  }
+  return { action: "adjust", delta };
 }
 
-if (summary.invalidRows.length > 0) {
-  printJson({
-    mode: "import",
-    sourceFileName,
-    error: "Refusing to import while invalid rows remain.",
-    ...summary,
-  });
-  process.exit(1);
-}
+async function syncRows({ prisma, rows, sourceFileName, apply, createdBy }) {
+  const syncFileName = `sync:${sourceFileName}`;
 
-const prisma = new PrismaClient();
+  const existingBatch = await prisma.bonMigrationBatch.findFirst({
+    where: {
+      shopDomain: SHOP_DOMAIN,
+      sourceFileName: syncFileName,
+      status: "processed",
+    },
+    select: { id: true },
+  });
+  if (existingBatch && apply) {
+    return { skipped: true, reason: "This export has already been synced.", existingBatch };
+  }
 
-try {
-  const result = await importRows({
-    prisma,
-    rows: parsed.rows,
-    sourceFileName,
-    sourceFilePath: filePath,
-    createdBy: args.createdBy ?? "codex",
-  });
-  printJson({
-    mode: "import",
-    sourceFileName,
-    ...summary,
-    ...result,
-  });
-} finally {
-  await prisma.$disconnect();
+  const stats = {
+    rows: rows.length,
+    newCustomers: 0,
+    inSync: 0,
+    credited: 0,
+    creditedPoints: 0,
+    debited: 0,
+    debitedPoints: 0,
+    skippedPending: 0,
+    clampedNegative: 0,
+  };
+  const topDeltas = [];
+
+  let batch = null;
+  if (apply) {
+    batch = await prisma.bonMigrationBatch.create({
+      data: {
+        shopDomain: SHOP_DOMAIN,
+        sourceFileName: syncFileName,
+        rawExportUri: sourceFileName,
+        sourceRowCount: rows.length,
+        validRowCount: rows.length,
+        invalidRowCount: 0,
+        totalSourcePoints: rows.reduce((sum, row) => sum + row.points, 0),
+        totalImportedPoints: 0,
+        status: "received",
+        createdBy,
+      },
+    });
+  }
+
+  let netApplied = 0;
+
+  for (const row of rows) {
+    const existing = await prisma.loyaltyCustomer.findUnique({
+      where: {
+        shopDomain_shopifyCustomerId: {
+          shopDomain: SHOP_DOMAIN,
+          shopifyCustomerId: row.shopifyCustomerId,
+        },
+      },
+      include: { wallet: true },
+    });
+
+    const availablePoints = existing?.wallet?.availablePoints ?? 0;
+    const pendingPoints = existing?.wallet?.pendingPoints ?? 0;
+    const adjustment = computeSyncAdjustment({
+      bonPoints: row.points,
+      availablePoints,
+      pendingPoints,
+    });
+
+    if (!existing) stats.newCustomers += 1;
+    if (adjustment.action === "skip_pending") {
+      stats.skippedPending += 1;
+      continue;
+    }
+    if (adjustment.action === "in_sync") {
+      stats.inSync += 1;
+      continue;
+    }
+
+    if (adjustment.delta > 0) {
+      stats.credited += 1;
+      stats.creditedPoints += adjustment.delta;
+    } else {
+      stats.debited += 1;
+      stats.debitedPoints += -adjustment.delta;
+      if (row.points - availablePoints !== adjustment.delta) stats.clampedNegative += 1;
+    }
+    if (topDeltas.length < 15) {
+      topDeltas.push({
+        who: row.email ?? row.phone ?? row.shopifyCustomerId,
+        bon: row.points,
+        db: availablePoints,
+        delta: adjustment.delta,
+      });
+    }
+
+    if (!apply) continue;
+
+    await prisma.$transaction(async (tx) => {
+      const customer = await tx.loyaltyCustomer.upsert({
+        where: {
+          shopDomain_shopifyCustomerId: {
+            shopDomain: SHOP_DOMAIN,
+            shopifyCustomerId: row.shopifyCustomerId,
+          },
+        },
+        create: {
+          shopDomain: SHOP_DOMAIN,
+          shopifyCustomerId: row.shopifyCustomerId,
+          email: row.email,
+          phone: row.phone,
+          firstName: row.firstName,
+          lastName: row.lastName,
+          status: "active",
+          wallet: { create: {} },
+        },
+        update: {
+          wallet: { upsert: { create: {}, update: {} } },
+        },
+        include: { wallet: true },
+      });
+
+      // Idempotency inside a single file: skip if this file already adjusted
+      // this customer (belt-and-braces on top of the delta converging to 0).
+      const already = await tx.ledgerEntry.findFirst({
+        where: {
+          customerId: customer.id,
+          type: "manual_adjustment",
+          metadata: { path: ["sourceFileName"], equals: syncFileName },
+        },
+        select: { id: true },
+      });
+      if (already) return;
+
+      const ledger = await tx.ledgerEntry.create({
+        data: {
+          customerId: customer.id,
+          walletId: customer.wallet.id,
+          type: existing ? "manual_adjustment" : "migration_credit",
+          pointsDelta: adjustment.delta,
+          moneyValue: Math.abs(adjustment.delta),
+          currency: "INR",
+          description: `BON Loyalty balance sync from ${sourceFileName}`,
+          metadata: {
+            source: "bon_balance_sync",
+            sourceFileName: syncFileName,
+            rowIndex: row.rowIndex,
+            bonPoints: row.points,
+            previousAvailable: availablePoints,
+          },
+        },
+      });
+
+      await tx.wallet.update({
+        where: { id: customer.wallet.id },
+        data: {
+          availablePoints: { increment: adjustment.delta },
+          ...(adjustment.delta > 0
+            ? { lifetimeEarnedPoints: { increment: adjustment.delta } }
+            : { lifetimeRedeemedPoints: { increment: -adjustment.delta } }),
+        },
+      });
+
+      await tx.bonMigrationRow.create({
+        data: {
+          batchId: batch.id,
+          rowIndex: row.rowIndex,
+          shopifyCustomerId: row.shopifyCustomerId,
+          email: row.email,
+          phone: row.phone,
+          points: row.points,
+          matchedCustomerId: customer.id,
+          ledgerEntryId: ledger.id,
+          raw: row.raw,
+        },
+      });
+
+      netApplied += adjustment.delta;
+    });
+  }
+
+  if (apply) {
+    await prisma.bonMigrationBatch.update({
+      where: { id: batch.id },
+      data: {
+        totalImportedPoints: netApplied,
+        status: "processed",
+        importedAt: new Date(),
+      },
+    });
+  }
+
+  return { ...stats, netDelta: stats.creditedPoints - stats.debitedPoints, netApplied: apply ? netApplied : null, batchId: batch?.id ?? null, topDeltas };
 }
 
 export function parseBonExport(csvText) {
-  const records = parseCsv(csvText);
+  // Strip a UTF-8 BOM if present (the "list-customer" exports carry one).
+  const records = parseCsv(csvText.replace(/^﻿/, ""));
   const header = records.shift() ?? [];
+  const headerKey = header.map((cell) => cell.trim()).join(",");
 
-  if (header.join(",") !== EXPECTED_FIELDS.join(",")) {
+  let fields;
+  let phoneField;
+  if (headerKey === EXPECTED_FIELDS.join(",")) {
+    fields = EXPECTED_FIELDS;
+    phoneField = "profile_phone_number";
+  } else if (headerKey === LIST_EXPORT_FIELDS.join(",")) {
+    fields = LIST_EXPORT_FIELDS;
+    phoneField = "phone_number";
+  } else {
     throw new Error(
-      `Unexpected BON export header. Expected ${EXPECTED_FIELDS.join(",")}`,
+      `Unexpected BON export header. Got: ${headerKey.slice(0, 200)}`,
     );
   }
+  const EXPECTED = fields;
 
   const repairs = [];
   const invalidRows = [];
@@ -89,19 +347,22 @@ export function parseBonExport(csvText) {
     .filter((row) => row.length > 0 && row.some((value) => value.trim()))
     .map((row, index) => {
       const lineNumber = index + 2;
-      const normalized = normalizeRow(row, lineNumber, repairs);
+      const normalized =
+        fields === EXPECTED_FIELDS
+          ? normalizeRow(row, lineNumber, repairs)
+          : row;
 
-      if (normalized.length !== EXPECTED_FIELDS.length) {
+      if (normalized.length !== EXPECTED.length) {
         invalidRows.push({
           line: lineNumber,
-          reason: `Expected ${EXPECTED_FIELDS.length} columns, found ${normalized.length}`,
+          reason: `Expected ${EXPECTED.length} columns, found ${normalized.length}`,
           raw: row,
         });
         return null;
       }
 
       const raw = Object.fromEntries(
-        EXPECTED_FIELDS.map((field, fieldIndex) => [
+        EXPECTED.map((field, fieldIndex) => [
           field,
           normalized[fieldIndex]?.trim() ?? "",
         ]),
@@ -117,7 +378,7 @@ export function parseBonExport(csvText) {
         return null;
       }
 
-      if (!raw.shopify_id && !raw.email && !raw.profile_phone_number) {
+      if (!raw.shopify_id && !raw.email && !raw[phoneField]) {
         invalidRows.push({
           line: lineNumber,
           reason: "At least one customer identifier is required",
@@ -130,7 +391,7 @@ export function parseBonExport(csvText) {
         rowIndex: lineNumber - 1,
         shopifyCustomerId: raw.shopify_id,
         email: raw.email || null,
-        phone: raw.profile_phone_number || null,
+        phone: raw[phoneField] || null,
         firstName: raw.first_name || null,
         lastName: raw.last_name || null,
         points,
@@ -445,6 +706,8 @@ function parseArgs(argv) {
     if (arg === "--file") parsed.file = argv[++index];
     else if (arg === "--import") parsed.import = true;
     else if (arg === "--dry-run") parsed.import = false;
+    else if (arg === "--sync") parsed.sync = true;
+    else if (arg === "--sync-apply") parsed.syncApply = true;
     else if (arg === "--created-by") parsed.createdBy = argv[++index];
     else if (!arg.startsWith("--") && !parsed.file) parsed.file = arg;
   }
@@ -458,7 +721,7 @@ function printJson(value) {
 
 function printUsageAndExit() {
   console.error(
-    "Usage: node scripts/import-bon-export.mjs --file /path/to/export.csv [--dry-run|--import] [--created-by name]",
+    "Usage: node scripts/import-bon-export.mjs --file /path/to/export.csv [--dry-run|--import|--sync|--sync-apply] [--created-by name]",
   );
   process.exit(1);
 }
