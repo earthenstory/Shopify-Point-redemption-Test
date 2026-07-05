@@ -412,6 +412,25 @@ class EarthenLoyaltyWidget extends HTMLElement {
       clearCustomerCache();
       writeStoredRedemption(redemption, cart.token);
       await this.applyDiscountCode(redemption.discountCode);
+
+      if (this.lastDiscountApplied === false) {
+        // The points code could not be applied (e.g. it cannot combine with a
+        // coupon already on the cart). Release the reservation so the points are
+        // not stranded, and tell the customer instead of a phantom applied state.
+        await this.request('/apps/loyalty/remove', {
+          method: 'POST',
+          body: { sessionId: redemption.sessionId, discountCode: redemption.discountCode },
+        }).catch(() => null);
+        clearStoredRedemption();
+        clearCustomerCache();
+        if (this.refs.message) {
+          this.refs.message.textContent =
+            'These points could not combine with the coupon on your cart. Remove the coupon to redeem points.';
+        }
+        await this.load();
+        return;
+      }
+
       this.renderStoredRedemption(redemption, 0);
     });
   };
@@ -441,11 +460,35 @@ class EarthenLoyaltyWidget extends HTMLElement {
 
   async applyDiscountCode(code) {
     const sectionId = this.dataset.sectionId;
-    const body = { discount: code };
-    if (sectionId) body.sections = [sectionId];
 
-    const response = await fetch(Theme.routes.cart_update_url, fetchConfig('json', { body: JSON.stringify(body) }));
-    const data = await response.json();
+    // Preserve any manually-applied coupon (e.g. ES10) so redeeming or releasing
+    // points never silently drops a code the customer already added. Only the
+    // loyalty code itself is ours to add or remove here.
+    const preserved = await this.getAppliedCouponCodes();
+    // Shopify rejects an order-level points discount applied in the SAME cart
+    // update as an existing product coupon, but it accepts a coupon added on top
+    // of an already-applied points discount. So when adding points to a cart that
+    // already carries a coupon, apply the points alone first, then re-add the
+    // coupon on top — the ordering Shopify does accept.
+    if (code && preserved.length > 0) {
+      await this.updateCartDiscount(code, null);
+    }
+
+    const discountList = [...preserved];
+    if (code && !discountList.some(isLoyaltyDiscountCode)) {
+      discountList.unshift(code);
+    }
+
+    const data = await this.updateCartDiscount(discountList.join(','), sectionId);
+
+    // Safety net: if the points code was still rejected, don't leave points
+    // reserved against a discount that never applied — signal to release it.
+    if (code) {
+      const stuck = (data.discount_codes || []).some(
+        (entry) => String(entry?.code || '').toUpperCase() === code.toUpperCase() && entry?.applicable !== false,
+      );
+      this.lastDiscountApplied = stuck;
+    }
 
     if (sectionId && data.sections?.[sectionId]) {
       // We morph our own cart section from the response we already have. We do
@@ -455,6 +498,32 @@ class EarthenLoyaltyWidget extends HTMLElement {
       morphSection(sectionId, data.sections[sectionId]);
     } else {
       window.location.reload();
+    }
+  }
+
+  async updateCartDiscount(discount, sectionId) {
+    const body = { discount };
+    if (sectionId) body.sections = [sectionId];
+    const response = await fetch(Theme.routes.cart_update_url, fetchConfig('json', { body: JSON.stringify(body) }));
+    return response.json();
+  }
+
+  // Reads the coupon codes currently on the cart, excluding our own loyalty code
+  // and any Shopify flagged non-applicable, so they can be re-sent alongside the
+  // points discount instead of being overwritten.
+  async getAppliedCouponCodes() {
+    try {
+      const response = await fetch(`${Theme.routes.cart_url}.js`, {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+      });
+      const cart = await response.json();
+      const codes = Array.isArray(cart.discount_codes) ? cart.discount_codes : [];
+      return codes
+        .filter((entry) => entry && entry.applicable !== false && !isLoyaltyDiscountCode(entry.code))
+        .map((entry) => entry.code);
+    } catch (error) {
+      return [];
     }
   }
 
@@ -605,6 +674,10 @@ function previewFromRules(customer, cart) {
 
 function formatMoney(value) {
   return CURRENCY_FORMATTER.format(Number(value || 0));
+}
+
+function isLoyaltyDiscountCode(code) {
+  return String(code || '').toUpperCase().startsWith('ESPOINTS');
 }
 
 function readStoredRedemption() {
