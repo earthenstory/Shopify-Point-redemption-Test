@@ -242,10 +242,12 @@ class EarthenDeliveryEstimate extends HTMLElement {
     meta.className = 'earthen-delivery__meta';
     const shipDay = this.formatDispatch(data.dispatchDate);
     if (this.context === 'cart') {
-      const parts = [];
-      if (shipDay) parts.push(`Ships ${shipDay}`);
-      if (weightKg > 0) parts.push(`based on ${trimKg(weightKg)} kg cart weight`);
-      meta.textContent = parts.join(' · ') || 'Ships from our Bengaluru warehouse';
+      // Cart weight still drives the estimate itself, but the number isn't
+      // shown — many variants lack a weight in the catalog, so the summed
+      // figure can read wrong to the customer.
+      meta.textContent = shipDay
+        ? `Ships ${shipDay} from our Bengaluru warehouse`
+        : 'Ships from our Bengaluru warehouse';
     } else {
       meta.textContent = shipDay
         ? `Ships ${shipDay} from our Bengaluru warehouse`
@@ -264,11 +266,6 @@ class EarthenDeliveryEstimate extends HTMLElement {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return `${names[date.getUTCDay()]}, ${day} ${months[month - 1]}`;
   }
-}
-
-function trimKg(value) {
-  const rounded = Math.round(value * 100) / 100;
-  return String(rounded);
 }
 
 if (!customElements.get('earthen-delivery-estimate')) {
