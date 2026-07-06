@@ -154,7 +154,7 @@
    on the full cart page. Everything is flex with no fixed widths so it works
    at any width, including mobile where the drawer is full-screen. */
 .earthen-delivery--cart {
-  margin-top: 8px;
+  margin-top: 3px;
 }
 
 .earthen-delivery--cart .earthen-delivery__inner {
