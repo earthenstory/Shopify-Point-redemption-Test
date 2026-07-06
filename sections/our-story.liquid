@@ -23,9 +23,14 @@
       {%- for block in problem_cards -%}
         {%- assign problem_num = forloop.index -%}
         {%- assign solution_anchor = '#solution-' | append: problem_num -%}
+        {%- comment -%} Accepts youtu.be/, youtube.com/shorts/, /embed/, and watch?v= URLs (or a bare ID). {%- endcomment -%}
         {%- assign _raw_prob_yt = block.settings.video_id -%}
         {%- if _raw_prob_yt contains 'youtu.be/' -%}
-          {%- assign _prob_vid = _raw_prob_yt | split: 'youtu.be/' | last | split: '?' | first -%}
+          {%- assign _prob_vid = _raw_prob_yt | split: 'youtu.be/' | last | split: '?' | first | split: '/' | first -%}
+        {%- elsif _raw_prob_yt contains '/shorts/' -%}
+          {%- assign _prob_vid = _raw_prob_yt | split: '/shorts/' | last | split: '?' | first | split: '/' | first -%}
+        {%- elsif _raw_prob_yt contains '/embed/' -%}
+          {%- assign _prob_vid = _raw_prob_yt | split: '/embed/' | last | split: '?' | first | split: '/' | first -%}
         {%- elsif _raw_prob_yt contains 'v=' -%}
           {%- assign _prob_vid = _raw_prob_yt | split: 'v=' | last | split: '&' | first -%}
         {%- else -%}
@@ -68,9 +73,14 @@
 
       {% for block in section.blocks %}
         {% if block.type == 'founder' %}
+          {%- comment -%} Accepts youtu.be/, youtube.com/shorts/, /embed/, and watch?v= URLs (or a bare ID). {%- endcomment -%}
           {%- assign _raw_yt = block.settings.youtube_video_id -%}
           {%- if _raw_yt contains 'youtu.be/' -%}
-            {%- assign _founder_vid = _raw_yt | split: 'youtu.be/' | last | split: '?' | first -%}
+            {%- assign _founder_vid = _raw_yt | split: 'youtu.be/' | last | split: '?' | first | split: '/' | first -%}
+          {%- elsif _raw_yt contains '/shorts/' -%}
+            {%- assign _founder_vid = _raw_yt | split: '/shorts/' | last | split: '?' | first | split: '/' | first -%}
+          {%- elsif _raw_yt contains '/embed/' -%}
+            {%- assign _founder_vid = _raw_yt | split: '/embed/' | last | split: '?' | first | split: '/' | first -%}
           {%- elsif _raw_yt contains 'v=' -%}
             {%- assign _founder_vid = _raw_yt | split: 'v=' | last | split: '&' | first -%}
           {%- else -%}
