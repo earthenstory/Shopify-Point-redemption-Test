@@ -100,7 +100,17 @@
       </span>
     {% endif %}
     <div class="cart__summary-item tax-note cart-primary-typography">
-      {% render 'tax-info', has_discounts_enabled: settings.show_add_discount_code %}
+      {%- comment -%}
+        All products are non-taxable, so no tax line. Shipping is free once the
+        cart clears the free-shipping threshold; otherwise it's charged at
+        checkout (Shopify can't quote it until the address step).
+      {%- endcomment -%}
+      {%- assign es_free_ship = settings.free_shipping_threshold | default: 349 | times: 100 -%}
+      {%- if cart.total_price >= es_free_ship -%}
+        <small class="es-shipnote es-shipnote--free">Free shipping applied</small>
+      {%- else -%}
+        <small>Shipping calculated at checkout</small>
+      {%- endif -%}
     </div>
   </div>
 </div>
@@ -153,5 +163,10 @@
 
   .cart__installments {
     color: var(--color-foreground);
+  }
+
+  .es-shipnote--free {
+    color: #2f7d4f;
+    font-weight: 500;
   }
 {% endstylesheet %}

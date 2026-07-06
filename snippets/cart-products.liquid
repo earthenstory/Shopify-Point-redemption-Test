@@ -145,7 +145,7 @@
                   role="cell"
                   headers="productInformation"
                 >
-                  <p>
+                  <p class="cart-items__title-wrap" style="flex: 1 1 auto !important; min-width: 0 !important;">
                     <a
                       href="{{ item.url }}"
                       class="cart-items__title"
@@ -253,6 +253,14 @@
                   role="cell"
                   headers="quantity"
                 >
+                  {%- comment -%}
+                    Compact (drawer / mobile) 2-line row: the variant is hidden
+                    from the details block and shown here inline with the
+                    quantity stepper. Wide cart page ignores this (CSS-scoped).
+                  {%- endcomment -%}
+                  {%- unless item.variant.title == 'Default Title' or item.product.has_only_default_variant -%}
+                    <span class="cart-items__qty-variant">{{ item.variant.title }}</span>
+                  {%- endunless -%}
                   {% # Here I want to pass some arguments to the quantity block so it knows which value should the input be set to. Though quantity block could be a snippet instead %}
                   {% assign can_update_quantity = item.instructions.can_update_quantity
                     | default: true, allow_false: true
@@ -570,6 +578,106 @@
     height: var(--icon-size-xs);
     margin-inline: var(--margin-3xs) var(--margin-xs);
     margin-block-start: var(--margin-3xs);
+  }
+
+  {%- comment -%} The compact-row variant label is only used in the narrow query below. {%- endcomment -%}
+  .cart-items__qty-variant {
+    display: none;
+  }
+
+  {%- comment -%}
+    Narrow context (cart drawer at any viewport + mobile cart page): collapse
+    each product to TWO lines — line 1 = title + price, line 2 = variant +
+    quantity stepper + remove. Scoped to < 720px container so the desktop cart
+    page (>= 720px, its own grid below) is untouched.
+  {%- endcomment -%}
+  @container cart-items (max-width: 719.98px) {
+    .cart-items__table-row {
+      grid-template-areas:
+        'media details'
+        'media quantity';
+      align-items: start;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+
+    {%- comment -%}
+      Ancestor-chained selectors (+ !important) to outweigh Horizon's core cart
+      CSS, which forces details children to flex: 0 0 100% (full-width stack).
+    {%- endcomment -%}
+    .cart-items .cart-items__table-row td.cart-items__details {
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      align-items: baseline;
+      justify-content: space-between;
+      column-gap: 8px;
+      padding-right: 0;
+    }
+
+    .cart-items .cart-items__table-row td.cart-items__details > * + * {
+      margin-block-start: 0 !important;
+    }
+
+    {%- comment -%}
+      The title's <p> wrapper shrinks (inline flex on the element wins over
+      Horizon's flex: 0 0 100%), so the price always fits on the same line and
+      the title truncates with an ellipsis — adapts to any price width / screen.
+    {%- endcomment -%}
+    .cart-items .cart-items__table-row td.cart-items__details > p:first-child {
+      margin: 0 !important;
+    }
+
+    .cart-items__title {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cart-items .cart-items__table-row td.cart-items__details > .cart-items__price-line {
+      flex: 0 0 auto !important;
+      flex-wrap: nowrap !important;
+      margin-block-start: 0 !important;
+      white-space: nowrap;
+    }
+
+    {%- comment -%} The variant + the separate line-total cell both move/hide; variant is re-shown in the quantity row. {%- endcomment -%}
+    .cart-items__details .cart-items__variants {
+      display: none;
+    }
+
+    .cart-items__price {
+      display: none;
+    }
+
+    .cart-items__qty-variant {
+      display: inline-flex;
+      align-items: center;
+      font-size: var(--cart-font-size--sm, 0.8125rem);
+      color: rgb(var(--color-foreground-rgb) / var(--opacity-70));
+      white-space: nowrap;
+    }
+
+    .cart-items__quantity {
+      margin-block-start: 4px;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .cart-items__quantity .cart-items__remove {
+      margin-inline-start: auto;
+    }
+
+    {%- comment -%} Square thumbnails so portrait product photos don't make rows tall. {%- endcomment -%}
+    .cart-items__media {
+      align-self: start;
+    }
+
+    .cart-items__media-container {
+      aspect-ratio: 1 / 1 !important;
+    }
   }
 
   @container cart-items (min-width: 720px) {

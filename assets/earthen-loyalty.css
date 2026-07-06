@@ -179,11 +179,22 @@
   display: none;
 }
 
+/* Single compact row: hide the "Earthen Points 110 pts" header (the slider
+   readout + Apply button already convey it) so the box is one line tall. */
+.earthen-loyalty--cart:not([data-applied]) .earthen-loyalty__header {
+  display: none;
+}
+
 .earthen-loyalty--cart .earthen-loyalty__redeem {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 6px;
+  margin-top: 0;
+}
+
+.earthen-loyalty--cart .earthen-loyalty__selected {
+  min-width: auto;
+  white-space: nowrap;
 }
 
 .earthen-loyalty--cart .earthen-loyalty__range-row {

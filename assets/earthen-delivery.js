@@ -238,24 +238,19 @@ class EarthenDeliveryEstimate extends HTMLElement {
     change.textContent = `${pincode} · Change`;
     row.appendChild(change);
 
-    const meta = document.createElement('div');
-    meta.className = 'earthen-delivery__meta';
-    const shipDay = this.formatDispatch(data.dispatchDate);
-    if (this.context === 'cart') {
-      // Cart weight still drives the estimate itself, but the number isn't
-      // shown — many variants lack a weight in the catalog, so the summed
-      // figure can read wrong to the customer.
-      meta.textContent = shipDay
-        ? `Ships ${shipDay} from our Bengaluru warehouse`
-        : 'Ships from our Bengaluru warehouse';
-    } else {
-      meta.textContent = shipDay
-        ? `Ships ${shipDay} from our Bengaluru warehouse`
-        : 'Ships from our Bengaluru warehouse';
-    }
-
     this.result.appendChild(row);
-    this.result.appendChild(meta);
+
+    // Product page keeps the "Ships … from our Bengaluru warehouse" subline;
+    // the cart drawer/page shows a single compact line only (date + pincode).
+    if (this.context !== 'cart') {
+      const meta = document.createElement('div');
+      meta.className = 'earthen-delivery__meta';
+      const shipDay = this.formatDispatch(data.dispatchDate);
+      meta.textContent = shipDay
+        ? `Ships ${shipDay} from our Bengaluru warehouse`
+        : 'Ships from our Bengaluru warehouse';
+      this.result.appendChild(meta);
+    }
   }
 
   formatDispatch(iso) {
