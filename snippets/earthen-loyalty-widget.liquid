@@ -22,6 +22,15 @@
   data-cart-subtotal="{{ subtotal }}"
   data-applied-amount="{{ loyalty_applied_amount }}"
   data-applied-code="{{ loyalty_applied_code }}"
+  {%- comment -%}
+    Keep the JS-populated inner DOM across cart-section morphs. Without this, a
+    cart update re-applies this empty server skeleton (blanking the balance and
+    slider) and the widget has to re-fetch + re-render, which reads as a flicker.
+    Root attributes (hidden, data-cart-subtotal, data-applied-*) still update from
+    the server; only the children are preserved. The JS re-asserts `hidden`
+    visibility synchronously after each morph.
+  {%- endcomment -%}
+  data-skip-subtree-update
   hidden
 >
   <div class="earthen-loyalty__inner">

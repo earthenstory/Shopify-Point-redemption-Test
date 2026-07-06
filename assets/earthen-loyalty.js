@@ -19,6 +19,11 @@ let customerCache = null;
 let customerRequest = null;
 let historyCache = null;
 let historyRequest = null;
+// Cart context only. Remembers whether the cart widget was last shown so that a
+// cart-section morph — which re-applies the server `hidden` skeleton — can
+// re-reveal it instantly (in a MutationObserver microtask, before paint) instead
+// of blinking out for a debounce + `/customer` round-trip.
+let cartWidgetShouldShow = false;
 
 class EarthenLoyaltyWidget extends HTMLElement {
   connectedCallback() {
@@ -39,11 +44,15 @@ class EarthenLoyaltyWidget extends HTMLElement {
       // Remove control never silently disappears. Loop-safe: it only fires while
       // the applied marker is missing but a discount is present.
       this.appliedObserver = new MutationObserver(() => {
+        // A cart re-render re-applies the server `hidden` skeleton on this same
+        // element. Re-reveal it synchronously (before paint) so it never blinks
+        // out, then let the debounced load() refresh the content underneath.
+        this.syncVisibility();
         if (!this.dataset.applied && this.getServerAppliedRedemption()) this.scheduleLoad();
       });
       this.appliedObserver.observe(this, {
         attributes: true,
-        attributeFilter: ['data-applied', 'data-applied-code', 'data-applied-amount'],
+        attributeFilter: ['hidden', 'data-applied', 'data-applied-code', 'data-applied-amount', 'data-cart-subtotal'],
       });
     }
 
@@ -159,7 +168,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
         await this.releaseOnEmptyCart(storedRedemption);
       }
       if (requestId !== this.loadRequestId || !this.isConnected) return;
-      this.hidden = true;
+      this.setHidden(true);
       return;
     }
 
@@ -169,7 +178,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
 
     try {
       if (applied) {
-        this.hidden = false;
+        this.setHidden(false);
         const cachedCustomer = getCachedCustomer();
         if (cachedCustomer?.widget) this.applyTheme(cachedCustomer.widget);
         this.resetRedeemControls();
@@ -182,13 +191,13 @@ class EarthenLoyaltyWidget extends HTMLElement {
 
       if (!customer.ok) return;
       if (!this.isContextEnabled(customer.widget)) {
-        this.hidden = true;
+        this.setHidden(true);
         return;
       }
 
       this.applyTheme(customer.widget);
 
-      this.hidden = false;
+      this.setHidden(false);
       if (this.dataset.context === 'cart') this.resetRedeemControls();
 
       if (!customer.loggedIn) {
@@ -232,7 +241,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
     } catch (error) {
       if (signal.aborted || error?.name === 'AbortError') return;
       if (this.dataset.context === 'cart') {
-        this.hidden = false;
+        this.setHidden(false);
         this.resetRedeemControls();
         this.renderMessage(
           'Your Earthen Points are refreshing. Please try again in a moment.',
@@ -240,7 +249,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
         );
         return;
       }
-      this.hidden = true;
+      this.setHidden(true);
     }
   }
 
@@ -350,6 +359,29 @@ class EarthenLoyaltyWidget extends HTMLElement {
     this.scheduleLoad();
   };
 
+  // Toggle visibility and remember the decision for the cart context, so a later
+  // morph can restore it without waiting on the network.
+  setHidden(hidden) {
+    this.hidden = hidden;
+    if (this.dataset.context === 'cart') cartWidgetShouldShow = !hidden;
+  }
+
+  // Re-assert visibility right after a cart-section morph re-adds the server
+  // `hidden` attribute. Runs from a MutationObserver (a microtask, before paint),
+  // so the widget never visibly disappears on a cart update. Only ever reveals —
+  // never overrides a hidden state load() set on purpose (empty cart / disabled
+  // context), because those conditions fail the guards below.
+  syncVisibility() {
+    if (this.dataset.context !== 'cart' || !this.hidden) return;
+    // Empty cart genuinely stays hidden (load() releases any reservation).
+    if (Number(this.dataset.cartSubtotal || 0) <= 0) return;
+    const cached = getCachedCustomer();
+    const shouldShow =
+      !!this.getServerAppliedRedemption() ||
+      (cached ? this.isContextEnabled(cached.widget) : cartWidgetShouldShow);
+    if (shouldShow) this.setHidden(false);
+  }
+
   scheduleLoad() {
     clearTimeout(this.reloadTimer);
     this.reloadTimer = setTimeout(() => this.load(), 200);
@@ -364,7 +396,7 @@ class EarthenLoyaltyWidget extends HTMLElement {
     // Always refresh refs and unhide: this also runs right after an apply morph
     // resets the root to `hidden` and may swap the inner nodes.
     this.cacheRefs();
-    this.hidden = false;
+    this.setHidden(false);
     const pointsReserved = Number(stored.pointsReserved || 0);
     const discountAmount = Number(stored.discountAmount || pointsReserved || 0);
     this.dataset.applied = 'true';
