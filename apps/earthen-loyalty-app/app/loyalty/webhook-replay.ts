@@ -46,6 +46,8 @@ export function buildOrderWebhookPayload(order: {
   currentSubtotal: string | null;
   subtotal: string | null;
   discountCodes: string[];
+  discountAmounts?: Record<string, string>;
+  cancelledAt?: string | null;
   customer: {
     legacyResourceId: string;
     email: string | null;
@@ -59,7 +61,16 @@ export function buildOrderWebhookPayload(order: {
     admin_graphql_api_id: `gid://shopify/Order/${order.legacyResourceId}`,
     current_subtotal_price: order.currentSubtotal,
     subtotal_price: order.subtotal ?? order.currentSubtotal,
-    discount_codes: order.discountCodes.map((code) => ({ code })),
+    cancelled_at: order.cancelledAt ?? null,
+    // Include the allocated amount when known — settle consumes points
+    // pro-rated to it. A code without an amount falls back to the session's
+    // own discount amount (extractDiscountAmountForCode returns null).
+    discount_codes: order.discountCodes.map((code) => ({
+      code,
+      ...(order.discountAmounts?.[code] != null
+        ? { amount: order.discountAmounts[code] }
+        : {}),
+    })),
     customer: order.customer
       ? {
           id: Number(order.customer.legacyResourceId),
@@ -120,9 +131,20 @@ async function fetchOrderForReplay(admin: AdminApiContext, numericId: string) {
     query LoyaltyReplayOrder($id: ID!) {
       order(id: $id) {
         legacyResourceId
+        cancelledAt
         currentSubtotalPriceSet { shopMoney { amount } }
         subtotalPriceSet { shopMoney { amount } }
         discountCodes
+        discountApplications(first: 25) {
+          nodes {
+            ... on DiscountCodeApplication {
+              code
+              value {
+                ... on MoneyV2 { amount }
+              }
+            }
+          }
+        }
         customer {
           legacyResourceId
           email
@@ -138,9 +160,16 @@ async function fetchOrderForReplay(admin: AdminApiContext, numericId: string) {
     data?: {
       order?: {
         legacyResourceId: string;
+        cancelledAt?: string | null;
         currentSubtotalPriceSet?: { shopMoney?: { amount?: string } };
         subtotalPriceSet?: { shopMoney?: { amount?: string } };
         discountCodes?: string[];
+        discountApplications?: {
+          nodes?: Array<{
+            code?: string;
+            value?: { amount?: string };
+          }>;
+        };
         customer?: {
           legacyResourceId: string;
           email: string | null;
@@ -154,11 +183,20 @@ async function fetchOrderForReplay(admin: AdminApiContext, numericId: string) {
   const order = json.data?.order;
   if (!order) return null;
 
+  const discountAmounts: Record<string, string> = {};
+  for (const node of order.discountApplications?.nodes ?? []) {
+    if (node?.code && node.value?.amount != null) {
+      discountAmounts[node.code] = node.value.amount;
+    }
+  }
+
   return buildOrderWebhookPayload({
     legacyResourceId: order.legacyResourceId,
     currentSubtotal: order.currentSubtotalPriceSet?.shopMoney?.amount ?? null,
     subtotal: order.subtotalPriceSet?.shopMoney?.amount ?? null,
     discountCodes: order.discountCodes ?? [],
+    discountAmounts,
+    cancelledAt: order.cancelledAt ?? null,
     customer: order.customer ?? null,
   });
 }
@@ -305,6 +343,79 @@ async function replayEvent(
     default:
       return { outcome: "failed", error: `No replay handler for ${topic}` };
   }
+}
+
+export type SettleSummary = {
+  scanned: number;
+  settled: number;
+  failed: number;
+};
+
+/**
+ * Settle reservations whose discount was spent on a placed order (orders/create
+ * pinned the order id) but whose points were never fully consumed. Ways that
+ * happens: orders created already-paid (Razorpay Magic Checkout) never fire
+ * orders/paid; before the consume-at-create fix orders/create only pinned; a
+ * release path raced the order and handed the points back. Re-fetches each
+ * order from the Admin API (with per-code discount amounts and cancellation
+ * state) and runs the idempotent, deficit-driven settle processor — fully
+ * settled sessions and cancelled orders are no-ops.
+ */
+export async function settleOrderPinnedHolds(
+  db: PrismaClient,
+  admin: AdminApiContext,
+  shopDomain: string,
+): Promise<SettleSummary> {
+  const sessions = await db.redemptionSession.findMany({
+    where: {
+      customer: { shopDomain },
+      shopifyOrderId: { not: null },
+      OR: [
+        // Order attached but never consumed.
+        { status: { in: ["pending", "applied"] } },
+        // Points handed back (release race / prior mis-settle) — settle
+        // recomputes the deficit from the order's real discount allocation;
+        // legitimately returned points (cancel/refund) come out at zero
+        // deficit or are skipped via the order's cancelled_at.
+        { status: { in: ["released", "consumed"] }, pointsReleased: { gt: 0 } },
+      ],
+    },
+    select: { id: true, shopifyOrderId: true },
+    orderBy: { createdAt: "asc" },
+    take: REPLAY_BATCH_SIZE,
+  });
+
+  const summary: SettleSummary = {
+    scanned: sessions.length,
+    settled: 0,
+    failed: 0,
+  };
+
+  for (const session of sessions) {
+    try {
+      const numericId = extractNumericResourceId(session.shopifyOrderId);
+      if (!numericId) {
+        summary.failed += 1;
+        continue;
+      }
+      const payload = await fetchOrderForReplay(admin, numericId);
+      if (!payload) {
+        summary.failed += 1;
+        continue;
+      }
+      const outcome = await processOrderCreated(db, {
+        shop: shopDomain,
+        topic: "orders/create",
+        webhookId: `settle-reconcile-${session.id}`,
+        payload,
+      });
+      if (outcome === "processed") summary.settled += 1;
+    } catch {
+      summary.failed += 1;
+    }
+  }
+
+  return summary;
 }
 
 export async function replayFailedWebhooks(

@@ -13,7 +13,9 @@ import db from "../db.server";
 import { getLoyaltyRuntimeSettings } from "../loyalty/settings";
 import {
   replayFailedWebhooks,
+  settleOrderPinnedHolds,
   type ReplaySummary,
+  type SettleSummary,
 } from "../loyalty/webhook-replay";
 import { authenticate } from "../shopify.server";
 
@@ -32,6 +34,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     replaySummary = await replayFailedWebhooks(db, admin, session.shop);
   } catch {
     replaySummary = null;
+  }
+
+  // Self-heal: consume reservations spent on a placed order whose consume
+  // webhook never ran (orders created already-paid fire no orders/paid).
+  // Idempotent; safe on every page view.
+  let settleSummary: SettleSummary | null = null;
+  try {
+    settleSummary = await settleOrderPinnedHolds(db, admin, session.shop);
+  } catch {
+    settleSummary = null;
   }
 
   let databaseOk = false;
@@ -171,6 +183,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     checks,
     failedWebhooks,
     replaySummary,
+    settleSummary,
     failedEvents: failedEvents.map((event) => ({
       id: event.id,
       topic: event.topic,
@@ -214,6 +227,17 @@ export default function HealthPage() {
           {data.replaySummary.processed} replayed successfully,{" "}
           {data.replaySummary.ignored} no longer applicable,{" "}
           {data.replaySummary.stillFailing} still failing.
+        </s-banner>
+      ) : null}
+
+      {data.settleSummary && data.settleSummary.scanned > 0 ? (
+        <s-banner
+          tone={data.settleSummary.failed === 0 ? "success" : "warning"}
+          heading="Order redemption reconciliation"
+        >
+          Found {data.settleSummary.scanned} reservation(s) attached to placed
+          orders awaiting consumption: {data.settleSummary.settled} settled,{" "}
+          {data.settleSummary.failed} failed.
         </s-banner>
       ) : null}
 

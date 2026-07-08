@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   createRedemption,
   previewRedemption,
+  releaseActiveRedemptions,
   releaseRedemption,
 } from "../app/loyalty/redemptions";
 
@@ -259,5 +260,57 @@ describe("redemption preview", () => {
         pendingPoints: { decrement: 100 },
       },
     });
+  });
+});
+
+describe("order-pinned holds are never released", () => {
+  // Once orders/create pins shopifyOrderId onto a session, the discount was
+  // spent at checkout — only the order webhooks may settle or return it. The
+  // release query must therefore exclude order-pinned sessions, otherwise the
+  // storefront's orphan recovery (firing between checkout and the consume
+  // webhook) hands the points back on top of the discount.
+  it("releaseRedemption filters out sessions pinned to an order", async () => {
+    const wheres: Array<Record<string, unknown>> = [];
+    const db = {
+      redemptionSession: {
+        findFirst: vi.fn().mockImplementation(({ where }) => {
+          wheres.push(where);
+          return Promise.resolve(null);
+        }),
+      },
+    };
+
+    await expect(
+      releaseRedemption({
+        db: db as never,
+        shopDomain: "701031-e7.myshopify.com",
+        shopifyCustomerId: "8584673591392",
+        sessionId: "session-1",
+      }),
+    ).resolves.toEqual({ released: false });
+
+    expect(wheres[0]).toMatchObject({ shopifyOrderId: null });
+  });
+
+  it("releaseActiveRedemptions filters out sessions pinned to an order", async () => {
+    const wheres: Array<Record<string, unknown>> = [];
+    const db = {
+      redemptionSession: {
+        findMany: vi.fn().mockImplementation(({ where }) => {
+          wheres.push(where);
+          return Promise.resolve([]);
+        }),
+      },
+    };
+
+    await expect(
+      releaseActiveRedemptions({
+        db: db as never,
+        shopDomain: "701031-e7.myshopify.com",
+        shopifyCustomerId: "8584673591392",
+      }),
+    ).resolves.toEqual({ released: 0 });
+
+    expect(wheres[0]).toMatchObject({ shopifyOrderId: null });
   });
 });

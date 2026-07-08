@@ -237,6 +237,13 @@ export async function releaseRedemption(input: {
         shopifyCustomerId: input.shopifyCustomerId,
       },
       status: { in: ["pending", "applied"] },
+      // Never release a hold that is pinned to a placed order: the discount
+      // was already spent at checkout and the order webhooks (create/paid to
+      // consume, cancel/refund to return) are the only authority over it.
+      // Releasing here — e.g. the storefront's orphan recovery firing right
+      // after checkout, before the consume webhook lands — would hand the
+      // points back on top of the discount (double credit).
+      shopifyOrderId: null,
     },
     include: {
       customer: { include: { wallet: true } },
@@ -322,6 +329,12 @@ export async function releaseActiveRedemptions(input: {
         shopifyCustomerId: input.shopifyCustomerId,
       },
       status: { in: ["pending", "applied"] },
+      // Order-pinned holds are excluded: their discount was spent on a placed
+      // order and only the order webhooks may settle or return them (see
+      // releaseRedemption). This keeps every reconciliation caller — expiry
+      // self-heal, orphan recovery, re-redeem pre-release — from double
+      // crediting a customer whose consume webhook hasn't landed yet.
+      shopifyOrderId: null,
       ...(input.onlyExpired ? { expiresAt: { lte: new Date() } } : {}),
       ...(input.exceptDiscountCode
         ? { discountCode: { not: input.exceptDiscountCode } }

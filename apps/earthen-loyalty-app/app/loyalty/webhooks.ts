@@ -214,8 +214,44 @@ export async function processOrderPaid(
   // qualifying order by a referred customer triggers it (idempotent inside).
   await maybeRewardReferral(db, context, orderId);
 
+  return settleRedemptionForOrder(db, context, orderId);
+}
+
+/**
+ * Consume a redemption reservation against a placed order. Shared by
+ * orders/create and orders/paid.
+ *
+ * It MUST run at orders/create, not just orders/paid: channels that create the
+ * order through the Admin API already marked paid (Razorpay Magic Checkout)
+ * never transition the order into "paid", so Shopify never fires orders/paid.
+ * Waiting for it strands the reservation in `pending` and the expiry self-heal
+ * eventually hands the points back even though the discount was spent on the
+ * order. The moment an order carries the code, the benefit is locked in —
+ * consume immediately (COD included); cancellations and refunds return
+ * consumed points through their own flows.
+ *
+ * Deficit-driven and idempotent: it computes how many points the order SHOULD
+ * have consumed (from the rupee amount Shopify allocated to the code) and
+ * settles only the shortfall. A fully-settled session is a no-op (paid after
+ * create), a still-held reservation consumes from the pending hold, and points
+ * that were wrongly released back to the wallet (a release racing the order,
+ * or a prior mis-settle) are pulled back out of the available balance — the
+ * discount is never a free ride. When the wallet no longer covers the
+ * shortfall (already spent elsewhere) the session is flagged manual_review
+ * instead of driving the balance negative.
+ */
+async function settleRedemptionForOrder(
+  db: PrismaClient,
+  context: LoyaltyWebhookContext,
+  orderId: string,
+): Promise<"processed" | "ignored"> {
   const discountCode = extractLoyaltyDiscountCode(context.payload);
   if (!discountCode) return "ignored";
+
+  // Reconcile passes re-fetched orders which may since have been cancelled;
+  // cancelled orders return points through processOrderCancelled, never here.
+  if (asString(context.payload.cancelled_at)) return "ignored";
+
   const settings = await getLoyaltyRuntimeSettings({
     db,
     shopDomain: context.shop,
@@ -235,49 +271,104 @@ export async function processOrderPaid(
     where: {
       discountCode,
       customer: { shopDomain: context.shop },
-      status: { in: ["pending", "applied"] },
+      status: { in: ["pending", "applied", "released", "consumed"] },
     },
     include: { customer: { include: { wallet: true } } },
   });
 
   if (!session?.customer.wallet) return "ignored";
+  const wallet = session.customer.wallet;
 
-  const remainingReservedPoints =
-    session.pointsReserved - session.pointsConsumed - session.pointsReleased;
-  if (remainingReservedPoints <= 0) return "processed";
+  const pinnedExpiry = new Date(
+    Date.now() + ORDER_RESERVATION_TTL_DAYS * 24 * 60 * 60 * 1000,
+  );
 
   const discountAmountUsed = Number(
     actualDiscountAmount ?? session.discountAmount,
   );
   // Catalog reward claims (percent off / free shipping / fixed reward) have a
   // fixed points price: consume the full reservation regardless of the rupee
-  // value Shopify allocated to the code. Slider redemptions keep the pro-rated
-  // consume (points = rupees actually discounted).
-  const pointsToConsume = session.rewardType
-    ? remainingReservedPoints
+  // value Shopify allocated to the code. Slider redemptions consume pro-rated
+  // (points = rupees actually discounted).
+  const targetConsume = session.rewardType
+    ? session.pointsReserved
     : Math.min(
-        remainingReservedPoints,
+        session.pointsReserved,
         Math.floor(discountAmountUsed / settings.rules.currencyValuePerPoint),
       );
-  const pointsToRelease = remainingReservedPoints - pointsToConsume;
+  const deficit = targetConsume - session.pointsConsumed;
+
+  if (deficit <= 0) {
+    // Already settled (e.g. orders/paid after orders/create). Keep the order
+    // pinned on a still-active hold so release paths know it is spoken for.
+    if (session.status === "pending" || session.status === "applied") {
+      await db.redemptionSession.update({
+        where: { id: session.id },
+        data: { shopifyOrderId: orderId, expiresAt: pinnedExpiry },
+      });
+    }
+    return "processed";
+  }
+
+  // Where the shortfall comes from: first the points still held in the pending
+  // reservation, then — if some were already handed back to the wallet — the
+  // available balance.
+  const remainingReservedPoints = Math.max(
+    0,
+    session.pointsReserved - session.pointsConsumed - session.pointsReleased,
+  );
+  const fromPending = Math.min(deficit, remainingReservedPoints);
+  const fromReleased = deficit - fromPending;
+  const leftoverToRelease = remainingReservedPoints - fromPending;
+
+  // Pin the order onto the session before touching balances so every release
+  // path (client /remove, expiry self-heal, re-redeem pre-release) can tell
+  // this hold is spoken for even if the settle below fails and retries.
+  if (session.status === "pending" || session.status === "applied") {
+    await db.redemptionSession.update({
+      where: { id: session.id },
+      data: { shopifyOrderId: orderId, expiresAt: pinnedExpiry },
+    });
+  }
+
+  if (fromReleased > 0) {
+    // Pull wrongly-returned points back out of the wallet, guarded so a
+    // balance already spent elsewhere flags for the merchant instead of going
+    // negative.
+    const reclaimed = await db.wallet.updateMany({
+      where: { id: wallet.id, availablePoints: { gte: fromReleased } },
+      data: { availablePoints: { decrement: fromReleased } },
+    });
+    if (reclaimed.count !== 1) {
+      await db.redemptionSession.update({
+        where: { id: session.id },
+        data: { status: "manual_review", shopifyOrderId: orderId },
+      });
+      return "processed";
+    }
+  }
 
   await db.$transaction(async (tx) => {
     await tx.wallet.update({
-      where: { id: session.customer.wallet!.id },
+      where: { id: wallet.id },
       data: {
-        ...(pointsToRelease > 0
-          ? { availablePoints: { increment: pointsToRelease } }
+        ...(leftoverToRelease > 0
+          ? { availablePoints: { increment: leftoverToRelease } }
           : {}),
-        pendingPoints: { decrement: remainingReservedPoints },
-        lifetimeRedeemedPoints: { increment: pointsToConsume },
+        ...(fromPending + leftoverToRelease > 0
+          ? { pendingPoints: { decrement: fromPending + leftoverToRelease } }
+          : {}),
+        lifetimeRedeemedPoints: { increment: deficit },
       },
     });
 
     await tx.redemptionSession.update({
       where: { id: session.id },
       data: {
-        pointsConsumed: { increment: pointsToConsume },
-        pointsReleased: { increment: pointsToRelease },
+        pointsConsumed: { increment: deficit },
+        // Net bookkeeping: reclaimed released points stop counting as
+        // released; any surplus hold released now starts counting.
+        pointsReleased: { increment: leftoverToRelease - fromReleased },
         actualDiscountAmount: discountAmountUsed,
         shopifyOrderId: orderId,
         status: "consumed",
@@ -287,14 +378,19 @@ export async function processOrderPaid(
     await tx.ledgerEntry.create({
       data: {
         customerId: session.customerId,
-        walletId: session.customer.wallet!.id,
+        walletId: wallet.id,
         redemptionSessionId: session.id,
         shopifyOrderId: orderId,
         type: "redeem_consume",
-        pointsDelta: 0,
+        // Points taken from the pending hold were already debited at reserve
+        // time; only a reclaim out of the available balance moves the total.
+        pointsDelta: fromReleased > 0 ? -fromReleased : 0,
         moneyValue: discountAmountUsed,
         currency: session.currency,
-        description: "Consumed reserved points on paid order",
+        description:
+          fromReleased > 0
+            ? "Consumed points on placed order (reclaimed wrongly-released points)"
+            : "Consumed reserved points on paid order",
         metadata: {
           discountCode,
           orderSubtotal: subtotal,
@@ -302,16 +398,17 @@ export async function processOrderPaid(
       },
     });
 
-    if (pointsToRelease > 0) {
+    if (leftoverToRelease > 0) {
       await tx.ledgerEntry.create({
         data: {
           customerId: session.customerId,
-          walletId: session.customer.wallet!.id,
+          walletId: wallet.id,
           redemptionSessionId: session.id,
           shopifyOrderId: orderId,
           type: "redeem_release",
-          pointsDelta: pointsToRelease,
-          moneyValue: pointsToRelease * settings.rules.currencyValuePerPoint,
+          pointsDelta: leftoverToRelease,
+          moneyValue:
+            leftoverToRelease * settings.rules.currencyValuePerPoint,
           currency: session.currency,
           description:
             "Released unused reserved points after paid order discount allocation",
@@ -484,81 +581,11 @@ export async function processOrderCreated(
   context: LoyaltyWebhookContext,
 ): Promise<"processed" | "ignored"> {
   const orderId = extractWebhookResourceId(context.payload);
-  const discountCode = extractLoyaltyDiscountCode(context.payload);
-  if (!orderId || !discountCode) return "ignored";
+  if (!orderId) return "ignored";
 
-  const session = await db.redemptionSession.findUnique({
-    where: { discountCode },
-    include: { customer: { include: { wallet: true } } },
-  });
-  if (!session?.customer.wallet) return "ignored";
-
-  const pinnedExpiry = new Date(
-    Date.now() + ORDER_RESERVATION_TTL_DAYS * 24 * 60 * 60 * 1000,
-  );
-
-  if (session.status === "pending" || session.status === "applied") {
-    await db.redemptionSession.update({
-      where: { id: session.id },
-      data: { shopifyOrderId: orderId, expiresAt: pinnedExpiry },
-    });
-    return "processed";
-  }
-
-  if (session.status === "released") {
-    // The hold was released (expiry self-heal / manual) but the code was still
-    // accepted at checkout. Re-reserve so the discount isn't a free ride.
-    const amount = session.pointsReserved;
-    const reclaimed = await db.wallet.updateMany({
-      where: {
-        id: session.customer.wallet.id,
-        availablePoints: { gte: amount },
-      },
-      data: {
-        availablePoints: { decrement: amount },
-        pendingPoints: { increment: amount },
-      },
-    });
-
-    if (reclaimed.count === 1) {
-      await db.$transaction([
-        db.redemptionSession.update({
-          where: { id: session.id },
-          data: {
-            status: "applied",
-            shopifyOrderId: orderId,
-            expiresAt: pinnedExpiry,
-            pointsReleased: { decrement: amount },
-          },
-        }),
-        db.ledgerEntry.create({
-          data: {
-            customerId: session.customerId,
-            walletId: session.customer.wallet.id,
-            redemptionSessionId: session.id,
-            shopifyOrderId: orderId,
-            type: "redeem_reserve",
-            pointsDelta: -amount,
-            moneyValue: session.discountAmount,
-            currency: session.currency,
-            description:
-              "Re-reserved points: released hold was used on a placed order",
-          },
-        }),
-      ]);
-    } else {
-      // Balance already spent elsewhere — flag for the merchant instead of
-      // driving the wallet negative.
-      await db.redemptionSession.update({
-        where: { id: session.id },
-        data: { status: "manual_review", shopifyOrderId: orderId },
-      });
-    }
-    return "processed";
-  }
-
-  return "processed";
+  return settleRedemptionForOrder(db, context, orderId);
 }
+
 
 export async function processOrderCancelled(
   db: PrismaClient,
@@ -1002,7 +1029,13 @@ function extractDiscountAmountForCode(
   for (const discount of asArray(payload.discount_codes)) {
     const record = asRecord(discount);
     if ((asString(record?.code) ?? "") === code) {
-      return parseMoney(record?.amount);
+      // A payload without a usable amount (replay-built payloads, malformed
+      // entries) must return null so callers fall back to the session's own
+      // discount amount — treating it as ₹0 would release the whole
+      // reservation for free.
+      if (record?.amount == null) return null;
+      const amount = parseMoney(record.amount);
+      return amount > 0 ? amount : null;
     }
   }
 
