@@ -594,11 +594,10 @@ async function createFreeShippingDiscountCode(input: {
             productDiscounts: input.allowDiscountStacking,
             shippingDiscounts: false,
           },
-          customerSelection: {
-            customers: {
-              add: [`gid://shopify/Customer/${input.shopifyCustomerId}`],
-            },
-          },
+          // All-customers, not customer-locked — see createShopifyDiscountCode:
+          // Razorpay Magic Checkout drops customer-restricted codes at checkout.
+          // Safe: random, single-use, ~60-min TTL, bound to one reward claim.
+          customerSelection: { all: true },
           destination: { all: true },
           minimumRequirement:
             input.minimumSubtotal > 0
@@ -725,11 +724,16 @@ async function createShopifyDiscountCode(input: {
             productDiscounts: input.allowDiscountStacking,
             shippingDiscounts: input.allowDiscountStacking,
           },
-          customerSelection: {
-            customers: {
-              add: [`gid://shopify/Customer/${input.shopifyCustomerId}`],
-            },
-          },
+          // Do NOT lock the code to a single customer. Razorpay Magic Checkout
+          // re-creates the order server-side and re-validates each discount code
+          // against the customer it identifies at checkout (by phone); a code
+          // restricted to a specific Shopify customer is dropped whenever that
+          // identity doesn't match, so points silently vanish at payment. An
+          // all-customers code survives. Safety is preserved without the lock:
+          // the code is random and unguessable, single-use (usageLimit: 1),
+          // expires in ~60 minutes, and is bound to one reserved redemption
+          // session on our side.
+          customerSelection: { all: true },
           customerGets: {
             value:
               input.percentOff != null
