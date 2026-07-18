@@ -105,7 +105,7 @@
         cart clears the free-shipping threshold; otherwise it's charged at
         checkout (Shopify can't quote it until the address step).
       {%- endcomment -%}
-      {%- assign es_free_ship = settings.free_shipping_threshold | default: 349 | times: 100 -%}
+      {%- assign es_free_ship = settings.free_shipping_threshold | default: 399 | times: 100 -%}
       {%- if cart.total_price >= es_free_ship -%}
         <small class="es-shipnote es-shipnote--free">Free shipping applied</small>
       {%- else -%}

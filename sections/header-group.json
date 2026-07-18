@@ -18,12 +18,12 @@
           "type": "_announcement",
           "name": "t:names.announcement",
           "settings": {
-            "text": "Free Shipping above ₹349",
+            "text": "Free Shipping above <strong>₹399</strong>",
             "link": "",
             "font": "var(--font-body--family)",
             "font_size": "var(--font-size--body-sm)",
             "weight": "",
-            "letter_spacing": "normal",
+            "letter_spacing": "loose",
             "case": "none"
           },
           "blocks": {}
@@ -32,7 +32,7 @@
           "type": "_announcement",
           "name": "t:names.announcement",
           "settings": {
-            "text": "Use ES10 for 10% off on ₹1500+ | ES15 for 15% off on ₹3000+",
+            "text": "Use <strong>ES5</strong> for 5% off (3+ items) | <strong>ES10</strong> for 10% off (5+ items)",
             "link": "shopify://collections/all-products",
             "font": "var(--font-primary--family)",
             "font_size": "var(--font-size--body-sm)",
