@@ -1,5 +1,5 @@
-# Earthen Subscriptions — custom-distribution app for one store.
-# Replace client_id and production URLs after creating the Shopify app.
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
 client_id = "178d46f3de67e7e494a14134b15d5b7f"
 name = "earthen-subscriptions"
 application_url = "https://earthen-subscriptions-app-768696379805.asia-south1.run.app"
@@ -32,6 +32,7 @@ api_version = "2026-07"
   uri = "/webhooks/compliance"
 
 [access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "read_customers,read_inventory,read_locations,read_orders,read_products,write_draft_orders,write_orders"
 
 [auth]

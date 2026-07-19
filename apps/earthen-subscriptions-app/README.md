@@ -54,26 +54,24 @@ Tests use fake Shopify/Razorpay adapters and do not create charges or orders.
 
 ## Production setup required
 
-1. Create a Shopify CLI/Dev Dashboard app using **Custom distribution** for the
-   production Basic store. Replace the placeholders in `shopify.app.toml`.
-2. Replace `REPLACE_WITH_CLOUD_RUN_URL` in the customer-account extension after the
-   Cloud Run URL is known.
-3. Provision the `earthen_subscriptions` PostgreSQL database and run
+1. Configure the Shopify Dev Dashboard app for **Custom distribution** to the
+   production Basic store.
+2. Provision the `earthen_subscriptions` PostgreSQL database and run
    `prisma migrate deploy`.
-4. Configure all secrets from `.env.example`. Generate at least 32 random bytes for
+3. Configure all secrets from `.env.example`. Generate at least 32 random bytes for
    each signing/job secret.
-5. Obtain Level-2 protected customer data for name, email, phone and address and
+4. Obtain Level-2 protected customer data for name, email, phone and address and
    approve the declared Admin API scopes.
-6. Enable Razorpay variable recurring payments / UPI AutoPay and register
+5. Enable Razorpay variable recurring payments / UPI AutoPay and register
    `/webhooks/razorpay` with the configured webhook secret.
-7. Deploy the app, app proxy, theme extension and checkout/customer-account
+6. Deploy the app, app proxy, theme extension and checkout/customer-account
    extension. Add the blocks in Shopify's theme and checkout/accounts editors.
-8. Create authenticated Cloud Scheduler POST jobs:
+7. Create authenticated Cloud Scheduler POST jobs:
    - `/jobs/renewals` at the approved pre-debit cadence;
    - `/jobs/reconcile` hourly;
    - `/jobs/daily` daily.
    Each request uses `Authorization: Bearer $JOB_AUTH_SECRET`.
-9. Configure Hermes templates. Transactional email stays disabled until the merchant
+8. Configure Hermes templates. Transactional email stays disabled until the merchant
    selects a provider, sender domain and credentials.
 
 ## Required live P0 test

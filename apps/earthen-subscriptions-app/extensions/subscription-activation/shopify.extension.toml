@@ -14,9 +14,5 @@ target = "purchase.thank-you.block.render"
 module = "./src/OrderStatus.jsx"
 target = "customer-account.order-status.block.render"
 
-[[extensions.targeting]]
-module = "./src/SubscriptionsPage.jsx"
-target = "customer-account.page.render"
-
 [extensions.capabilities]
-network_access = true
+network_access = false

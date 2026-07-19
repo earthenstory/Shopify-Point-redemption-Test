@@ -3,7 +3,7 @@ import '@shopify/ui-extensions/preact';
 import {render} from 'preact';
 import {useEffect, useState} from 'preact/hooks';
 
-const APP_URL = 'https://REPLACE_WITH_CLOUD_RUN_URL';
+const APP_URL = 'https://earthen-subscriptions-app-768696379805.asia-south1.run.app';
 
 export default function extension() { render(<SubscriptionsPage />, document.body); }
 

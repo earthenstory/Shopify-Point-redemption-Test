@@ -1,0 +1,14 @@
+api_version = "2026-07"
+
+[[extensions]]
+name = "Manage Earthen subscriptions"
+handle = "subscription-account"
+type = "ui_extension"
+uid = "72b426f5-9193-4e6c-bc30-70cf5363a417"
+
+[[extensions.targeting]]
+module = "./src/SubscriptionsPage.jsx"
+target = "customer-account.page.render"
+
+[extensions.capabilities]
+network_access = true
