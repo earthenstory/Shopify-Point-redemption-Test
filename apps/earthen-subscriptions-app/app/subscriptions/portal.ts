@@ -7,6 +7,16 @@ import type { Address, IntervalCode } from "./types";
 
 export type PortalAccess = { shopDomain: string; customerId?: string; groupId?: string };
 
+export function assertPortalActionAllowed(portal: Record<string, unknown>, action: string) {
+  const permissions: Record<string, string> = {
+    skip: "allowSkip", pause: "allowPause", resume: "allowResume", cancel: "allowCancel",
+    remove_line: "allowRemoveLine", update_address: "allowAddressChange", reschedule: "allowReschedule",
+    retry_payment: "allowRetryPayment", charge_now: "allowChargeNow",
+  };
+  const permission = permissions[action];
+  if (!permission || portal[permission] !== true) throw new Error("This action is disabled by the store.");
+}
+
 export function createPortalToken(input: {
   shopDomain: string;
   groupId: string;

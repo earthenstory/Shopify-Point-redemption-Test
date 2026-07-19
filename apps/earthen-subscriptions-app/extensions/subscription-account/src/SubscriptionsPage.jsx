@@ -1,15 +1,15 @@
 import '@shopify/ui-extensions/preact';
 /* eslint-disable react/prop-types -- Shopify UI-extension payloads are runtime-owned. */
 import {render} from 'preact';
-import {useEffect, useState} from 'preact/hooks';
+import {useCallback, useEffect, useState} from 'preact/hooks';
 
 const APP_URL = 'https://earthen-subscriptions-app-768696379805.asia-south1.run.app';
 
 export default function extension() { render(<SubscriptionsPage />, document.body); }
 
 function SubscriptionsPage() {
-  const [state, setState] = useState({status:'loading', groups:[], error:''});
-  async function request(payload) {
+  const [state, setState] = useState({status:'loading', groups:[], portal:{}, cancellation:{reasons:[]}, error:''});
+  const request = useCallback(async (payload) => {
     try {
       setState(current => ({...current, status:'loading'}));
       const token = await shopify.sessionToken.get();
@@ -20,10 +20,10 @@ function SubscriptionsPage() {
       });
       const data = await response.json();
       if (!response.ok || !data.ok) throw new Error(data.error || 'Request failed');
-      setState({status:'ready', groups:data.groups || [], error:''});
-    } catch (error) { setState({status:'error', groups:[], error:error.message || 'Request failed'}); }
-  }
-  useEffect(() => { request(); }, []);
+      setState(current => ({status:'ready', groups:data.groups || [], portal:data.portal || current.portal, cancellation:data.cancellation || current.cancellation, error:''}));
+    } catch (error) { setState(current => ({...current, status:'error', error:error.message || 'Request failed'})); }
+  }, []);
+  useEffect(() => { request(); }, [request]);
   if (state.status === 'loading') return <s-page heading="Subscriptions"><s-spinner accessibilityLabel="Loading subscriptions" /></s-page>;
   if (state.status === 'error') return <s-page heading="Subscriptions"><s-banner tone="critical">{state.error}</s-banner></s-page>;
   return (
@@ -31,15 +31,16 @@ function SubscriptionsPage() {
       <s-stack direction="block" gap="base">
         {!state.groups.length
           ? <s-banner tone="info">You do not have an active or previous subscription.</s-banner>
-          : state.groups.map(group => <GroupCard key={group.id} group={group} request={request} />)}
+          : state.groups.map(group => <GroupCard key={group.id} group={group} portal={state.portal} cancellation={state.cancellation} request={request} />)}
       </s-stack>
     </s-page>
   );
 }
 
-function GroupCard({group, request}) {
+function GroupCard({group, portal, cancellation, request}) {
   const initial = group.addressJson || {};
   const [editingAddress, setEditingAddress] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState(cancellation.reasons?.[0]?.code || 'other');
   const [address, setAddress] = useState({
     firstName: initial.firstName || '', lastName: initial.lastName || '', phone: initial.phone || '',
     address1: initial.address1 || '', address2: initial.address2 || '', city: initial.city || '',
@@ -57,18 +58,18 @@ function GroupCard({group, request}) {
         {(group.lines || []).map(line => <s-text key={line.id}>{line.quantity} × {line.productTitle}{line.variantTitle ? ` — ${line.variantTitle}` : ''}</s-text>)}
         <s-text>Next delivery: {group.nextChargeAt ? new Date(group.nextChargeAt).toLocaleDateString('en-IN') : 'Not scheduled'}</s-text>
         <s-stack direction="inline" gap="base">
-          {group.status === 'active' && <s-button onClick={() => request({groupId:group.id, action:'skip'})}>Skip next</s-button>}
-          {group.status === 'active' && <s-button onClick={() => request({groupId:group.id, action:'pause'})}>Pause</s-button>}
-          {group.status === 'paused' && <s-button onClick={() => request({groupId:group.id, action:'resume'})}>Resume</s-button>}
-          {!['cancelled','expired'].includes(group.status) && <s-button tone="critical" onClick={() => request({groupId:group.id, action:'cancel'})}>Cancel at cycle end</s-button>}
+          {portal.allowSkip && group.status === 'active' && <s-button onClick={() => request({groupId:group.id, action:'skip'})}>Skip next</s-button>}
+          {portal.allowPause && group.status === 'active' && <s-button onClick={() => request({groupId:group.id, action:'pause'})}>Pause</s-button>}
+          {portal.allowResume && group.status === 'paused' && <s-button onClick={() => request({groupId:group.id, action:'resume'})}>Resume</s-button>}
         </s-stack>
-        {(group.lines || []).length > 1 && group.lines.map(line => (
+        {portal.allowCancel && !['cancelled','expired'].includes(group.status) && <s-stack direction="block" gap="small"><s-select label="Reason for cancellation" value={cancellationReason} onChange={event => setCancellationReason(event.currentTarget.value)}>{(cancellation.reasons || []).map(reason => <s-option key={reason.code} value={reason.code}>{reason.label}</s-option>)}</s-select><s-button tone="critical" onClick={() => request({groupId:group.id, action:'cancel', reasonCode:cancellationReason})}>Cancel at cycle end</s-button></s-stack>}
+        {portal.allowRemoveLine && (group.lines || []).length > 1 && group.lines.map(line => (
           <s-button key={line.id} variant="tertiary" onClick={() => request({groupId:group.id, action:'remove_line', lineId:line.id})}>Remove {line.productTitle}</s-button>
         ))}
-        <s-button variant="tertiary" onClick={() => setEditingAddress(value => !value)}>
+        {portal.allowAddressChange && <s-button variant="tertiary" onClick={() => setEditingAddress(value => !value)}>
           {editingAddress ? 'Close address editor' : 'Update delivery address'}
-        </s-button>
-        {editingAddress && (
+        </s-button>}
+        {portal.allowAddressChange && editingAddress && (
           <s-stack direction="block" gap="base">
             <s-grid gridTemplateColumns="1fr 1fr" gap="base">
               <s-text-field label="First name" value={address.firstName} onInput={field('firstName')} />

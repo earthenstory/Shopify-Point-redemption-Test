@@ -47,6 +47,15 @@ model SubscriptionSettings {
   retryDay7                  Int      @default(7)
   autoCancelDays             Int      @default(14)
   expiryReminderDays         Int      @default(30)
+  schedulerEnabled           Boolean  @default(false)
+  onboardingState           Json     @default("{}")
+  widgetConfig              Json     @default("{}")
+  portalConfig              Json     @default("{}")
+  cancellationConfig        Json     @default("{}")
+  notificationConfig        Json     @default("{}")
+  installationConfig        Json     @default("{}")
+  integrationConfig         Json     @default("{}")
+  advancedConfig            Json     @default("{}")
   createdAt                  DateTime @default(now())
   updatedAt                  DateTime @updatedAt
 }
@@ -244,4 +253,101 @@ model CronRun {
   errors         Json     @default("[]")
 
   @@index([job, startedAt])
+}
+
+model AutomationRule {
+  id             String    @id @default(cuid())
+  shopDomain     String
+  kind           String
+  name           String
+  status         String    @default("draft")
+  config         Json      @default("{}")
+  lastRunAt      DateTime?
+  lastRunStatus  String?
+  processedCount Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([shopDomain, kind, status])
+}
+
+model BulkOperation {
+  id             String    @id @default(cuid())
+  shopDomain     String
+  kind           String
+  status         String    @default("queued")
+  requestedBy    String?
+  selection      Json      @default("{}")
+  result         Json      @default("{}")
+  processedCount Int       @default(0)
+  errorCount     Int       @default(0)
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([shopDomain, kind, createdAt])
+  @@index([status, createdAt])
+}
+
+model SubscriptionImport {
+  id             String    @id @default(cuid())
+  shopDomain     String
+  source         String
+  fileName       String?
+  status         String    @default("draft")
+  mapping        Json      @default("{}")
+  summary        Json      @default("{}")
+  rowCount       Int       @default(0)
+  importedCount  Int       @default(0)
+  skippedCount   Int       @default(0)
+  errorCount     Int       @default(0)
+  expiresAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([shopDomain, createdAt])
+}
+
+model CancellationResponse {
+  id              String   @id @default(cuid())
+  shopDomain      String
+  subscriptionId  String?
+  customerId      String?
+  reasonCode      String
+  reasonText      String?
+  treatmentCode   String?
+  treatmentResult String?
+  cancelled       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@index([shopDomain, createdAt])
+  @@index([reasonCode, createdAt])
+}
+
+model MerchantWebhook {
+  id             String    @id @default(cuid())
+  shopDomain     String
+  name           String
+  url            String
+  topics         Json      @default("[]")
+  status         String    @default("active")
+  signingKeyHash String?
+  lastDeliveryAt DateTime?
+  lastStatus     Int?
+  failureCount   Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([shopDomain, status])
+}
+
+model MerchantApiCredential {
+  shopDomain  String    @id
+  enabled     Boolean   @default(false)
+  tokenHash   String?
+  secretHash  String?
+  tokenLast4  String?
+  rotatedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }

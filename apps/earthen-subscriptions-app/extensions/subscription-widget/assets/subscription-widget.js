@@ -14,8 +14,24 @@
         const response = await fetch(`/apps/subscriptions/config?product_id=${encodeURIComponent(this.dataset.productId)}`, {credentials:'same-origin'});
         this.config = await response.json();
         if (!this.config.ok || !this.config.enabled) return;
+        const widget = this.config.widget || {};
+        if ((widget.disabledPathFragments || []).some(fragment => fragment && location.pathname.includes(fragment))) return;
+        this.dataset.design = widget.design || 'card';
+        this.style.setProperty('--es-accent', widget.accentColor || '#112557');
+        this.style.setProperty('--es-border', widget.borderColor || '#dfc07a');
+        this.style.setProperty('--es-background', widget.backgroundColor || '#fffdf8');
+        this.style.setProperty('--es-text', widget.textColor || '#18181b');
+        this.querySelector('[data-heading]').textContent = widget.heading || 'Subscribe & save on future deliveries';
+        this.querySelector('[data-add]').textContent = widget.buttonLabel || 'Add to subscription basket';
         this.querySelector('[data-interval]').innerHTML = this.config.intervals.map(value => `<option value="${value}">${labels[value] || value}</option>`).join('');
-        this.querySelector('[data-saving-copy]').textContent = `Save ${this.formatPercent(this.config.baseDiscountBps)} or more on renewals. Your first order is charged at today’s normal price.`;
+        const query = new URLSearchParams(location.search);
+        if (this.config.intervals.includes(query.get('interval'))) this.querySelector('[data-interval]').value = query.get('interval');
+        if (query.has('quantity')) this.querySelector('[data-quantity]').value = String(Math.min(100, Math.max(1, Number(query.get('quantity')) || 1)));
+        this.querySelector('[data-interval-wrap]').hidden = Boolean(widget.hideSingleIntervalSelector && this.config.intervals.length === 1);
+        this.querySelector('[data-saving-copy]').textContent = widget.showSavingsBadge === false
+          ? (widget.description || 'Choose a delivery frequency.')
+          : `Save ${this.formatPercent(this.config.baseDiscountBps)} or more on renewals.${widget.showOneTimeFirst === false ? '' : ' Your first order is charged at today’s normal price.'}`;
+        if (widget.customCss) this.insertAdjacentHTML('beforeend', `<style>${String(widget.customCss).replace(/<\/style/gi, '<\\/style')}</style>`);
         this.querySelector('[data-add]').addEventListener('click', () => this.add());
         this.querySelector('[data-checkout]').addEventListener('click', () => this.checkout());
         this.querySelector('[data-clear]').addEventListener('click', () => { this.writeBasket([]); this.renderBasket(); });
@@ -87,7 +103,7 @@
       const current = [...tiers].reverse().find(tier => units >= tier.minimumQuantity);
       const next = tiers.find(tier => units < tier.minimumQuantity);
       const effective = this.config.baseDiscountBps + Number(current?.additionalDiscountBps || 0);
-      this.querySelector('[data-progress]').textContent = next
+      this.querySelector('[data-progress]').textContent = this.config.widget?.showSavingsBadge === false ? '' : next
         ? `Future deliveries save ${this.formatPercent(effective)}. Add ${next.minimumQuantity-units} more unit(s) to unlock ${this.formatPercent(this.config.baseDiscountBps+next.additionalDiscountBps)}.`
         : `Future deliveries save ${this.formatPercent(effective)} at the highest configured tier.`;
     }

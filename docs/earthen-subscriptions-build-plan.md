@@ -17,10 +17,39 @@ notifications, customer portals, admin operations/calendar/health, privacy webho
 scheduled jobs and deployment assets.
 
 Local verification passes TypeScript, ESLint, Prisma schema validation, the
-production React Router build, Shopify CLI validation for both extensions, and 25
-unit/integration/smoke tests across 9 test files. These are adapter-backed tests and
+production React Router build, Shopify CLI validation for both extensions, and 31
+unit/integration/smoke tests across 11 test files. These are adapter-backed tests and
 do not make real Razorpay debits or create live Shopify orders. The P0 live capability
 spike in section 15 remains mandatory before enabling the master switch.
+
+### Seal-style control plane — 19 July 2026
+
+The app now has a Seal-inspired administration structure while retaining Earthen's
+approved Razorpay and combined-delivery model. It does not copy Seal branding,
+source code, text or proprietary trade dress. The following modules are implemented:
+
+| Module | Implemented behavior |
+|---|---|
+| Dashboard | Master signup switch, hard launch-readiness gate, onboarding progress, real KPIs, recent activity, upcoming renewals and job status. |
+| Subscriptions | All/upcoming/failed/pending/active/paused/cancelled views; search; pagination; subscription detail; SKU, billing and audit history; pause, resume, skip, reschedule, remove SKU and cancellation actions. |
+| Products and plans | None/selected/all product enrollment, exclusions, Shopify resource picker, global intervals/duration/shipping, versioned discounts and quantity tiers, explicit policy migration, fixed schedules and quick-link format. |
+| Customer experience | Customer-account and magic-link portals, merchant-configurable allowed actions, guided cancellation reasons, retention treatments and cancellation reporting. Material SKU/quantity/frequency additions still use replacement subscriptions. |
+| Widget | Admin-configurable content, colors, layout, savings copy, interval behavior, URL exclusions, custom CSS and query-string preselection. The master switch and product eligibility remain authoritative. |
+| Automations | Persisted draft/active/paused rules for loyalty discounts, product swaps, interval flows, upsells and fixed schedules, with last-run and processed-count tracking. Rules requiring a merchant-selected trigger/action mapping are not executed until configured. |
+| Operations | Calendar, demand forecast, bulk pause/resume/cancel-at-cycle-end, import workspaces, job history, incoming webhook history and health links. |
+| Analytics | Real store-only subscription status, growth, churn, collected/scheduled/unresolved renewal revenue, payment outcomes, product/SKU demand, inventory forecast and cancellation/retention reports. No sample data is injected. |
+| Notifications | Customer and admin sequence configuration, channel gates, pre-debit timing, success/failure/stockout/cancellation/expiry options, plus provider-readiness checks. |
+| Installation | Shopify theme, Thank-you, Order-status and customer-account block checklist with direct admin editor links. |
+| Integrations/API | Tags, analytics/CRM configuration, one-time merchant API credentials, subscription list/action API, outgoing webhook registrations and delivery health. |
+| Advanced | Latest price/title/SKU propagation policy, dynamic shipping recalculation policy, retention duration and date/display settings. |
+
+Remaining external or merchant-dependent launch work is deliberately blocked by the
+master switch: production Razorpay credentials and live variable-debit proof,
+Cloud Scheduler configuration, transactional email provider/sender, production
+WhatsApp provider credentials, protected-customer-data approval, extension placement
+verification, and one live end-to-end mandate/renewal/refund rehearsal. Seal/other
+provider imports also require a source export and confirmation that its payment
+mandates are portable; the app must not silently recreate or transfer mandates.
 
 ---
 

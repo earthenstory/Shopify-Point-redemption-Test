@@ -20,8 +20,11 @@ export async function runDueRenewals(input: {
   limit?: number;
 }) {
   const now = input.now ?? new Date();
+  const enabledShops = await input.db.subscriptionSettings.findMany({
+    where: { schedulerEnabled: true }, select: { shopDomain: true },
+  });
   const groups = await input.db.subscriptionGroup.findMany({
-    where: { status: "active", nextChargeAt: { lte: now }, endAt: { gt: now } },
+    where: { shopDomain: { in: enabledShops.map((item) => item.shopDomain) }, status: "active", nextChargeAt: { lte: now }, endAt: { gt: now } },
     orderBy: { nextChargeAt: "asc" },
     take: input.limit ?? 50,
   });
