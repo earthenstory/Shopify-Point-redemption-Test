@@ -1,0 +1,43 @@
+# Earthen Subscriptions — custom-distribution app for one store.
+# Replace client_id and production URLs after creating the Shopify app.
+client_id = "REPLACE_WITH_SHOPIFY_CLIENT_ID"
+name = "earthen-subscriptions"
+application_url = "https://REPLACE_WITH_CLOUD_RUN_URL"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+
+[webhooks]
+api_version = "2026-07"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+  [[webhooks.subscriptions]]
+  topics = [ "orders/create" ]
+  uri = "/webhooks/orders/create"
+
+  [[webhooks.subscriptions]]
+  topics = [ "orders/paid" ]
+  uri = "/webhooks/orders/paid"
+
+  [[webhooks.subscriptions]]
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
+  uri = "/webhooks/compliance"
+
+[access_scopes]
+scopes = "read_customers,read_inventory,read_locations,read_orders,read_products,write_draft_orders,write_orders"
+
+[auth]
+redirect_urls = [ "https://REPLACE_WITH_CLOUD_RUN_URL/auth/callback" ]
+
+[app_proxy]
+url = "https://REPLACE_WITH_CLOUD_RUN_URL/apps/subscriptions"
+prefix = "apps"
+subpath = "subscriptions"

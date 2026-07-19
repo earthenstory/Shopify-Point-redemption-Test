@@ -1,0 +1,39 @@
+{% if product %}
+  <earthen-subscription-widget
+    class="earthen-subscription-widget"
+    data-product-id="{{ product.id }}"
+    data-product-title="{{ product.title | escape }}"
+    hidden
+    {{ block.shopify_attributes }}
+  >
+    <script type="application/json" data-product-json>{{ product | json }}</script>
+    <div class="es-sub-card">
+      <div class="es-sub-heading">Subscribe &amp; save on future deliveries</div>
+      <p class="es-sub-copy" data-saving-copy>Choose a delivery frequency. Your first order is at today’s normal price.</p>
+      <label>Delivery frequency
+        <select data-interval></select>
+      </label>
+      <label>Quantity
+        <input data-quantity type="number" min="1" max="100" value="1">
+      </label>
+      <button type="button" data-add>Add to subscription basket</button>
+      <div class="es-sub-feedback" data-feedback aria-live="polite"></div>
+      <div class="es-sub-basket" data-basket hidden>
+        <strong><span data-count>0</span> subscription item(s)</strong>
+        <span data-progress></span>
+        <button type="button" data-checkout>Create subscription order</button>
+        <button type="button" class="es-sub-link" data-clear>Clear</button>
+      </div>
+    </div>
+  </earthen-subscription-widget>
+  {{ 'subscription-widget.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'subscription-widget.js' | asset_url }}" defer></script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Subscription signup",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

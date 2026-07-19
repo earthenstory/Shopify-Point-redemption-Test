@@ -1,0 +1,247 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+model SubscriptionSettings {
+  shopDomain                  String   @id
+  enrollmentMode             String   @default("none")
+  selectedProductIds         Json     @default("[]")
+  excludedProductIds         Json     @default("[]")
+  currentPricingPolicyId     String?
+  defaultDurationMonths      Int      @default(24)
+  allowedIntervals           Json     @default("[\"weekly\",\"fortnightly\",\"monthly\",\"bimonthly\",\"quarterly\",\"half_yearly\"]")
+  activationTtlHours         Int      @default(48)
+  freeShippingThresholdPaise Int      @default(34900)
+  shippingFeePaise           Int      @default(4900)
+  widgetEnabled              Boolean  @default(false)
+  whatsappEnabled            Boolean  @default(true)
+  successfulRenewalWhatsapp  Boolean  @default(false)
+  emailEnabled               Boolean  @default(false)
+  emailFrom                  String?
+  retryDay3                  Int      @default(3)
+  retryDay7                  Int      @default(7)
+  autoCancelDays             Int      @default(14)
+  expiryReminderDays         Int      @default(30)
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+}
+
+model PricingPolicyVersion {
+  id              String   @id @default(cuid())
+  shopDomain      String
+  version         Int
+  baseDiscountBps Int      @default(200)
+  createdAt       DateTime @default(now())
+  tiers           QuantityDiscountTier[]
+  groups          SubscriptionGroup[]
+  intents         SubscriptionIntent[]
+
+  @@unique([shopDomain, version])
+  @@index([shopDomain, createdAt])
+}
+
+model QuantityDiscountTier {
+  id                    String @id @default(cuid())
+  pricingPolicyId       String
+  minimumQuantity       Int
+  additionalDiscountBps Int
+  pricingPolicy         PricingPolicyVersion @relation(fields: [pricingPolicyId], references: [id], onDelete: Cascade)
+
+  @@unique([pricingPolicyId, minimumQuantity])
+}
+
+model SubscriptionIntent {
+  id                  String   @id @default(cuid())
+  shopDomain          String
+  signedCartReference String   @unique
+  requestedLines      Json
+  intervalCode        String
+  pricingPolicyId     String
+  pricingPolicy       PricingPolicyVersion @relation(fields: [pricingPolicyId], references: [id])
+  status              String   @default("cart")
+  shopifyOrderId      String?
+  customerSnapshot    Json?
+  subscriptionGroupId String?  @unique
+  subscriptionGroup   SubscriptionGroup? @relation(fields: [subscriptionGroupId], references: [id])
+  expiresAt           DateTime
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([shopDomain, status])
+  @@index([shopifyOrderId])
+}
+
+model SubscriptionGroup {
+  id                           String   @id @default(cuid())
+  shopDomain                   String
+  status                       String   @default("pending_mandate")
+  shopifyCustomerId            String?
+  customerName                 String
+  customerEmail                String
+  customerPhone                String
+  addressJson                  Json
+  intervalCode                 String
+  anchorDate                   DateTime
+  nextChargeAt                 DateTime?
+  endAt                        DateTime
+  pricingPolicyId              String
+  pricingPolicy                PricingPolicyVersion @relation(fields: [pricingPolicyId], references: [id])
+  razorpayCustomerId           String?
+  razorpayTokenId              String?  @unique
+  razorpayRegistrationOrderId  String?  @unique
+  mandateMaxPaise              Int?
+  cancelAtCycleEnd             Boolean  @default(false)
+  cancelledAt                  DateTime?
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
+  lines                        SubscriptionLine[]
+  cycles                       BillingCycle[]
+  activationIntent             SubscriptionIntent?
+
+  @@index([shopDomain, status])
+  @@index([shopifyCustomerId])
+  @@index([status, nextChargeAt])
+}
+
+model SubscriptionLine {
+  id                        String   @id @default(cuid())
+  subscriptionGroupId       String
+  group                     SubscriptionGroup @relation(fields: [subscriptionGroupId], references: [id], onDelete: Cascade)
+  shopifyProductId          String
+  shopifyVariantId          String
+  sku                       String?
+  productTitle              String
+  variantTitle              String?
+  quantity                  Int
+  signupUnitPricePaise      Int
+  lastChargedUnitPricePaise Int?
+  status                    String   @default("active")
+  removedAt                 DateTime?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@index([subscriptionGroupId, status])
+  @@index([shopifyVariantId])
+}
+
+model BillingCycle {
+  id                    String   @id @default(cuid())
+  subscriptionGroupId   String
+  group                 SubscriptionGroup @relation(fields: [subscriptionGroupId], references: [id], onDelete: Cascade)
+  seq                   Int
+  status                String   @default("preparing")
+  scheduledAt           DateTime
+  qualificationQuantity Int
+  baseDiscountBps       Int
+  tierBonusBps          Int
+  chargeAmountPaise     Int?
+  shippingPaise         Int?
+  lineSnapshot          Json     @default("[]")
+  razorpayOrderId       String?  @unique
+  razorpayPaymentId     String?  @unique
+  shopifyOrderId        String?
+  failureCode           String?
+  failureMessage        String?
+  claimedAt             DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  paymentAttempts       PaymentAttempt[]
+
+  @@unique([subscriptionGroupId, seq])
+  @@index([status, scheduledAt])
+}
+
+model PaymentAttempt {
+  id                String   @id @default(cuid())
+  billingCycleId    String
+  cycle             BillingCycle @relation(fields: [billingCycleId], references: [id], onDelete: Cascade)
+  externalPaymentId String?
+  externalOrderId   String?  @unique
+  status            String
+  reason            String?
+  attemptedAt       DateTime @default(now())
+
+  @@index([billingCycleId, attemptedAt])
+}
+
+model WebhookEvent {
+  id              String   @id @default(cuid())
+  source          String
+  externalEventId String
+  topic           String
+  payloadHash     String
+  status          String   @default("received")
+  error           String?
+  receivedAt      DateTime @default(now())
+  processedAt     DateTime?
+
+  @@unique([source, externalEventId])
+  @@index([status, receivedAt])
+}
+
+model EventLog {
+  id            String   @id @default(cuid())
+  shopDomain    String
+  entityType    String
+  entityId      String
+  eventType     String
+  maskedPayload Json     @default("{}")
+  createdAt     DateTime @default(now())
+
+  @@index([shopDomain, createdAt])
+  @@index([entityType, entityId])
+}
+
+model NotificationLog {
+  id                String   @id @default(cuid())
+  shopDomain        String
+  channel           String
+  template          String
+  idempotencyKey    String   @unique
+  recipientMasked   String
+  status            String
+  providerReference String?
+  error             String?
+  sentAt            DateTime?
+  createdAt         DateTime @default(now())
+
+  @@index([shopDomain, createdAt])
+}
+
+model CronRun {
+  id             String   @id @default(cuid())
+  job            String
+  status         String   @default("running")
+  startedAt      DateTime @default(now())
+  completedAt    DateTime?
+  processedCount Int      @default(0)
+  errorCount     Int      @default(0)
+  errors         Json     @default("[]")
+
+  @@index([job, startedAt])
+}

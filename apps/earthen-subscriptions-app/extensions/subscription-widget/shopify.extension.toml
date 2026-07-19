@@ -1,0 +1,7 @@
+api_version = "2026-07"
+
+[[extensions]]
+name = "Earthen subscription widget"
+handle = "subscription-widget"
+type = "theme"
+uid = "aa10f260-ec8d-4e7b-b083-910a8da03b01"
